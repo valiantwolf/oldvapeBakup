@@ -4158,7 +4158,6 @@ run(function()
 				FontSize = Enum.FontSize.Size24
 			}
 		)
-		
 	end
     local savestaffdata = function(player, detection)
         local success, json = pcall(function() 
@@ -5288,3 +5287,20 @@ run(function()
 		Function = void
 	})
 end);
+
+task.spawn(function()
+	local dir = 'vape/Libraries/PotatoMode.txt'
+	local PotatoMode = isfile(dir) and readfile(dir) or "no"
+	if PotatoMode ~= "no" then
+		warningNotification("Voidware Anti Crash", "Waiting for the game to start to load Voidware Modules...", 5)
+		warningNotification("Voidware Potato Mode", "Please dont uninject till the game starts to \n not risk your settings getting deleted!", 5)
+		repeat task.wait() until store.matchState ~= 0 
+		shared.LoadVoidwareModules = true
+		shared.LoadVapeModules = true
+	end
+end)
+
+GuiLibrary.SelfDestructEvent.Event:Connect(function()
+	if shared.LoadVoidwareModules then shared.LoadVoidwareModules = nil end
+	if shared.LoadVapeModules then shared.LoadVapeModules = nil end
+end)
