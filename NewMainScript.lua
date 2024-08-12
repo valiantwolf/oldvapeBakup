@@ -278,20 +278,26 @@ if not shared.VapeDeveloper then
 			if ((not isfile("vape/commithash.txt")) or (readfile("vape/commithash.txt") ~= commit or commit == "main")) then
 				for i,v in pairs({"vape/Universal.lua", "vape/MainScript.lua", "vape/GuiLibrary.lua"}) do 
 					if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
-						delfile(v)
+                        if not shared.VoidDev then
+						    delfile(v)
+                        end
 					end 
 				end
 				if isfolder("vape/CustomModules") then 
 					for i,v in pairs(listfiles("vape/CustomModules")) do 
 						if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
-							delfile(v)
+                            if not shared.VoidDev then
+							    delfile(v)
+                            end
 						end 
 					end
 				end
 				if isfolder("vape/Libraries") then 
 					for i,v in pairs(listfiles("vape/Libraries")) do 
 						if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
-							delfile(v)
+                            if not shared.VoidDev then
+							    delfile(v)
+                            end
 						end 
 					end
 				end
