@@ -7408,40 +7408,43 @@ run(function()
 	})
 end)
 
-run(function()
-	local sendmessage = function() end
-	sendmessage = function(text)
-		local function createBypassMessage(message)
-			local charMappings = {
-				["a"] = "ɑ", ["b"] = "ɓ", ["c"] = "ɔ", ["d"] = "ɗ", ["e"] = "ɛ",
-				["f"] = "ƒ", ["g"] = "ɠ", ["h"] = "ɦ", ["i"] = "ɨ", ["j"] = "ʝ",
-				["k"] = "ƙ", ["l"] = "ɭ", ["m"] = "ɱ", ["n"] = "ɲ", ["o"] = "ɵ",
-				["p"] = "ρ", ["q"] = "ɋ", ["r"] = "ʀ", ["s"] = "ʂ", ["t"] = "ƭ",
-				["u"] = "ʉ", ["v"] = "ʋ", ["w"] = "ɯ", ["x"] = "x", ["y"] = "ɣ",
-				["z"] = "ʐ", ["A"] = "Α", ["B"] = "Β", ["C"] = "Ϲ", ["D"] = "Δ",
-				["E"] = "Ε", ["F"] = "Ϝ", ["G"] = "Γ", ["H"] = "Η", ["I"] = "Ι",
-				["J"] = "ϳ", ["K"] = "Κ", ["L"] = "Λ", ["M"] = "Μ", ["N"] = "Ν",
-				["O"] = "Ο", ["P"] = "Ρ", ["Q"] = "Ϙ", ["R"] = "Ϣ", ["S"] = "Ϛ",
-				["T"] = "Τ", ["U"] = "ϒ", ["V"] = "ϝ", ["W"] = "Ω", ["X"] = "Χ",
-				["Y"] = "Υ", ["Z"] = "Ζ"
-			}
-			local bypassMessage = ""
-			for i = 1, #message do
-				local char = message:sub(i, i)
-				bypassMessage = bypassMessage .. (charMappings[char] or char)
-			end
-			return bypassMessage
+local sendmessage = function() end
+sendmessage = function(text)
+	local function createBypassMessage(message)
+		local charMappings = {
+			["a"] = "ɑ", ["b"] = "ɓ", ["c"] = "ɔ", ["d"] = "ɗ", ["e"] = "ɛ",
+			["f"] = "ƒ", ["g"] = "ɠ", ["h"] = "ɦ", ["i"] = "ɨ", ["j"] = "ʝ",
+			["k"] = "ƙ", ["l"] = "ɭ", ["m"] = "ɱ", ["n"] = "ɲ", ["o"] = "ɵ",
+			["p"] = "ρ", ["q"] = "ɋ", ["r"] = "ʀ", ["s"] = "ʂ", ["t"] = "ƭ",
+			["u"] = "ʉ", ["v"] = "ʋ", ["w"] = "ɯ", ["x"] = "x", ["y"] = "ɣ",
+			["z"] = "ʐ", ["A"] = "Α", ["B"] = "Β", ["C"] = "Ϲ", ["D"] = "Δ",
+			["E"] = "Ε", ["F"] = "Ϝ", ["G"] = "Γ", ["H"] = "Η", ["I"] = "Ι",
+			["J"] = "ϳ", ["K"] = "Κ", ["L"] = "Λ", ["M"] = "Μ", ["N"] = "Ν",
+			["O"] = "Ο", ["P"] = "Ρ", ["Q"] = "Ϙ", ["R"] = "Ϣ", ["S"] = "Ϛ",
+			["T"] = "Τ", ["U"] = "ϒ", ["V"] = "ϝ", ["W"] = "Ω", ["X"] = "Χ",
+			["Y"] = "Υ", ["Z"] = "Ζ"
+		}
+		local bypassMessage = ""
+		for i = 1, #message do
+			local char = message:sub(i, i)
+			bypassMessage = bypassMessage .. (charMappings[char] or char)
 		end
-		text = text.." | discord.gg/voidware"
-		text = createBypassMessage(text)
-		local textChatService = game:GetService("TextChatService")
-		local replicatedStorageService = game:GetService("ReplicatedStorage")
-		if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-			textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
-		else
-			replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
-		end
+		return bypassMessage
 	end
+	text = text.." | discord.gg/voidware"
+	text = createBypassMessage(text)
+	local textChatService = game:GetService("TextChatService")
+	local replicatedStorageService = game:GetService("ReplicatedStorage")
+	if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+		textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
+	else
+		replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+	end
+end
+
+getgenv().sendmessage = sendmessage
+
+run(function()
 	local justsaid = ''
 	local leavesaid = false
 	local alreadyreported = {}
