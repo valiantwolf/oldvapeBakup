@@ -5225,7 +5225,7 @@ run(function()
 			anim:Play(0.1, 9e9, 0.1);
 		until (not invis.Enabled)
 	end;
-	invis = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
+	invis = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
 		Name = 'Invisibility',
 		HoverText = 'Plays an animation which makes it harder\nfor targets to see you.',
 		Function = function(calling)
