@@ -2239,6 +2239,7 @@ local teleportConnection = playersService.LocalPlayer.OnTeleport:Connect(functio
     if (not teleportedServers) and (not shared.VapeIndependent) then
 		teleportedServers = true
 		local teleportScript = [[
+			repeat task.wait() until game:IsLoaded()
 			shared.VapeSwitchServers = true
 			if shared.VapeDeveloper then
 				loadstring(readfile("vape/NewMainScript.lua"))()
