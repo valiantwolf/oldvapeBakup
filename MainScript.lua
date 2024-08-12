@@ -2242,7 +2242,11 @@ local teleportConnection = playersService.LocalPlayer.OnTeleport:Connect(functio
 			repeat task.wait() until game:IsLoaded()
 			shared.VapeSwitchServers = true
 			if shared.VapeDeveloper or shared.VoidDev then
-				loadstring(readfile("vape/NewMainScript.lua"))()
+                if isfile('vape/NewMainScript.lua') then
+				    loadstring(readfile("vape/NewMainScript.lua"))()
+                else
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/main/NewMainScript.lua", true))()
+                end
 			else
 				loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/main/NewMainScript.lua", true))()
 			end
