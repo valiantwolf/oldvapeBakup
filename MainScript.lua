@@ -1857,9 +1857,6 @@ if isBedwarsGame() then
 		Default = false,
 		HoverText = "Hides the stats window which pops at the end of the game"
 	})
-else
-	shared.LoadVoidwareModules = true
-	shared.LoadVapeModules = true
 end
 GuiLibrary["RewriteUI"] = Instance.new("BindableEvent")
 local RewriteUIToggle = {Enabled = false}
@@ -1869,29 +1866,8 @@ RewriteUIToggle = VWSettings.CreateToggle({
 		local table_to_send = {["Enabled"] = calling}
 		GuiLibrary["RewriteUI"]:Fire(table_to_send)
 	end,
-	Default = false,
+	Default = true,
 	HoverText = "Enabled Rewrite UI"
-})
-local PotatoMode = {Enabled = false}
-PotatoMode = VWSettings.CreateToggle({
-	Name = "PotatoMode",
-	Function = function(calling)
-		local response
-		if calling then response = "yes" else response = "no" end
-		writefile('vape/Libraries/PotatoMode.txt', response)
-		task.spawn(function()
-			repeat task.wait() until warningNotification
-			pcall(function()
-				if calling then
-					warningNotification("Voidware Potato Mode", "Potato Mode successfully enabled!", 7)
-				else
-					warningNotification("Voidware Potato Mode", "Potato Mode will disable after you restart Voidware!", 7)
-				end
-			end)
-		end)
-	end,
-	Default = false,
-	HoverText = "Enables Potato Mode for Voidware"
 })
 local Rewrite_Windows_Corresponder = {
 	["Funny"] = "Blatant",
@@ -2086,11 +2062,11 @@ GUIColorSlider2 = GUI.CreateColorSlider("GUI Theme2", function(h, s, v)
 	GuiLibrary.UpdateUI(h, s, v)
 end, true)
 GUIColorSlider2.Object.Visible = false
-GradientUIToggle = GUI.CreateToggle({
+GradientUIToggle = GUI.CreateToggle({ 
 	Name = "Gradient UI",
 	Function = function(calling)
 		if calling then GuiLibrary.GradientMode = true GUIColorSlider2.Object.Visible = true else GuiLibrary.GradientMode = false GUIColorSlider2.Object.Visible = false end
-	end,
+	end
 	--HoverText = "Required for certain features."
 })
 local BlatantModeToggle = GUI.CreateToggle({

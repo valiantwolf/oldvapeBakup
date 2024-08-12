@@ -814,37 +814,8 @@ if shared.VapeExecuted then
 				if obj then
 					if v.Type == "OptionsButton" then
 						if v["Enabled"] and not obj["Api"]["Enabled"] then
-							local VoidwareWindows = {"Customisation", "Exploits", "Hot", "TP", "Voidware", "Funny"}
-							local function isVW(windowName)
-								if windowName then
-									for i,v in pairs(VoidwareWindows) do
-										if windowName == VoidwareWindows[i] then return true end
-									end
-									return false
-								else
-									return false
-								end
-							end
-							if GuiLibrary.ObjectsThatCanBeSaved[i]["Window"] and isVW(tostring(GuiLibrary.ObjectsThatCanBeSaved[i]["Window"])) then
-								task.spawn(function()
-									repeat task.wait() until shared.LoadVoidwareModules == true
-									local suc, res = pcall(function() obj["Api"]["ToggleButton"](false) end)
-									if not suc then print(res) end
-								end)
-							else
-								local dir = 'vape/Libraries/PotatoMode.txt'
-								local PotatoMode = isfile(dir) and readfile(dir) or "no"
-								if PotatoMode == "no" then
-									local suc, res = pcall(function() obj["Api"]["ToggleButton"](false) end)
-									if not suc then print(res) end
-								else
-									task.spawn(function()
-										repeat task.wait() until shared.LoadVapeModules == true
-										local suc, res = pcall(function() obj["Api"]["ToggleButton"](false) end)
-										if not suc then print(res) end
-									end)
-								end
-							end
+							local suc, res = pcall(function() obj["Api"]["ToggleButton"](false) end)
+							if not suc then print(res) end
 						end
 						if v["Keybind"] ~= "" then
 							obj["Api"]["SetKeybind"](v["Keybind"])
@@ -9649,9 +9620,9 @@ if shared.VapeExecuted then
 					button.Text = ""
 					button.LayoutOrder = amount
 					button.Parent = searchbarchildren
-					--[[v.Object:GetPropertyChangedSignal("BackgroundColor3"):Connect(function()
+					v.Object:GetPropertyChangedSignal("BackgroundColor3"):Connect(function()
 						button.BackgroundColor3 = v.Object.BackgroundColor3
-					end)--]]
+					end)
 					local buttonactiveborder = Instance.new("Frame")
 					buttonactiveborder.BackgroundTransparency = 0.75
 					buttonactiveborder.BackgroundColor3 = Color3.new(0, 0, 0)
