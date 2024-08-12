@@ -5202,7 +5202,6 @@ run(function()
 				for i,v in invisbaseparts do 
 					v.CanCollide = false;
 				end
-				task.wait()
 			end);
 			table.insert(invis.Connections, invisrenderstep);
 		end)
