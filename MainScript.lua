@@ -2477,6 +2477,9 @@ local teleportConnection = playersService.LocalPlayer.OnTeleport:Connect(functio
 		if shared.VapeDeveloper then
 			teleportScript = 'shared.VapeDeveloper = true\n'..teleportScript
 		end
+		if shared.VoidDev then
+			teleportScript = 'shared.VoidDev = true\n'..teleportScript
+		end
 		if shared.ClosetCheatMode then
 			teleportScript = 'shared.ClosetCheatMode = true\n'..teleportScript
 		end
