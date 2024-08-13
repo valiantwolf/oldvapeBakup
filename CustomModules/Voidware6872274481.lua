@@ -3416,7 +3416,7 @@ run(function()
 	local playertween
 	Autowin = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
 		Name = "Autowin",
-		ExtraText = function() return store.queueType :find("5v5") and "BedShield" or "Normal" end,
+		ExtraText = function() return store.queueType:find("5v5") and "BedShield" or "Normal" end,
 		Function = function(callback)
 			if callback then
 				task.spawn(function()
