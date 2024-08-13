@@ -4969,6 +4969,7 @@ end)
 		end
 	}) 
 end)--]]
+
 run(function()
 	local tween = game:GetService("TweenService")
 	local DamageIndicator = {}
@@ -5168,6 +5169,7 @@ run(function()
 	DamageIndicatorTextList.Object.Visible = false
 	DamageIndicatorStrokeColor.Object.Visible = false
 end)
+
 run(function()
 	local invis = {};
 	local invisbaseparts = safearray();
@@ -5252,6 +5254,7 @@ run(function()
 		Function = void
 	})
 end)
+
 run(function()
 	local damagehighlightvisuals = {};
 	local highlightcolor = newcolor();
