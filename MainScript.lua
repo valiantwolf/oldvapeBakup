@@ -2235,41 +2235,43 @@ GUISettings.CreateSlider({
 })
 
 local GUIbind = GUI.CreateGUIBind()
-local teleportConnection = playersService.LocalPlayer.OnTeleport:Connect(function(State)
-    if (not teleportedServers) and (not shared.VapeIndependent) then
-		teleportedServers = true
-		local teleportScript = [[
-			repeat task.wait() until game:IsLoaded()
-			shared.VapeSwitchServers = true
-			if shared.VapeDeveloper or shared.VoidDev then
-                if isfile('vape/NewMainScript.lua') then
-				    loadstring(readfile("vape/NewMainScript.lua"))()
-                else
-                    loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/main/NewMainScript.lua", true))()
-                end
-			else
-				loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/main/NewMainScript.lua", true))()
+if not shared.NoAutoExecute then
+	local teleportConnection = playersService.LocalPlayer.OnTeleport:Connect(function(State)
+		if (not teleportedServers) and (not shared.VapeIndependent) then
+			teleportedServers = true
+			local teleportScript = [[
+				repeat task.wait() until game:IsLoaded()
+				shared.VapeSwitchServers = true
+				if shared.VapeDeveloper or shared.VoidDev then
+					if isfile('vape/NewMainScript.lua') then
+						loadstring(readfile("vape/NewMainScript.lua"))()
+					else
+						loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/main/NewMainScript.lua", true))()
+					end
+				else
+					loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/main/NewMainScript.lua", true))()
+				end
+			]]
+			if shared.VapeDeveloper then
+				teleportScript = 'shared.VapeDeveloper = true\n'..teleportScript
 			end
-		]]
-		if shared.VapeDeveloper then
-			teleportScript = 'shared.VapeDeveloper = true\n'..teleportScript
+			if shared.VoidDev then
+				teleportScript = 'shared.VoidDev = true\n'..teleportScript
+			end
+			if shared.ClosetCheatMode then
+				teleportScript = 'shared.ClosetCheatMode = true\n'..teleportScript
+			end
+			if shared.VapePrivate then
+				teleportScript = 'shared.VapePrivate = true\n'..teleportScript
+			end
+			if shared.VapeCustomProfile then
+				teleportScript = "shared.VapeCustomProfile = '"..shared.VapeCustomProfile.."'\n"..teleportScript
+			end
+			GuiLibrary.SaveSettings()
+			queueonteleport(teleportScript)
 		end
-		if shared.VoidDev then
-			teleportScript = 'shared.VoidDev = true\n'..teleportScript
-		end
-		if shared.ClosetCheatMode then
-			teleportScript = 'shared.ClosetCheatMode = true\n'..teleportScript
-		end
-		if shared.VapePrivate then
-			teleportScript = 'shared.VapePrivate = true\n'..teleportScript
-		end
-		if shared.VapeCustomProfile then
-			teleportScript = "shared.VapeCustomProfile = '"..shared.VapeCustomProfile.."'\n"..teleportScript
-		end
-		GuiLibrary.SaveSettings()
-		queueonteleport(teleportScript)
-    end
-end)
+	end)
+end
 
 GuiLibrary.SelfDestruct = function()
 	task.spawn(function()
