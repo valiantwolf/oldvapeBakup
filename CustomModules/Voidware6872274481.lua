@@ -2992,7 +2992,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local MelodyExploit = {Enabled = false}
 	MelodyExploit = GuiLibrary.ObjectsThatCanBeSaved.ExploitsWindow.Api.CreateOptionsButton({
 		Name = "MelodyExploit",
@@ -3042,7 +3042,7 @@ run(function()
         Name = 'CreditsButtonInstance',
         Credits = 'Cat V5 (qwertyui)'
     })
-end)
+end)--]]
 
 run(function()
 	local HannahExploit = {Enabled = false}
@@ -4432,6 +4432,7 @@ run(function()
 	local entityLibrary = shared.vapeentity
     local Headless = {Enabled = false};
     Headless = Customisation.CreateOptionsButton({
+		PerformanceModeBlacklisted = true,
         Name = 'Headless',
         HoverText = 'Makes your head transparent.',
         Function = function(callback)
@@ -4473,6 +4474,7 @@ end)
 run(function()
 	local NoNameTag = {Enabled = false}
 	NoNameTag = Customisation.CreateOptionsButton({
+		PerformanceModeBlacklisted = true,
 		Name = 'NoNameTag',
         HoverText = 'Removes your NameTag.',
 		Function = function(callback)
@@ -5029,6 +5031,7 @@ run(function()
 		return tweendata
 	end
 	DamageIndicator = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
+		PerformanceModeBlacklisted = true,
 		Name = 'DamageIndicator',
 		HoverText = 'change your damage indicator.',
 		Function = function(calling)
@@ -5179,61 +5182,82 @@ run(function()
 	local invisrenderstep;
 	local invistask;
 	local invshumanim;
-	local invisFunction = function()
-		pcall(task.cancel, invistask);
-		pcall(function() invisrenderstep:Disconnect() end);
-		repeat task.wait() until isAlive(lplr, true);
-		for i,v in lplr.Character:GetDescendants() do 
-			pcall(function()
-				if v.ClassName:lower():find('part') and v.CanCollide and v ~= lplr.Character:FindFirstChild('HumanoidRootPart') then 
-					v.CanCollide = false;
-					table.insert(invisbaseparts, v);
-				end 
-			end)
-		end;
-		table.insert(invis.Connections, lplr.Character.DescendantAdded:Connect(function(v)
-			pcall(function()
-				if v.ClassName:lower():find('part') and v.CanCollide and v ~= lplr.Character:FindFirstChild('HumanoidRootPart') then 
-					v.CanCollide = false;
-					table.insert(invisbaseparts, v);
-				end
-			end) 
-		end));
-		task.spawn(function()
-			invisrenderstep = runservice.Stepped:Connect(function()
-				for i,v in invisbaseparts do 
-					v.CanCollide = false;
-				end
-			end);
-			table.insert(invis.Connections, invisrenderstep);
-		end)
-		invisanim.AnimationId = 'rbxassetid://11335949902';
-		local anim = lplr.Character.Humanoid.Animator:LoadAnimation(invisanim);
-		invishumanim = anim;
-		repeat 
-			task.wait()
-			if GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.Enabled then 
-				GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.ToggleButton();
-			end
-			--if isAlive(lplr, true) == false or not isnetworkowner(lplr.Character.PrimaryPart) or not invis.Enabled then 
-				pcall(function() 
-					anim:AdjustSpeed(0);
-					anim:Stop() 
-				end)
-			--end
-			lplr.Character.PrimaryPart.Transparency = invisroot.Enabled and 0.6 or 1;
-			lplr.Character.PrimaryPart.Color = Color3.fromHSV(invisrootcolor.Hue, invisrootcolor.Sat, invisrootcolor.Value);
-			anim:Play(0.1, 9e9, 0.1);
-		until (not invis.Enabled)
-	end;
+	local SpiderDisabled = false
 	invis = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
 		Name = 'Invisibility',
 		HoverText = 'Plays an animation which makes it harder\nfor targets to see you.',
 		Function = function(calling)
-			if calling then 
+			local invisFunction = function()
+				pcall(task.cancel, invistask);
+				pcall(function() invisrenderstep:Disconnect() end);
+				repeat task.wait() until isAlive(lplr, true);
+				for i,v in lplr.Character:GetDescendants() do 
+					pcall(function()
+						if v.ClassName:lower():find('part') and v.CanCollide and v ~= lplr.Character:FindFirstChild('HumanoidRootPart') then 
+							v.CanCollide = false;
+							table.insert(invisbaseparts, v);
+						end 
+					end)
+				end;
+				table.insert(invis.Connections, lplr.Character.DescendantAdded:Connect(function(v)
+					pcall(function()
+						if v.ClassName:lower():find('part') and v.CanCollide and v ~= lplr.Character:FindFirstChild('HumanoidRootPart') then 
+							v.CanCollide = false;
+							table.insert(invisbaseparts, v);
+						end
+					end) 
+				end));
+				task.spawn(function()
+					invisrenderstep = runservice.Stepped:Connect(function()
+						for i,v in invisbaseparts do 
+							v.CanCollide = false;
+						end
+					end);
+					table.insert(invis.Connections, invisrenderstep);
+				end)
+				invisanim.AnimationId = 'rbxassetid://11335949902';
+				local anim = lplr.Character.Humanoid.Animator:LoadAnimation(invisanim);
+				invishumanim = anim;
+				repeat 
+					task.wait()
+					if GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.Enabled then 
+						GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.ToggleButton();
+					end
+					--if isAlive(lplr, true) == false or not isnetworkowner(lplr.Character.PrimaryPart) or not invis.Enabled then 
+						pcall(function() 
+							anim:AdjustSpeed(0);
+							anim:Stop() 
+						end)
+					--end
+					lplr.Character.PrimaryPart.Transparency = invisroot.Enabled and 0.6 or 1;
+					lplr.Character.PrimaryPart.Color = Color3.fromHSV(invisrootcolor.Hue, invisrootcolor.Sat, invisrootcolor.Value);
+					anim:Play(0.1, 9e9, 0.1);
+				until (not invis.Enabled)
+			end;
+			if calling then
+				task.spawn(function()
+					repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton
+					if shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.Enabled then
+						shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.ToggleButton(false)
+						SpiderDisabled = true
+						repeat task.wait() until warningNotification
+						warningNotification("Invisibility", "Spider disabled to prevent suffocating. \n Will be re-enabled when invisibility gets disabled!", 10)
+					end
+				end) 
 				invistask = task.spawn(invisFunction);
 				table.insert(invis.Connections, lplr.CharacterAdded:Connect(invisFunction))
 			else 
+				task.spawn(function()
+					if SpiderDisabled then
+						repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton
+						if (not shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.Enabled) then
+							shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.ToggleButton(false)
+							SpiderDisabled = false
+							repeat task.wait() until warningNotification
+							warningNotification("Invisibility", "Spider re-enabled!", 10)
+						end
+					end
+				end)
 				pcall(function()
 					invishumanim:AdjustSpeed(0);
 					invishumanim:Stop();
