@@ -7441,7 +7441,6 @@ sendmessage = function(text)
 		replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
 	end
 end
-
 getgenv().sendmessage = sendmessage
 
 run(function()
