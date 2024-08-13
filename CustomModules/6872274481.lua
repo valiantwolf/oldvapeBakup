@@ -7256,7 +7256,7 @@ run(function()
 							end))
 						elseif store.equippedKit == "miner" then
 							task.spawn(function()
-								repeat
+								repeat 
 									task.wait(0.1)
 									if entityLibrary.isAlive then
 										for i,v in pairs(workspace:GetChildren()) do
@@ -9106,6 +9106,33 @@ run(function()
 		end,
 		Priority = 2
 	}, true)
+end)
+
+run(function()
+	local Disabler = {Enabled = false}
+	Disabler = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
+		Name = "ScytheDisabler",
+		Function = function(callback)
+			if callback then
+				warningNotification("ScytheDisabler", "You can now set your speed to 100 :)", 5)
+				task.spawn(function()
+					repeat
+						task.wait()
+						local item = getItemNear("scythe")
+						if item and lplr.Character.HandInvItem.Value == item.tool and bedwars.CombatController then
+							bedwars.Client:Get("ScytheDash"):SendToServer({direction = Vector3.new(9e9, 9e9, 9e9)})
+							if entityLibrary.isAlive and entityLibrary.character.Head.Transparency ~= 0 then
+								store.scythe = tick() + 1
+							end
+						end
+					until (not Disabler.Enabled)
+				end)
+			else
+				warningNotification("ScytheDisabler", "Please set your speed back to 23", 5)
+			emd
+		end,
+		HoverText = "Float disabler with scythe"
+	})
 end)
 
 run(function()
