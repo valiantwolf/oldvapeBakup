@@ -3238,8 +3238,7 @@ local vapeAssert = function(argument, title, text, duration, hault, moduledisabl
     notification.Frame.Frame.ImageColor3 = Color3.new(220, 0, 0)
     if moduledisable and (module and GuiLibrary.ObjectsThatCanBeSaved[module.."OptionsButton"].Api.Enabled) then GuiLibrary.ObjectsThatCanBeSaved[module.."OptionsButton"].Api.ToggleButton(false) end
     end)
-    if hault then while true do task.wait() end end
-end
+    if hault then while true do task.wait() end end end
 end
 local function GetMagnitudeOf2Objects(part, part2, bypass)
 	local magnitude, partcount = 0, 0
