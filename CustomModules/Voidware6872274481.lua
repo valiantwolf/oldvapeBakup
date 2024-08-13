@@ -4428,7 +4428,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local entityLibrary = shared.vapeentity
     local Headless = {Enabled = false};
     Headless = Customisation.CreateOptionsButton({
@@ -4469,9 +4469,9 @@ run(function()
         end,
         Default = false
     })
-end)
+end)--]]
 
-run(function()
+--[[run(function()
 	local NoNameTag = {Enabled = false}
 	NoNameTag = Customisation.CreateOptionsButton({
 		PerformanceModeBlacklisted = true,
@@ -4490,7 +4490,7 @@ run(function()
 		end,
         Default = false
 	})
-end)
+end)--]]
 
 run(function()
     local GuiLibrary = shared.GuiLibrary
@@ -4972,7 +4972,7 @@ end)
 	}) 
 end)--]]
 
-run(function()
+--[[prun(function()
 	local tween = game:GetService("TweenService")
 	local DamageIndicator = {}
 	local DamageIndicatorText = {}
@@ -5171,7 +5171,7 @@ run(function()
 	DamageIndicatorFontVal.Object.Visible = false 
 	DamageIndicatorTextList.Object.Visible = false
 	DamageIndicatorStrokeColor.Object.Visible = false
-end)
+end)--]]
 
 run(function()
 	local invis = {};
