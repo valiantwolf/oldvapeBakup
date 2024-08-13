@@ -428,7 +428,7 @@ run(function()
 	end
 
 	function whitelist:oldchat(func)
-		if not shared.WLTest then
+		if not shared.ChatFixer then
 			pcall(function()
 				local msgtable = debug.getupvalue(func, 3)
 				if typeof(msgtable) == 'table' and msgtable.CurrentChannel then
