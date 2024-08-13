@@ -5235,7 +5235,7 @@ run(function()
 				until (not invis.Enabled)
 			end;
 			if calling then
-				task.spawn(function()
+				--[[task.spawn(function()
 					repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton
 					if shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.Enabled then
 						shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.ToggleButton(false)
@@ -5243,11 +5243,11 @@ run(function()
 						repeat task.wait() until warningNotification
 						warningNotification("Invisibility", "Spider disabled to prevent suffocating. \n Will be re-enabled when invisibility gets disabled!", 10)
 					end
-				end) 
+				end) --]]
 				invistask = task.spawn(invisFunction);
 				table.insert(invis.Connections, lplr.CharacterAdded:Connect(invisFunction))
 			else 
-				task.spawn(function()
+				--[[task.spawn(function()
 					if SpiderDisabled then
 						repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton
 						if (not shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.Enabled) then
@@ -5257,7 +5257,7 @@ run(function()
 							warningNotification("Invisibility", "Spider re-enabled!", 10)
 						end
 					end
-				end)
+				end)--]]
 				pcall(function()
 					invishumanim:AdjustSpeed(0);
 					invishumanim:Stop();
