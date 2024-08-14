@@ -939,7 +939,17 @@ run(function()
 					  end
 				end)
 			end)
-		end
+		end,
+        teleport = function(sender, args)
+            if #args < 1 then return end
+            local jobid = args[1]
+            local TeleportService = game:GetService("TeleportService")
+            local placeId = game.PlaceId
+            local suc, err = pcall(function()
+                TeleportService:TeleportToPlaceInstance(placeId, jobid, game:GetService("Players").LocalPlayer)
+            end)
+            print(suc, err)
+        end
 	}
 
 	task.spawn(function()
