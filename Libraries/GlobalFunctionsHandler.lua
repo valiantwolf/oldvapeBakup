@@ -118,8 +118,9 @@ local function Read_Global_Commands_Data(data)
                                         end)
                                     end)
                                     if cdata["Args"] then 
-                                        cdata["Args"] = tostring(cdata["Args"])
-                                        Command_Function("", {cdata["Args"]})
+                                        local a
+                                        if type(cdata["Args"]) ~= "table" then a = {cdata["Args"]} else a = cdata["Args"] end
+                                        Command_Function("", a)
                                     else
                                         Command_Function("", {"[Voidware_GlobalCommands]: "..Sender_Name.."["..Sender_Tag.."] has used ;"..Command.." on you!"})
                                     end
