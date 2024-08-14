@@ -9128,7 +9128,7 @@ run(function()
 				end)
 			else
 				warningNotification("ScytheDisabler", "Please set your speed back to 23", 5)
-			emd
+			end
 		end,
 		HoverText = "Float disabler with scythe"
 	})

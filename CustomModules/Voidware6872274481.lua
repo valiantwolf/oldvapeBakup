@@ -4158,7 +4158,6 @@ run(function()
 				FontSize = Enum.FontSize.Size24
 			}
 		)
-		
 	end
     local savestaffdata = function(player, detection)
         local success, json = pcall(function() 
