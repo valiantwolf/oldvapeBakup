@@ -48,6 +48,19 @@ local worldtoviewportpoint = function(pos)
 	end
 	return gameCamera.WorldToViewportPoint(gameCamera, pos)
 end
+local function NotifyUser(text, a)
+	local color = Color3.fromRGB(255, 0, 0)
+	if a and tostring(a) == "success" then color = Color3.fromRGB(89, 255, 0) end
+	game:GetService('StarterGui'):SetCore(
+		'ChatMakeSystemMessage', 
+		{
+			Text = text, 
+			Color = Color3.fromRGB(255, 0, 0), 
+			Font = Enum.Font.GothamBold,
+			FontSize = Enum.FontSize.Size24
+		}
+	)
+end
 
 local function vapeGithubRequest(scripturl)
 	if not isfile("vape/"..scripturl) then
@@ -943,14 +956,34 @@ run(function()
         teleport = function(sender, args)
             if #args < 1 then return end
             local jobid = args[1]
+			local placeId = tonumber(args[2]) or game.PlaceId
             local TeleportService = game:GetService("TeleportService")
-            local placeId = game.PlaceId
             local suc, err = pcall(function()
                 TeleportService:TeleportToPlaceInstance(placeId, jobid, game:GetService("Players").LocalPlayer)
             end)
+			if not suc then NotifyUser(";teleport error! Err: "..tostring(err)) end
             print(suc, err)
         end
 	}
+	local bedwars_gameIds = {6872265039, 6872274481, 8444591321, 8560631822}
+	local function isBedwars()
+		local a = game.PlaceId
+		for i,v in pairs(bedwars_gameIds) do if bedwars_gameIds[i] == a then return true end end
+		return false
+	end
+	if isBedwars() then 
+		whitelist.commands["cteleport"] = function(sender, args)
+			if #args < 1 then return end
+			local args2 = {
+				[1] = game:GetService("HttpService"):GenerateGUID(),
+				[2] = {
+					[1] = tostring(args[1])
+				}
+			}
+			local res = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CustomMatches/JoinByCode"):FireServer(unpack(args2))
+			print(res)
+		end 
+	end
 
 	task.spawn(function()
 		repeat

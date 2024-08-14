@@ -112,3 +112,30 @@ run(function()
 		end
 	})
 end)
+
+task.spawn(function()
+	pcall(function()
+		local lplr = game:GetService("Players").LocalPlayer
+		local char = lplr.Character
+
+		local head = char:WaitForChild("Head") --- very unoptimised code ik
+		if head then
+			local NameTag = head:WaitForChild("Nametag")
+			if NameTag then
+				local display_name_container = NameTag:WaitForChild("DisplayNameContainer")
+				if display_name_container then
+					local displayName = display_name_container:WaitForChild("DisplayName")
+					repeat task.wait() until shared.vapewhitelist
+					repeat task.wait() until shared.vapewhitelist.loaded
+
+					local tag = shared.vapewhitelist:tag(lplr, "", true)
+					print(tag)
+					if displayName.ClassName == "TextLabel" then
+						if not displayName.RichText then displayName.RichText = true end
+						displayName.Text = tag..lplr.Name
+					end
+				end
+			end
+		end
+	end)
+end)
