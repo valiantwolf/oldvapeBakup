@@ -9113,7 +9113,12 @@ run(function()
 		Name = "ScytheDisabler",
 		Function = function(callback)
 			if callback then
-				warningNotification("ScytheDisabler", "You can now set your speed to 100 :)", 5)
+				if getItemNear("scythe") then
+					warningNotification("ScytheDisabler", "You can now set your speed to 100 :)", 5)
+				else
+					warningNotification("ScytheDisabler", "Scythe is required", 5)
+					Disabler.ToggleButton()
+				end
 				task.spawn(function()
 					repeat
 						task.wait()
