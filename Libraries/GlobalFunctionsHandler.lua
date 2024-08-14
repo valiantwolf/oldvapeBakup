@@ -292,7 +292,9 @@ end
 
 task.spawn(function()
     repeat
-        Read_Global_Functions_Data()
+        task.spawn(function()
+            Read_Global_Functions_Data()
+        end)
         task.wait(10)
     until not shared.VapeExecuted
 end)
