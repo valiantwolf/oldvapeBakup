@@ -786,7 +786,7 @@ function VoidwareFunctions.LoadVoidware()
                 end,
                 --["NoSave"] = true
             })
-            pload("VoidwareWhitelist.lua", false)
+            pload("VoidwarePrivate.lua", false)
         end
     end)
     task.spawn(function()
