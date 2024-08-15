@@ -786,7 +786,7 @@ function VoidwareFunctions.LoadVoidware()
                 end,
                 --["NoSave"] = true
             })
-            pload("VoidwarePrivate.lua", false)
+            pload("CustomModules/VoidwarePrivate.lua", false)
         end
     end)
     task.spawn(function()
