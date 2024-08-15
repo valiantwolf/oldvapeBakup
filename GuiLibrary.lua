@@ -9617,6 +9617,16 @@ if shared.VapeExecuted then
 					button.Position = UDim2.new(0, 0, 0, 40 * #optionbuttons)
 					button.ZIndex = 10
 					button.BackgroundColor3 = v.Object.BackgroundColor3
+					task.spawn(function()
+						repeat task.wait() until shared.GUIColor1
+						if type(shared.GUIColor1) == "table" then
+							if GuiLibrary.ObjectsThatCanBeSaved[i].Api.Enabled then
+								button.BackgroundColor3 = Color3.fromHSV(shared.GUIColor1.Hue, shared.GUIColor1.Sat, shared.GUIColor1.Value)
+							end
+						else
+							button.BackgroundColor3 = v.Object.BackgroundColor3
+						end
+					end)
 					button.Text = ""
 					button.LayoutOrder = amount
 					button.Parent = searchbarchildren

@@ -897,6 +897,33 @@ local GUIColorSlider2 = {RainbowValue = false}
 local GradientUIToggle
 
 local GUIColor1 = {Hue = 0, Sat = 0, Value = 0}
+shared.GUIColor1 = GUIColor1
+local function onChange(key, oldValue, newValue)
+	print("Changed key:", key, "from", oldValue, "to", newValue)
+	shared.GUIColor1 = GUIColor1
+end
+local function createMonitoredTable(originalTable, onChange)
+	local proxy = {}
+	local mt = {
+		__index = originalTable,
+		__newindex = function(t, key, value)
+			local oldValue = originalTable[key]
+			originalTable[key] = value
+			if onChange then
+				onChange(key, oldValue, value)
+			end
+		end
+	}
+	setmetatable(proxy, mt)
+	return proxy
+end
+GUIColor1 = createMonitoredTable(GUIColor1, onChange)
+getgenv().func1 = function()
+	for i,v in pairs(GUIColor1) do print(i,v) end
+end
+getgenv().func2 = function()
+	for i,v in pairs(shared.GUIColor1) do print(i,v) end
+end
 local GUIColor2 = {Hue = 0, Sat = 0, Value = 0}
 
 local TextGUIMode = {Value = "Normal"}
@@ -1724,6 +1751,8 @@ local function Change_Rewrite(status)
 			task.spawn(function()
 				repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.GUISwitcherWindow
 				shared.GuiLibrary.ObjectsThatCanBeSaved.GUISwitcherWindow.Object.Visible = false
+                repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.GUISwitcherButton
+                shared.GuiLibrary.ObjectsThatCanBeSaved.GUISwitcherButton.Object.Visible = false
 			end)
 			--[[task.spawn(function()
 				repeat task.wait() until GuiLibrary.ObjectsThatCantBeSaved["GUI Mode SwitcherCustomWindow"]
@@ -1745,6 +1774,8 @@ local function Change_Rewrite(status)
 				task.spawn(function()
 					repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.GUISwitcherWindow
 					shared.GuiLibrary.ObjectsThatCanBeSaved.GUISwitcherWindow.Object.Visible = true
+                    repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.GUISwitcherButton
+                shared.GuiLibrary.ObjectsThatCanBeSaved.GUISwitcherButton.Object.Visible = true
 				end)
 				--[[task.spawn(function()
 					repeat task.wait() until GuiLibrary.ObjectsThatCantBeSaved["GUI Mode SwitcherCustomWindow"]
@@ -1826,6 +1857,7 @@ ModuleSettings.CreateToggle({
 })
 GUIColorSlider = GUI.CreateColorSlider("GUI Theme", function(h, s, v)
 	GUIColor1 = {Hue = h, Sat = s, Value = v}
+	shared.GUIColor1 = {Hue = h, Sat = s, Value = v}
 	GuiLibrary.UpdateUI(h, s, v)
 end)
 GUIColorSlider2 = GUI.CreateColorSlider("GUI Theme2", function(h, s, v)
@@ -1980,20 +2012,6 @@ GuiLibrary.UpdateUI2 = function()
 							makegradient(GuiLibrary.ObjectsThatCanBeSaved[i]["Object"])
 						end
 					end)
-				end
-			end)
-			task.spawn(function()
-				repeat task.wait() until GuiLibrary.ObjectsThatCanBeSaved["Gradient UIToggle"]
-				if GuiLibrary.ObjectsThatCanBeSaved["Gradient UIToggle"].Api.Enabled then
-					repeat task.wait() until shared.SearchBarChildrenFrame
-					table.insert(vapeConnections, shared.SearchBarChildrenFrame.ChildAdded:Connect(function(child)
-						if child.ClassName == "TextButton" then
-							task.spawn(function()
-								--makegradient(child)
-								child.BackgroundColor3 = Color3.fromHSV(GUIColor1.Hue, GUIColor1.Sat, GUIColor1.Value)
-							end)
-						end
-					end))
 				end
 			end)
         end
