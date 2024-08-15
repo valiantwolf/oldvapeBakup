@@ -2334,7 +2334,9 @@ GuiLibrary.SelfDestruct = function()
 	if MiddleClickInput then
 		MiddleClickInput:Disconnect()
 	end
-	teleportConnection:Disconnect()
+	pcall(function()
+		teleportConnection:Disconnect()
+	end)
 	GuiLibrary.MainGui:Destroy()
 	--game:GetService("RunService"):SetRobloxGuiFocused(false)
 end
