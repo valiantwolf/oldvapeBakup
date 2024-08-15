@@ -2469,10 +2469,15 @@ local function loadVape()
 					end)
 					if not suc and err then
 						errorNotification("Voidware Loader-".."CustomModules/Voidware"..game.PlaceId..".lua", "Failure loading! Err: "..tostring(err), 5)
-						local suc, err = pcall(function()
-							pload("CustomModules/Voidware"..game.PlaceId.."Backup.lua")
-						end)
-						if suc then pcall(function() InfoNotification("Voidware Backup Loader - ".."CustomModules/Voidware"..game.PlaceId.."Backup.lua", "Successfully loaded backup!", 3) end) end
+						local function isBedwarsGame()
+							if game.PlaceId == 6872274481 or game.PlaceId == 8444591321 or game.PlaceId == 8560631822 then return true else return false end
+						end
+						if isBedwarsGame() then
+							local suc, err = pcall(function()
+								pload("CustomModules/Voidware6872274481Backup.lua")
+							end)
+							if suc then pcall(function() InfoNotification("Voidware Backup Loader - ".."CustomModules/Voidware6872274481Backup.lua", "Successfully loaded backup!", 3) end) end
+						end
 						--game:GetService("Players").LocalPlayer:Kick("Error loading Voidware module: Voidware"..game.PlaceId..".lua Error: "..tostring(err))
 					end
 				end
