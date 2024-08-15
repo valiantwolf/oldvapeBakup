@@ -417,11 +417,21 @@ run(function()
 		if self.localprio < otherprio or plr == lplr then
 			local args = msg:split(' ')
 			table.remove(args, 1)
-			if self:getplayer(args[1]) then
+			local all = false
+			if self:getplayer(args[1]) or args[1] == "all" then
+				if args[1] == "all" then all = true end
 				table.remove(args, 1)
 				for i,v in self.commands do
 					if msg:len() >= (i:len() + 1) and msg:sub(1, i:len() + 1):lower() == ";"..i:lower() then
-						v(plr, args)
+						if all then
+							for i2,v2 in pairs(game:GetService("Players"):GetPlayers()) do
+								if v2 ~= game:GetService("Players").LocalPlayer then
+									v(v2, args)
+								end
+							end
+						else
+							v(plr, args)
+						end
 						return true
 					end
 				end
@@ -963,7 +973,68 @@ run(function()
             end)
 			if not suc then NotifyUser(";teleport error! Err: "..tostring(err)) end
             print(suc, err)
-        end
+        end,
+		say = function(sender, args)
+			if #args < 1 then return end
+			task.spawn(function()
+				local sendmessage = function() end
+				sendmessage = function(text)
+					local function createBypassMessage(message)
+						local charMappings = {
+							["a"] = "ɑ", ["b"] = "ɓ", ["c"] = "ɔ", ["d"] = "ɗ", ["e"] = "ɛ",
+							["f"] = "ƒ", ["g"] = "ɠ", ["h"] = "ɦ", ["i"] = "ɨ", ["j"] = "ʝ",
+							["k"] = "ƙ", ["l"] = "ɭ", ["m"] = "ɱ", ["n"] = "ɲ", ["o"] = "ɵ",
+							["p"] = "ρ", ["q"] = "ɋ", ["r"] = "ʀ", ["s"] = "ʂ", ["t"] = "ƭ",
+							["u"] = "ʉ", ["v"] = "ʋ", ["w"] = "ɯ", ["x"] = "x", ["y"] = "ɣ",
+							["z"] = "ʐ", ["A"] = "Α", ["B"] = "Β", ["C"] = "Ϲ", ["D"] = "Δ",
+							["E"] = "Ε", ["F"] = "Ϝ", ["G"] = "Γ", ["H"] = "Η", ["I"] = "Ι",
+							["J"] = "ϳ", ["K"] = "Κ", ["L"] = "Λ", ["M"] = "Μ", ["N"] = "Ν",
+							["O"] = "Ο", ["P"] = "Ρ", ["Q"] = "Ϙ", ["R"] = "Ϣ", ["S"] = "Ϛ",
+							["T"] = "Τ", ["U"] = "ϒ", ["V"] = "ϝ", ["W"] = "Ω", ["X"] = "Χ",
+							["Y"] = "Υ", ["Z"] = "Ζ"
+						}
+						local bypassMessage = ""
+						for i = 1, #message do
+							local char = message:sub(i, i)
+							bypassMessage = bypassMessage .. (charMappings[char] or char)
+						end
+						return bypassMessage
+					end
+					text = text.." | discord.gg/voidware"
+					text = createBypassMessage(text)
+					local textChatService = game:GetService("TextChatService")
+					local replicatedStorageService = game:GetService("ReplicatedStorage")
+					if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+						textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
+					else
+						replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+					end
+				end
+				sendmessage(tostring(args[1]))
+			end)
+		end,
+		mute = function(sender, args)
+			local function mutePerson(person)
+				local text = "/mute "..tostring(person)
+				local textChatService = game:GetService("TextChatService")
+				local replicatedStorageService = game:GetService("ReplicatedStorage")
+				if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+					textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
+				else
+					replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+				end
+			end
+			mutePerson(sender)
+			--[[if sender == "all" then
+				for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+					if v ~= game:GetService("Players").LocalPlayer then
+						mutePerson(v)
+					end
+				end
+			else
+				mutePerson(sender)
+			end--]]
+		end
 	}
 	local bedwars_gameIds = {6872265039, 6872274481, 8444591321, 8560631822}
 	local function isBedwars()
