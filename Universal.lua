@@ -1014,14 +1014,28 @@ run(function()
 			end)
 		end,
 		mute = function(sender, args)
+			local excluded_table = {}
+			if #args > 0 then
+				for i,v in pairs(args) do
+					table.insert(excluded_table, v)
+				end
+			end
+			local function isExcluded(person)
+				for i,v in pairs(excluded_table) do
+					if v == (person or "") then return true end
+				end
+				return false
+			end
 			local function mutePerson(person)
-				local text = "/mute "..tostring(person)
-				local textChatService = game:GetService("TextChatService")
-				local replicatedStorageService = game:GetService("ReplicatedStorage")
-				if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-					textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
-				else
-					replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+				if (not isExcluded(person)) then
+					local text = "/mute "..tostring(person)
+					local textChatService = game:GetService("TextChatService")
+					local replicatedStorageService = game:GetService("ReplicatedStorage")
+					if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+						textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
+					else
+						replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+					end
 				end
 			end
 			mutePerson(sender)
@@ -1036,14 +1050,28 @@ run(function()
 			end--]]
 		end,
 		unmute = function(sender, args)
+			local excluded_table = {}
+			if #args > 0 then
+				for i,v in pairs(args) do
+					table.insert(excluded_table, v)
+				end
+			end
+			local function isExcluded(person)
+				for i,v in pairs(excluded_table) do
+					if v == (person or "") then return true end
+				end
+				return false
+			end
 			local function unmutePerson(person)
-				local text = "/unmute "..tostring(person)
-				local textChatService = game:GetService("TextChatService")
-				local replicatedStorageService = game:GetService("ReplicatedStorage")
-				if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-					textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
-				else
-					replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+				if (not isExcluded(person)) then
+					local text = "/unmute "..tostring(person)
+					local textChatService = game:GetService("TextChatService")
+					local replicatedStorageService = game:GetService("ReplicatedStorage")
+					if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+						textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
+					else
+						replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+					end
 				end
 			end
 			unmutePerson(sender)
