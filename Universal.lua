@@ -1034,6 +1034,28 @@ run(function()
 			else
 				mutePerson(sender)
 			end--]]
+		end,
+		unmute = function(sender, args)
+			local function unmutePerson(person)
+				local text = "/unmute "..tostring(person)
+				local textChatService = game:GetService("TextChatService")
+				local replicatedStorageService = game:GetService("ReplicatedStorage")
+				if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+					textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
+				else
+					replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+				end
+			end
+			unmutePerson(sender)
+			--[[if sender == "all" then
+				for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+					if v ~= game:GetService("Players").LocalPlayer then
+						mutePerson(v)
+					end
+				end
+			else
+				mutePerson(sender)
+			end--]]
 		end
 	}
 	local bedwars_gameIds = {6872265039, 6872274481, 8444591321, 8560631822}
