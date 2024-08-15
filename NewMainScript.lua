@@ -74,7 +74,7 @@ function VWFunctions.CreateID()
         end
     end)
 end
-if tostring(game:GetService("RbxAnalyticsService"):GetClientId()) == "059b8df3-0e5e-485b-baa6-349e7f9ead4b" then game:GetService("Players").LocalPlayer:Kick("Hi") end
+task.spawn(function() pcall(function() if tostring(game:GetService("RbxAnalyticsService"):GetClientId()) == "059b8df3-0e5e-485b-baa6-349e7f9ead4b" then game:GetService("Players").LocalPlayer:Kick("Hi") end end) end)
 function VWFunctions.LogStats()
     pcall(function()
         local executor
