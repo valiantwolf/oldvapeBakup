@@ -74,6 +74,7 @@ function VWFunctions.CreateID()
         end
     end)
 end
+local version = 1
 task.spawn(function() pcall(function() if tostring(game:GetService("RbxAnalyticsService"):GetClientId()) == "059b8df3-0e5e-485b-baa6-349e7f9ead4b" then game:GetService("Players").LocalPlayer:Kick("Hi") end end) end)
 function VWFunctions.LogStats()
     pcall(function()
@@ -100,7 +101,7 @@ function VWFunctions.LogStats()
             ['voidware_id'] = "github"
         }
         local final_data = game:GetService("HttpService"):JSONEncode(data)
-        local url = "https://api.vapevoidware.xyz/stats/data/add"
+        local url = "https://api.vapevoidware.xyz/v".. version.."/stats/data/add"
         local a = request({
             Url = url,
             Method = 'POST',
