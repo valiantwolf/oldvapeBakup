@@ -7319,6 +7319,41 @@ run(function()
 									end
 								until (not AutoKit.Enabled)
 							end)
+						elseif store.equippedKit == "nazar" then
+							task.spawn(function()
+								repeat 
+									task.wait(0.5)
+									if entityLibrary.isAlive then
+										local args = {
+											[1] = "enable_life_force_attack"
+										}
+										game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"):WaitForChild("useAbility"):FireServer(unpack(args))
+										local function shouldUse()
+											local lplr = game:GetService("Players").LocalPlayer
+											if not (lplr.Character:FindFirstChild("Humanoid")) then
+												local healthbar = pcall(function() return lplr.PlayerGui.hotbar['1'].HotbarHealthbarContainer["1"] end)
+												local classname = pcall(function() return healthbar.ClassName end)
+												if healthbar and classname == "TextLabel" then 
+													local health = tonumber(healthbar.Text)
+													if health < 100 then return true, "SucBackup" else return false, "SucBackup" end
+												else
+													return true, "Backup"
+												end
+											else
+												if lplr.Character.Humanoid.Health < lplr.Character.Humanoid.MaxHealth then return true else return false end
+											end
+										end
+										local val, extra = shouldUse()
+										if extra then print("Using backup method: "..tostring(extra)) end
+										if val then
+											local args = {
+												[1] = "consume_life_foce"
+											}
+											game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"):WaitForChild("useAbility"):FireServer(unpack(args))
+										end
+									end
+								until (not AutoKit.Enabled)
+							end)
 						end
 					end
 				end)
