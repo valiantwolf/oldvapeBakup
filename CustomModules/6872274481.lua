@@ -7280,8 +7280,11 @@ run(function()
 								repeat 
 									task.wait(0.1)
 									if entityLibrary.isAlive then
-										for i,v in pairs(workspace:GetChildren()) do
-											local a = workspace:GetChildren()[i]
+										local player = game.Players.LocalPlayer
+										local character = player.Character or player.CharacterAdded:Wait()
+										local thresholdDistance = 10
+										for i, v in pairs(workspace:GetChildren()) do
+											local a = v
 											pcall(function()
 												if a.ClassName == "Model" and #a:GetChildren() > 1 then
 													if a:GetAttribute("Id") then
@@ -7297,17 +7300,22 @@ run(function()
 														end)
 														c.Transparency = 0.3
 														c.Color = BrickColor.new("Magenta")
-														local args = {
-															[1] = {
-																["id"] = a:GetAttribute("Id"),
-																["collectableName"] = "AlchemyCrystal"
+														local playerPosition = character.HumanoidRootPart.Position
+														local partPosition = a.PrimaryPart.Position
+														local distance = (playerPosition - partPosition).Magnitude
+														if distance <= thresholdDistance then
+															local args = {
+																[1] = {
+																	["id"] = a:GetAttribute("Id"),
+																	["collectableName"] = "AlchemyCrystal"
+																}
 															}
-														}
-														local b = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
+															game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
+														end
 													end
 												end
 											end)
-										end
+										end										
 									end
 								until (not AutoKit.Enabled)
 							end)
