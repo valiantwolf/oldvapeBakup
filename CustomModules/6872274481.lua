@@ -7275,6 +7275,42 @@ run(function()
 									end
 								until (not AutoKit.Enabled)
 							end)
+						elseif store.equippedKit == "sorcerer" then
+							task.spawn(function()
+								repeat 
+									task.wait(0.1)
+									if entityLibrary.isAlive then
+										for i,v in pairs(workspace:GetChildren()) do
+											local a = workspace:GetChildren()[i]
+											pcall(function()
+												if a.ClassName == "Model" and #a:GetChildren() > 1 then
+													if a:GetAttribute("Id") then
+														local c = (a:FindFirstChild(a.Name:lower().."_PESP") or Instance.new("BoxHandleAdornment"))
+														c.Name = a.Name:lower().."_PESP"
+														c.Parent = a
+														c.Adornee = a
+														c.AlwaysOnTop = true
+														c.ZIndex = 0
+														task.spawn(function()
+															local d = a:WaitForChild("2")
+															c.Size = d.Size
+														end)
+														c.Transparency = 0.3
+														c.Color = BrickColor.new("Magenta")
+														local args = {
+															[1] = {
+																["id"] = a:GetAttribute("Id"),
+																["collectableName"] = "AlchemyCrystal"
+															}
+														}
+														local b = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
+													end
+												end
+											end)
+										end
+									end
+								until (not AutoKit.Enabled)
+							end)
 						end
 					end
 				end)
