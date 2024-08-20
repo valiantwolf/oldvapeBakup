@@ -4404,7 +4404,7 @@ run(function()
 	SpeedValue = Speed.CreateSlider({
 		Name = "Speed",
 		Min = 1,
-		Max = 23,
+		Max = 23.3,
 		Function = function(val) end,
 		Default = 23
 	})
