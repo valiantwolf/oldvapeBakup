@@ -2632,9 +2632,9 @@ if shared.VapeExecuted then
 				dropGuiLibrary["UpdateList"](list)
 			end
 			dropGuiLibrary["UpdateList"](list)
-			if not argstable["NoSave"] then
+			--[[if not argstable["NoSave"] then
 				GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"]..argstable["Name"].."Dropdown"] = {["Type"] = "DropdownMain", ["Object"] = frame, ["Api"] = dropGuiLibrary}
-			end
+			end--]]
 
 			return dropGuiLibrary
 		end
@@ -8935,9 +8935,9 @@ if shared.VapeExecuted then
 					end
 				end
 			end
-			if not argstable["NoSave"] then
+			--[[if not argstable["NoSave"] then
 				GuiLibrary.ObjectsThatCanBeSaved[argstable["Name"].."TextList"] = {["Type"] = "TextList", ["Api"] = textGuiLibrary}
-			end
+			end--]]
 
 			local function AddToList()
                 table.insert(textGuiLibrary["ObjectList"], textbox.Text)

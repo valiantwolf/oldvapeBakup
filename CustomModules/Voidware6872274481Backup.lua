@@ -14,6 +14,9 @@ local VoidwareStore = {
 	Tweening = false
 }
 
+local lplr = game:GetService("Players").LocalPlayer
+local function abletocalculate() return lplr.Character and lplr.Character:FindFirstChild("HumanoidRootPart") end
+
 task.spawn(function()
     local tweenmodules = {"BedTP", "EmeraldTP", "DiamondTP", "MiddleTP", "Autowin", "PlayerTP"}
     local tweening = false
