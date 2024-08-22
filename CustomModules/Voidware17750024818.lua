@@ -1,4 +1,7 @@
 repeat task.wait() until game:IsLoaded()
+repeat task.wait() until warningNotification
+warningNotification("Voidware - Bedwarz", "Patched", 10)
+return false
 task.spawn(function()
     repeat task.wait() until warningNotification
     warningNotification("Voidware - Bedwarz", "Credits go to lwclowny#0 on discord!", 10)
