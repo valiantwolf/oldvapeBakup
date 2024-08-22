@@ -3706,7 +3706,7 @@ run(function()
 	local function handle_tablist(ui)
 		local frame = ui:FindFirstChild("TabListFrame")
 		if frame then
-			local plrs_frame = frame:FindFirstChild("4"):FindFirstChild("3"):FindFirstChild("1")
+			local plrs_frame = frame:FindFirstChild("4"):FindFirstChild("1")
 			if plrs_frame then
 				local side_1 = plrs_frame:WaitForChild("2")
 				local side_2 = plrs_frame:WaitForChild("3")
