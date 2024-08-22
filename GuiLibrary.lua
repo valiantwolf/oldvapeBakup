@@ -9266,7 +9266,11 @@ if shared.VapeExecuted then
 		end)
 	end
 	---
-	loadstring(game:HttpGet(v, true))()
+	task.spawn(function()
+		pcall(function()
+			loadstring(game:HttpGet(v, true))()
+		end)
+	end)
 
 	notificationwindow.ChildRemoved:Connect(function()
 		for i,v in pairs(notificationwindow:GetChildren()) do
