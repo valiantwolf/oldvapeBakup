@@ -5343,7 +5343,7 @@ shared.TeleportExploitFunction = TeleportExploitFunction
 run(function() 
 	local TPExploit = {}
 	TPExploit = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
-		Name = "FunnyTeleportExploit",
+		Name = "EmptyGameTP",
 		Function = function(calling)
 			if calling then 
 				TPExploit.ToggleButton()
