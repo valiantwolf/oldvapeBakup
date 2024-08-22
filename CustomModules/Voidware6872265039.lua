@@ -4,6 +4,45 @@ repeat task.wait() until shared.GuiLibrary
 local GuiLibrary = shared.GuiLibrary
 local lplr = game:GetService("Players").LocalPlayer
 
+local function queue()
+	local args = {
+		[1] = {
+			["queueType"] = "bedwars_duels"
+		}
+	}
+	game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/lobby:shared/event/lobby-events@getEvents.Events"):WaitForChild("joinQueue"):FireServer(unpack(args))
+end
+
+if shared.TeleportExploitAutowinEnabled then
+	local interactable_buttons_table = {
+		[1] = {
+			["Name"] = "Yes",
+			["Function"] = function()
+				shared.MadeChoice = true
+				shared.TeleportExploitAutowinEnabled = nil
+				queue()
+			end
+		},
+		[2] = {
+			["Name"] = "No",
+			["Function"] = function()
+				shared.TeleportExploitAutowinEnabled = nil
+				shared.MadeChoice = true 
+			end
+		}
+	}
+	local function InfoNotification2(title, text, delay, button_table)
+		local suc, res = pcall(function()
+			local frame = GuiLibrary.CreateInteractableNotification(title or "Voidware", text or "Successfully called function", delay or 7, "assets/InfoNotification.png", button_table)
+			return frame
+		end)
+		return (suc and res)
+	end
+	InfoNotification2("EmptyGameTP - AutowinMode", "An error might have happened while auto-queueing. Would you like to \n join back to the queue?", 10000000, interactable_buttons_table)
+	task.wait(3)
+	if (not shared.MadeChoice) then queue() end
+end
+
 run(function()
 	local QueueCardMods = {}
 	local QueueCardGradientToggle = {}
