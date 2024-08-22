@@ -5333,3 +5333,24 @@ run(function()
 		Function = void
 	})
 end);
+
+getgenv().TeleportExploitFunction = function()
+	local TeleportService = game:GetService("TeleportService")
+	local e2 = TeleportService:GetLocalPlayerTeleportData()
+	game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer, e2)
+end
+shared.TeleportExploitFunction = TeleportExploitFunction
+run(function() 
+	local TPExploit = {}
+	TPExploit = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
+		Name = "FunnyTeleportExploit",
+		Function = function(calling)
+			if calling then 
+				TPExploit.ToggleButton()
+				local TeleportService = game:GetService("TeleportService")
+				local e2 = TeleportService:GetLocalPlayerTeleportData()
+				game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer, e2)
+			end
+		end
+	}) 
+end)
