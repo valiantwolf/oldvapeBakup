@@ -791,7 +791,6 @@ function VoidwareFunctions.LoadVoidware()
         repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved["VoidwareGUIOptionsButton"]
         repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved["VapeGUIOptionsButton"]
         --repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved["VPrivateGUIOptionsButton"]
-    
         if not shared.GuiLibrary.ObjectsThatCanBeSaved["VoidwareGUIOptionsButton"].Api.Enabled and not shared.GuiLibrary.ObjectsThatCanBeSaved["VapeGUIOptionsButton"].Api.Enabled --[[and not shared.GuiLibrary.ObjectsThatCanBeSaved["VPrivateGUIOptionsButton"].Api.Enabled--]] then
             shared.GuiLibrary.ObjectsThatCanBeSaved["VapeGUIOptionsButton"].Api.ToggleButton()
         end
