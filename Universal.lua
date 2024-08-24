@@ -5514,7 +5514,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local AutoReport = {Enabled = false}
 	local AutoReportList = {ObjectList = {}}
 	local AutoReportNotify = {Enabled = false}
@@ -5674,7 +5674,7 @@ run(function()
 		Name = "Report Words",
 		TempText = "phrase (to report)"
 	})
-end)
+end)--]]
 
 run(function()
 	local targetstrafe = {Enabled = false}
