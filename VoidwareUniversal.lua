@@ -1377,6 +1377,14 @@ run(function()
 	})
 end)
 
+local vapeConnections
+if shared.vapeConnections and type(shared.vapeConnections) == "table" then vapeConnections = shared.vapeConnections else vapeConnections = {}; shared.vapeConnections = vapeConnections; end
+GuiLibrary.SelfDestructEvent.Event:Connect(function()
+	for i, v in pairs(vapeConnections) do
+		if v.Disconnect then pcall(function() v:Disconnect() end) continue end
+		if v.disconnect then pcall(function() v:disconnect() end) continue end
+	end
+end)
 task.spawn(function()
 	local suc, err = pcall(function()
 		local topbarappgui = lplr.PlayerGui:WaitForChild("TopBarAppGui")
