@@ -18,7 +18,7 @@ local gameCamera = workspace.CurrentCamera
 local lplr = game:GetService("Players").LocalPlayer
 
 local btext = function(text)
-	return text .. ' '
+	return text..' '
 end
 local void = function() end
 local runservice = game:GetService("RunService")
