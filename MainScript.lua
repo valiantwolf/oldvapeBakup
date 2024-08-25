@@ -2282,6 +2282,9 @@ if not shared.NoAutoExecute then
 			if shared.VapePrivate then
 				teleportScript = 'shared.VapePrivate = true\n'..teleportScript
 			end
+			if shared.NoAutoExecute then
+				teleportScript = 'shared.NoAutoExecute = true\n'..teleportScript
+			end
 			if shared.TeleportExploitAutowinEnabled then
 				teleportScript = 'shared.TeleportExploitAutowinEnabled = true\n'..teleportScript
 			end
