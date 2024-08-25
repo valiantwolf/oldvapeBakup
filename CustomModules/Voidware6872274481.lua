@@ -3493,7 +3493,15 @@ run(function()
 							end
 							end)
 							if AutowinNotification.Enabled then
-								local bedname = VoidwareStore.bedtable[bed] or "unknown"
+								local function get_bed_team(id)
+									for i,v in pairs(shared.GlobalBedwars.ClientStoreHandler:getState().Game["teams"]) do
+										if v["id"] and (v["id"] == id or v["id"] == tostring(id) or v["id"] == tonumber(id)) then
+											return suc, v["name"]
+										end
+									end
+									return false, "Unknown"
+								end
+								local suc, bedname = get_bed_team(bed:GetAttribute("TeamId"))
 								task.spawn(InfoNotification, "Autowin", "Destroying "..bedname:lower().." team's bed", 5)
 							end
 							if not isEnabled("Nuker") then
