@@ -3010,11 +3010,6 @@ run(function()
 			end
 		end
 	})
-	local Credits
-	Credits = GodMode.CreateCredits({
-		Name = 'CreditsButtonInstance',
-		Credits = 'Novoline (nebula)'
-	})
 end)
 
 --[[run(function()
