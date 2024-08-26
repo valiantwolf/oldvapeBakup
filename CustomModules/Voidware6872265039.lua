@@ -483,3 +483,18 @@ run(function()
 		if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) ~= 2 then AutoCheck.Object.Visible = false end
 	end)
 end)
+
+run(function() 
+	local ScytheFunny = {}
+	ScytheFunny = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
+		Name = 'ScytheFunny',
+		Function = function(calling)
+			if calling then 
+				repeat 
+					task.wait()
+					game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("SkyScytheSpin"):FireServer()
+				until (not ScytheFunny.Enabled)
+			end
+		end
+	}) 
+end)

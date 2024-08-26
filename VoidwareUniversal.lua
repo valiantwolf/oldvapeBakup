@@ -620,7 +620,8 @@ run(function() local CloudMods = {}
     })
 end)
 
-run(function() local RestartVoidware = {}
+run(function() 
+	local RestartVoidware = {}
 	RestartVoidware = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
 		Name = 'Restart',
 		Function = function(calling)
