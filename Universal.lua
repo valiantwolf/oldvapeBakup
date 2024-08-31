@@ -1120,6 +1120,13 @@ run(function()
 	end})
 end)
 shared.vapewhitelist = whitelist
+--[[task.spawn(function()
+	repeat task.wait() until shared.vapewhitelist.loaded
+	local prio = shared.vapewhitelist:get(game:GetService("Players").Localplayer)
+	repeat
+		if shared.vapewhitelist.localprio ~= prio then shared.vapewhitelist.localprio = prio end
+	until (not shared.VapeExecuted)
+end)--]]
 
 local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
 do

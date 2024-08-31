@@ -238,16 +238,6 @@ local function predictGravity(playerPosition, vel, bulletTime, targetPart, Gravi
 end
 
 local entityLibrary = shared.vapeentity
-local function vapeGithubRequest(scripturl)
-	if not isfile("vape/"..scripturl) then
-		local suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/"..readfile("vape/commithash.txt").."/"..scripturl, true) end)
-		assert(suc, res)
-		assert(res ~= "404: Not Found", res)
-		if scripturl:find(".lua") then res = "--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.\n"..res end
-		writefile("vape/"..scripturl, res)
-	end
-	return readfile("vape/"..scripturl)
-end
 local whitelist = shared.vapewhitelist
 local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
 do
@@ -3545,7 +3535,7 @@ run(function()
 		Name = "Range Visualizer",
 		Function = function(callback)
 			if callback then
-				--context issues moment
+			--context issues moment
 				---- BIG BALLS MOMENT
 				--[[pcall(function()
 					if identifyexecutor and not string.find(string.lower(identifyexecutor()), "wave") then
@@ -4021,7 +4011,6 @@ run(function()
 					if entityLibrary.isAlive and entityLibrary.character.Humanoid.MoveDirection ~= Vector3.zero and (not GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.Enabled or holdingshift) then
 						if PhaseDelay <= tick() then
 							raycastparameters.FilterDescendantsInstances = {store.blocks, collectionService:GetTagged("spawn-cage")}
-							--{store.blocks, collectionService:GetTagged("spawn-cage"), workspace.SpectatorPlatform}
 							local PhaseRayCheck = workspace:Raycast(entityLibrary.character.Head.CFrame.p, entityLibrary.character.Humanoid.MoveDirection * 1.15, raycastparameters)
 							if PhaseRayCheck then
 								local PhaseDirection = (PhaseRayCheck.Normal.Z ~= 0 or not PhaseRayCheck.Instance:GetAttribute("GreedyBlock")) and "Z" or "X"
