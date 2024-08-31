@@ -2496,6 +2496,7 @@ local function loadVape()
 		end
 		task.spawn(function()
 			repeat task.wait() until shared.vapewhitelist
+			repeat task.wait() until shared.vapewhitelist.loaded
 			if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) == 0 then
 				InfoNotification("Voidware Loader", "Voidware Public successfully loaded! | discord.gg/voidware", 1.5)
 			else
