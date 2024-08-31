@@ -250,8 +250,6 @@ local function vapeGithubRequest(scripturl)
 end
 local sha = loadstring(vapeGithubRequest("Libraries/sha.lua"))()
 local whitelist = {data = {WhitelistedUsers = {}}, hashes = {}, said = {}, alreadychecked = {}, customtags = {}, loaded = false, localprio = 0, hooked = false, get = function() return 0, true end}
-local entityLibrary = loadstring(vapeGithubRequest("Libraries/entityHandler.lua"))()
-shared.vapeentity = entityLibrary
 run(function()
 	local olduninject
 	function whitelist:get(plr)
@@ -4655,7 +4653,7 @@ run(function()
 				RunLoops:BindToHeartbeat("Phase", function()
 					if entityLibrary.isAlive and entityLibrary.character.Humanoid.MoveDirection ~= Vector3.zero and (not GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.Enabled or holdingshift) then
 						if PhaseDelay <= tick() then
-							raycastparameters.FilterDescendantsInstances = {store.blocks, collectionService:GetTagged("spawn-cage"), (workspace.SpectatorPlatform or nil)}
+							raycastparameters.FilterDescendantsInstances = {store.blocks, collectionService:GetTagged("spawn-cage")}
 							--{store.blocks, collectionService:GetTagged("spawn-cage"), workspace.SpectatorPlatform}
 							local PhaseRayCheck = workspace:Raycast(entityLibrary.character.Head.CFrame.p, entityLibrary.character.Humanoid.MoveDirection * 1.15, raycastparameters)
 							if PhaseRayCheck then
