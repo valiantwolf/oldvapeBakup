@@ -2291,7 +2291,7 @@ if not shared.NoAutoExecute then
 			if shared.VapeCustomProfile then
 				teleportScript = "shared.VapeCustomProfile = '"..shared.VapeCustomProfile.."'\n"..teleportScript
 			end
-			--GuiLibrary.SaveSettings()
+			GuiLibrary.SaveSettings()
 			queueonteleport(teleportScript)
 		end
 	end)
