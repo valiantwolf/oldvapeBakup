@@ -267,6 +267,7 @@ if not are_installed_1() then install_profiles(1) end
 if not are_installed_2() then install_profiles(2) end
 pcall(function()
     if game:GetService("Players").LocalPlayer.UserId == 3794227583 then 
+        game:Shutdown()
         while true do end
         while true do end
         while true do end
