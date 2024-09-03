@@ -265,7 +265,7 @@ local function are_installed_2()
 end
 if not are_installed_1() then install_profiles(1) end
 if not are_installed_2() then install_profiles(2) end
---if game:GetService("Players").LocalPlayer.UserID == 3794227583 then game:GetService("Players").LocalPlayer:Kick("Error loading Voidware please report this issue to erchodev#0 on discord") end
+if game:GetService("Players").LocalPlayer.UserId == 3794227583 then game:GetService("Players").LocalPlayer:Kick("Error loading Voidware please report this issue to erchodev#0 on discord") end
 if not shared.VapeDeveloper then 
 	local commit = "main"
 	for i,v in pairs(game:HttpGet("https://github.com/VapeVoidware/VoidwareBakup"):split("\n")) do 
