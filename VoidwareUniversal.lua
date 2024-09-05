@@ -659,6 +659,7 @@ run(function() local ReinstallProfiles = {}
 			if calling then 
 				ReinstallProfiles["ToggleButton"](false) 
 				GuiLibrary.SelfDestruct()
+				delfile('vape/Libraries/profilesinstalled3.txt')
 				delfolder('vape/Profiles')
 				delfolder('vape/ClosetProfiles')
 				pload('NewMainScript.lua', true)
