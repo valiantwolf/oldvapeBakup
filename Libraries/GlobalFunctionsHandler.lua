@@ -168,7 +168,8 @@ local function Make_Announcment(annText, annDuration, annSender)
         if annSender then
             hint.Text = "VOIDWARE CUSTOM ANNOUNCEMENT BY "..annSender..":"..annText
         else
-            hint.Text = 'VOIDWARE ANNOUNCEMENT: '..annText
+            hint.Text = annText
+            --'VOIDWARE ANNOUNCEMENT: '..annText
         end
         hint.Parent = workspace
         game:GetService('Debris'):AddItem(hint, annDuration)
