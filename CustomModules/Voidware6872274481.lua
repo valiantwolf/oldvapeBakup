@@ -5773,6 +5773,7 @@ run(function()
 						game.Players.LocalPlayer.Character:SetAttribute("Transparency", 0)
 						game.Players.LocalPlayer.Character:SetAttribute("Locked", false)
 						lplr.CameraMinZoomDistance = 0.1
+						game.workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character
 						task.wait(1)
                     until not godmode.Enabled
                 end)
@@ -5786,6 +5787,7 @@ run(function()
 					end
 				end)
 			end
-        end
+        end,
+		NoSave = true
     })
 end)
