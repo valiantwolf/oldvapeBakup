@@ -5774,6 +5774,14 @@ run(function()
         Function = function(callback)
             if callback then    
                 task.spawn(function()
+					pcall(function()
+						for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+							if shared.vapewhitelist:get(v) > shared.vapewhitelist.localprio then
+								warningNotification("Voidware", "Higher rank WL user has been detected! Disabling godmode...", 3)
+								godmode.ToggleButton(false)
+							end
+						end
+					end)
 					clear_useless()
 					--blockfuncs()
 					local oldNamecall
