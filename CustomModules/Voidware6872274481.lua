@@ -5682,6 +5682,22 @@ run(function()
 	end)
 end)
 
+local function clear_useless()
+	task.spawn(function()
+		local plrgui = game.Players.LocalPlayer.PlayerGui
+		repeat task.wait() until plrgui
+		local a = plrgui:FindFirstChild("ActionBarScreenGui")
+		repeat task.wait() until a 
+		local b = a:FindFirstChild("ActionBar")
+		repeat task.wait() until b 
+		for i,v in pairs(b:GetChildren()) do
+			if v.Name == "RoactTree" and v.ClassName == "Frame" and #v:GetChildren() < 5 then
+				v:Destroy()
+			end
+		end
+	end)
+end
+
 local ClientCrasher = {}
 run(function()
 	local anticrash = {}
@@ -5720,6 +5736,7 @@ run(function()
 						return oldNamecall(self, ...)
 					end))
 					repeat
+						clear_useless()
 						thingystop = false
 						task.spawn(function()
 							for i = 1, 30 do
@@ -5757,6 +5774,7 @@ run(function()
         Function = function(callback)
             if callback then    
                 task.spawn(function()
+					clear_useless()
 					--blockfuncs()
 					local oldNamecall
 					local remfunc = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("RequestSquadLaunch")
@@ -5775,9 +5793,11 @@ run(function()
 						lplr.CameraMinZoomDistance = 0.1
 						game.workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character
 						task.wait(1)
+						clear_useless()
                     until not godmode.Enabled
                 end)
             else
+				clear_useless()
 				game.workspace.Camera.CameraSubject = game.Players.LocalPlayer.Character
 				task.spawn(function()
 					for i = 1, 12 do
