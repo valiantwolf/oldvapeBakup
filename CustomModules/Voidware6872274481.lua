@@ -5757,7 +5757,7 @@ run(function()
         Function = function(callback)
             if callback then    
                 task.spawn(function()
-					blockfuncs()
+					--blockfuncs()
 					local oldNamecall
 					local remfunc = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("RequestSquadLaunch")
 					oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
