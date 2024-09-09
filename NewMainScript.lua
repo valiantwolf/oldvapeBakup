@@ -253,6 +253,7 @@ local function install_profiles(num)
         downloadVapeProfile(name..guiprofiles[i])
         task.wait()
     end
+    if (not isfolder('vape/Libraries')) then makefolder('vape/Libraries') end
     if num == 1 then writefile('vape/Libraries/profilesinstalled3.txt', "true") elseif num == 2 then writefile('vape/ClosetProfiles/profilesinstalled3.txt', "true") end 
 end
 local function are_installed_1()
