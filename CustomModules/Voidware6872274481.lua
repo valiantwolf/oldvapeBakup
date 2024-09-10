@@ -5827,7 +5827,7 @@ task.spawn(function()
 				end
 			})
 		end)
-		run(function()
+		--[[run(function()
 			local BeamExploit = {Enabled = false}
 			BeamExploit = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 				Name = "1[OP] BeamExploit",
@@ -5855,11 +5855,7 @@ task.spawn(function()
 								local args = {
 									[1] = {
 										["laserIsOn"] = true,
-										["targetBlockPos"] = targetPosition --[[+ Vector3.new(
-											Random:NextNumber(-10, 10), 
-											Random:NextNumber(-10, 10), 
-											Random:NextNumber(-10, 10)
-										)--]]
+										["targetBlockPos"] = targetPosition
 									}
 								}
 								game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged.LaserPickaxeStartSpinningFromClient:FireServer(unpack(args))
@@ -5869,7 +5865,7 @@ task.spawn(function()
 					end
 				end
 			})
-		end)
+		end)--]]
 		--- credits for both go to private leaker
 	end
 end)
