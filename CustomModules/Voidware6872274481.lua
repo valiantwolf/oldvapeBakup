@@ -5767,3 +5767,65 @@ run(function()
 		if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) ~= 2 then AutoCheck.Object.Visible = false end
 	end)
 end)
+
+task.spawn(function()
+	repeat task.wait() until shared.vapewhitelist.loaded
+	if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) > 0 then
+		run(function()
+			local ItemSpawner = {Enabled = false}
+			local Choice = {Value = "Chicken"}
+			local CustomChoice = {Enabled = false}
+			local ItemIds = {
+				["Dagger"] = 1,
+				["Scythe"] = 2,
+				["Hammer"] = 3,
+				["Gauntlet"] = 4,
+				["Chicken"] = 7
+			}
+			local function spawnItem()
+				local a
+				if CustomChoice.Enabled then a = ItemIds[Choice.Value] else a = ItemIds["Chicken"] end
+				local args = {
+					[1] = {
+						["forgeUpgrade"] = a
+					}
+				}
+				game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("SetForgeSelectMechanic"):FireServer(unpack(args))
+			end
+			ItemSpawner = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+				Name = "1[OP] ChickenExploit",
+				Function = function(callback)
+					if callback then
+						spawnItem()
+						if CustomChoice.Enabled then
+							warningNotification("ItemSpawner", "Spawned "..Choice.Value, 3)
+						else
+							warningNotification("ItemSpawner", "Spawned Chicken", 3)
+						end
+						ItemSpawner.ToggleButton(false)
+					end
+				end
+			})
+			GuiLibrary.ObjectsThatCanBeSaved["1[OP] ChickenExploitOptionsButton"].Object.ButtonText.TextSize = 15
+			local real_list = {}
+			for i,v in pairs(ItemIds) do table.insert(real_list, i) end
+			Choice = ItemSpawner.CreateDropdown({
+				Name = "ItemChoice",
+				Function = function() end,
+				List = real_list,
+				Default = "Chicken"
+			})
+			Choice.Object.Visible = false
+			CustomChoice = ItemSpawner.CreateToggle({
+				Name = "CustomItem",
+				Function = function(callback)
+					if callback then
+						Choice.Object.Visible = true
+					else
+						Choice.Object.Visible = false
+					end
+				end
+			})
+		end)
+	end
+end)
