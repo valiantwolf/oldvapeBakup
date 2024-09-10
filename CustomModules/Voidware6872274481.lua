@@ -4325,7 +4325,7 @@ run(function()
 		end)
 	end
 	StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-		Name = "1[TESTING] StaffDetector",
+		Name = "1[NEW] StaffDetector",
 		Function = function(callback)
 			if callback then
 				for i,v in pairs(game:GetService("Players"):GetPlayers()) do
@@ -5827,5 +5827,51 @@ task.spawn(function()
 				end
 			})
 		end)
+		run(function()
+			local BeamExploit = {Enabled = false}
+			BeamExploit = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+				Name = "1[OP] BeamExploit",
+				Function = function(callback)
+					if callback then
+						task.spawn(function()
+							repeat
+								local lplr = game:GetService("Players").LocalPlayer
+								local localPlayer = lplr
+								local Players = game:GetService("Players")
+								repeat task.wait() until lplr.Character:FindFirstChild("HumanoidRootPart")
+								local nearestPlayer
+								local minDistance = math.huge
+								for _, player in ipairs(Players:GetPlayers()) do
+									if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+										local distance = (player.Character.HumanoidRootPart.Position - localPlayer.Character.HumanoidRootPart.Position).magnitude
+										if distance < minDistance then
+											minDistance = distance
+											nearestPlayer = player
+										end
+									end
+								end
+								local targetPosition = nearestPlayer and nearestPlayer.Character.HumanoidRootPart.Position or Vector3.new(999999, 999999, 999999)
+								local Random = Random.new()
+								local args = {
+									[1] = {
+										["laserIsOn"] = true,
+										["targetBlockPos"] = targetPosition --[[+ Vector3.new(
+											Random:NextNumber(-10, 10), 
+											Random:NextNumber(-10, 10), 
+											Random:NextNumber(-10, 10)
+										)--]]
+									}
+								}
+								game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged.LaserPickaxeStartSpinningFromClient:FireServer(unpack(args))
+								task.wait(0.01)
+							until (not BeamExploit.Enabled)
+						end)
+					else
+		
+					end
+				end
+			})
+		end)
+		--- credits for both go to private leaker
 	end
 end)
