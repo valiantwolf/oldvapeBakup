@@ -5866,8 +5866,6 @@ task.spawn(function()
 								task.wait(0.01)
 							until (not BeamExploit.Enabled)
 						end)
-					else
-		
 					end
 				end
 			})
