@@ -4130,54 +4130,64 @@ run(function()
 	})
 end)
 
-local staffdetector = {};
+local StaffDetector = {Enabled = false}
 run(function()
-	local teleport = game:GetService('TeleportService');
-	local httpservice = game:GetService("HttpService");
-	local players = game:GetService("Players")
-    local staffdetectoraction = {Value = 'Uninject'};
-    local staffdetectorfamous = {};
-    local stafftasks = {};
-    local staffconfig = {staffaccounts = {}};
-    local knownstaff = {};
-    local staffdetectorinitiated;
-    local staffdetectionfuncs = setmetatable({}, {
-        __newindex = function(self, index, func)
-            local newfunc = function(...)
-                for taskIndex, taskValue in pairs(stafftasks) do 
-                    pcall(task.cancel, taskValue);
-                end
-                table.clear(stafftasks);
-                staffdetectorinitiated = true;
-                task.spawn(function()
-                    pcall(function() bedwars.QueueController:leaveParty() end);
-                end);
-                return func(...);
-            end
-            if rawget(self, index) == nil then 
-                return rawset(self, index, newfunc); 
-            end
-        end
-    })
-    staffdetectionfuncs.Notify = void;
-    staffdetectionfuncs.Uninject = function() 
-        GuiLibrary.SelfDestruct()
-    end
-    staffdetectionfuncs.Lobby = function() 
-        teleport:Teleport(6872265039)
-    end
-    staffdetectionfuncs.Config = function()
-        for buttonName, buttonData in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
-            if buttonData.Type == 'OptionsButton' and table.find(staffconfig.legitmodules, buttonName:gsub('OptionsButton', '')) == nil then 
-                GuiLibrary.SaveSettings = function() end;
-                if buttonData.Api.Enabled then
-                    buttonData.Api.ToggleButton();
-                end
-                GuiLibrary.RemoveObject(buttonName);
-            end
-        end
-    end;
-	local function NotifyUser(text)
+	local StaffDetector_Functions = {}
+	local StaffDetector_Table = {
+		Friends = {}
+	}
+	local StaffDetector_Action = {
+		DropdownValue = {Value = "Uninject"},
+		FunctionsTable = {
+			["Uninject"] = function()
+				GuiLibrary.SelfDestruct()
+			end, 
+			["Panic"] = function() 
+				task.spawn(function()
+					coroutine.close(shared.saveSettingsLoop)
+				end)
+				GuiLibrary.SaveSettings()
+				function GuiLibrary.SaveSettings()
+					return warningNotification("StaffDetector", "Saving Settings has been prevented from staff detector!", 1.5)
+				end
+				warningNotification("StaffDetector", "Saving settings has been disabled!", 1.5)
+				task.spawn(function()
+					repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton
+					shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton.Api.ToggleButton(false)
+				end)
+			end,
+			["Lobby"] = function() 
+				TPService:Teleport(6872265039)
+			end
+		},
+	}
+	local StaffDetector_CustomBlacklist = {
+		Toggle = {Enabled = false},
+		TextList = {ObjectList = {}}
+	}
+	local StaffDetector_Connections = {}
+	local TPService = game:GetService('TeleportService')
+	local HTTPService = game:GetService("HttpService")
+	local Players = game:GetService("Players")
+	function StaffDetector_Functions.SaveStaffData(staff, detection_type)
+		local suc, err = pcall(function()
+			return HTTPService:JSONDecode(readfile('vape/Libraries/StaffData.json'))
+		end)
+		local json = {}
+		if suc then
+			json = err
+		else
+			json = {}
+		end
+		table.insert(json,{
+			StaffName = staff.DisplayName.."(@"..staff.Name..")",
+			Time = os.time(),
+			DetectionType = detection_type
+		})
+		if (not isfolder('vape/Libraries')) then makefolder('vape/Libraries') end
+		writefile('vape/Libraries/StaffData.json', HTTPService:JSONEncode(json))
+	end
+	function StaffDetector_Functions.Notify(text)
 		game:GetService('StarterGui'):SetCore(
 			'ChatMakeSystemMessage', 
 			{
@@ -4188,121 +4198,197 @@ run(function()
 			}
 		)
 	end
-    local savestaffdata = function(player, detection)
-        local success, json = pcall(function() 
-            return httpservice:JSONDecode(readfile('vape/Libraries/staffdata.json'))
-        end);
-        if not success then 
-            json = {};
-        end;
-        table.insert(json, {
-            Username = player.Name, 
-            DisplayName = player.DisplayName, 
-            Detection = detection, 
-            Tick = tick()
-        });
-        if isfolder('vape/Libraries') then 
-            writefile('vape/Libraries/staffdata.json', httpservice:JSONEncode(json));
-        end
-    end;
-    local matchtag = function(tag)
-        if tag.ClassName ~= 'StringValue' or tag.Value == tag.Parent.Parent:GetAttribute('ClanTag') then 
-            return; 
-        end
-        local lowerTagValue = tag.Value:lower()
-        if lowerTagValue:find('mod') or lowerTagValue:find('dev') or lowerTagValue:find('owner') then 
-            return true;
-        end
-        if staffdetectorfamous.Enabled and lowerTagValue:find('famous') then 
-            return true;
-        end
-    end;
-    local getfriends = function(player)
-        local friends = {};
-        local success, page = pcall(players.GetFriendsAsync, players, player.UserId);
-        if success then
-            repeat
-                for _, friend in pairs(page:GetCurrentPage()) do
-                    table.insert(friends, friend.UserId);
+	function StaffDetector_Functions.Trigger(plr, det_type, addInfo)
+		StaffDetector_Functions.SaveStaffData(plr, det_type)
+		local text = plr.DisplayName.."(@"..plr.Name..") has been detected as staff via "..det_type.." detection type! "..StaffDetector_Action.DropdownValue.." action type will be used shortly."
+		if addInfo then text = text.." Additonal Info: "..addInfo end
+		StaffDetector_Functions.Notify(text)
+		StaffDetector_Action.FunctionsTable[StaffDetector_Action.DropdownValue]()
+	end
+	function StaffDetector_Functions.Log_User_Friends(plr)
+		local function iterPageItems(pages)
+			return coroutine.wrap(function()
+				local pagenum = 1
+				while true do
+					for _, item in ipairs(pages:GetCurrentPage()) do
+						coroutine.yield(item, pagenum)
+					end
+					if pages.IsFinished then
+						break
+					end
+					pages:AdvanceToNextPageAsync()
+					pagenum = pagenum + 1
+				end
+			end)
+		end
+		local friendPages = Players:GetFriendsAsync(plr.UserId)
+		for i,v in iterPageItems(friendPages) do
+			StaffDetector_Table.Friends[plr.UserId] = StaffDetector_Table.Friends[plr.UserId] or {}
+			table.insert(StaffDetector_Table.Friends[plr.UserId], i.Username)
+		end
+	end
+	function StaffDetector_Functions.isFriend(plr)
+		local target = plr.Name
+		local state, friendOf = false, nil
+		for i,v in pairs(StaffDetector_Table.Friends) do
+			for i2, v2 in pairs(v) do
+				if v2 == target then
+					friendOf = Players:GetNameFromUserIdAsync(i)
+					state = true
+				end
+			end
+		end
+		return state, friendOf
+	end
+	function StaffDetector_Functions.groupCheck(plr)
+		local plrRank = plr:GetRankInGroup(5774246)
+		local state, Type = false, nil
+		local Rank_Table = {
+			[79029254] = "AC MOD",
+			[86172137] = "AC MOD", -- lead ac mod :D luv u chase
+			[43926962] = "Developer",
+			[37929139] = "Developer",
+			[87049509] = "Owner",
+			[37929138] = "Owner"
+		}
+		if Rank_Table[plrRank] then state = true; Type = Rank_Table[plrRank] end
+		return state, Type
+	end
+	function StaffDetector_Functions.CheckAndTrackPlrTags(plr)
+		local blacklisted_tags = {
+			["Normal"] = {"AC MOD", "LEAD AC MOD", "DEV"},
+			["Clan"] = {}
+		}
+		local blacklisted_clan_tags = {}
+		if StaffDetector_CustomBlacklist.Toggle.Enabled then
+			for i,v in pairs(StaffDetector_CustomBlacklist.TextList.ObjectList) do
+				table.insert(blacklisted_, v)
+			end
+		end
+		local function isBlacklisted(tag)
+			for i,v in pairs(blacklisted_tags.Normal) do
+				if v == tag then 
+					return true, "Normal"
+				end
+			end
+			for i,v in pairs(blacklisted_tags.Clan) do
+				if v == tag then 
+					return true, "Clan"
+				end
+			end
+			return false, nil
+		end
+		local function checkTags(tagsFolder)
+			for i,v in pairs(tagsFolder:GetChildren()) do
+				if v.Text then
+					local state, Type = isBlacklisted(v.Text)
+					if state then
+						local add_on = "TagName: "..v.Text
+						if Type == "Clan" then add_on = add_on.." Type: "..Type end
+						StaffDetector_Functions.Trigger(plr, "TAG", add_on)
+					end
+				end
+			end
+		end
+		local tags = plr:FindFirstChild("Tags")
+		if tags then
+			checkTags(tags)
+			local con = tags.ChildAdded:Connect(function() checkTags(tags) end)
+			table.insert(StaffDetector_Connections, con)
+		else
+			local con1 = plr.ChildAdded:Connect(function(child)
+				if child.Name == "Tags" and child.ClassName == "Folder" then
+					checkTags(child)
+					local con2 = child.ChildAdded:Connect(function() checkTags(child) end)
+					table.insert(StaffDetector_Connections, con2)
+				end
+			end)
+			table.insert(StaffDetector_Connections, con1)
+		end
+	end
+	local function checkUser(plr)
+		StaffDetector_Functions.Log_User_Friends(plr)
+		StaffDetector_Functions.CheckAndTrackPlrTags(plr)
+		task.spawn(function()
+			repeat task.wait() until plr.Character
+			if tostring(plr.Team) == "Spectators" then
+				local state, friendOf = StaffDetector_Functions.isFriend(plr)
+				if (not state) then
+					StaffDetector_Functions.Trigger(plr, "TeamCheck")
+				end
+			else
+				local state, Type = StaffDetector_Functions.groupCheck(plr)
+				if state then
+					StaffDetector_Functions.Trigger(plr, "GroupRoleCheck", "RoleDetected: "..Type)
+				end
+			end
+		end)
+	end
+	StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+		Name = "1[TESTING] StaffDetector",
+		Function = function(callback)
+			if callback then
+				for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+					if v ~= game:GetService("Players").LocalPlayer then
+						checkUser(v)
+					end
+				end
+				local con = game:GetService("Players").PlayerAdded:Connect(function(plr)
+					checkUser(plr)
+				end)
+				table.insert(StaffDetector_Connections, con)
+			else
+				for i, v in pairs(StaffDetector_Connections) do
+                    if v.Disconnect then pcall(function() v:Disconnect() end) continue end
+                    if v.disconnect then pcall(function() v:disconnect() end) continue end
                 end
-                if not page.IsFinished then 
-                    page:AdvanceToNextPageAsync();
-                end
-            until page.IsFinished
-        end
-        return friends;
-    end;
-    local staffdetectorLoop = function(player)
-        local tags
-        local newtagconnection
-        stafftasks[#stafftasks + 1] = task.spawn(function()
-            tags = player:WaitForChild('Tags', math.huge);
-            for _, tag in ipairs(tags:GetChildren()) do 
-                if matchtag(tag) then
-                    savestaffdata(player, 'TAG');
-					NotifyUser("[StaffDetector]: "..`A special player has been detected in your match (@{player.DisplayName} [{tag.Value:upper()}]).`)
-                    errorNotification('StaffDetector', `A special player has been detected in your match (@{player.DisplayName} [{tag.Value:upper()}]).`, 60);
-                    staffdetectionfuncs[staffdetectoraction.Value]();
-                end
-            end
-            newtagconnection = tags.ChildAdded:Connect(function(newTag)
-                if matchtag(newTag) then
-					NotifyUser("[StaffDetector]: "..`A special player has been detected in your match (@{player.DisplayName} [{newTag.Value:upper()}]).`)
-                    errorNotification('StaffDetector', `A special player has been detected in your match (@{player.DisplayName} [{newTag.Value:upper()}]).`, 60);
-                    savestaffdata(player, 'TAG');
-                    newtagconnection:Disconnect();
-                    staffdetectionfuncs[staffdetectoraction.Value]();
-                end
-            end);
-            table.insert(staffdetector.Connections, newtagconnection)
-        end)
-        repeat 
-            if table.find(staffconfig.staffaccounts, player.UserId) or table.find(knownstaff, player.UserId) then 
-				NotifyUser("[StaffDetector]: "..`A special player has been detected in your match (@{player.DisplayName} [{v.Value:upper()}]).`)
-                errorNotification('StaffDetector', `A special player has been detected in your match (@{player.DisplayName} [{v.Value:upper()}]).`, 60);
-                staffdetectionfuncs[staffdetectoraction.Value]();
-            end
-            task.wait()
-        until (not staffdetector.Enabled);
-    end;
-    staffdetector = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
-        Name = 'StaffDetector',
-        HoverText = 'Automatically takes action on staff join.',
-        Function = function(calling)
-            if calling then 
-                if staffdetectorinitiated then return end;
-                local players = game:GetService("Players")
-                for _, player in ipairs(players:GetPlayers()) do 
-                    stafftasks[#stafftasks + 1] = task.spawn(staffdetectorLoop, player)
-                end;
-                table.insert(staffdetector.Connections, players.PlayerAdded:Connect(function(player)
-                    stafftasks[#stafftasks + 1] = task.spawn(staffdetectorLoop, player)
-                end))
-            else 
-                for _, taskValue in pairs(stafftasks) do 
-                    pcall(task.cancel, taskValue);
-                end
-                table.clear(stafftasks);
-            end
-        end
-    })
-    staffdetectoraction = staffdetector.CreateDropdown({
+			end
+		end,
+		HoverText = "Detects staffs"
+	})
+	local list = {}
+	for i,v in pairs(StaffDetector_Action.FunctionsTable) do table.insert(list, i) end
+	StaffDetector_Action.DropdownValue = StaffDetector.CreateDropdown({
         Name = 'Action',
-        List = {'Uninject', 'Lobby', 'Config', 'Notify'},
-        Function = void
+        List = list,
+        Function = function() end
     })
-    staffdetectorfamous = staffdetector.CreateToggle({
-        Name = 'Famous',
-        HoverText = 'Detects famous people in bw comm too.',
-        Function = void
-    })
-end);
+	StaffDetector_CustomBlacklist.TextList = StaffDetector.CreateTextList({
+		Name = "Blacklisted Clans",
+		TempText = "Clan Tag",
+		AddFunction = function()
+			if StaffDetector.Enabled then 
+				StaffDetector.ToggleButton(false)
+				StaffDetector.ToggleButton(false)
+			end
+		end,
+		RemoveFunction = function()
+			if StaffDetector.Enabled then 
+				StaffDetector.ToggleButton(false)
+				StaffDetector.ToggleButton(false)
+			end
+		end
+	})
+	StaffDetector_CustomBlacklist.TextList.Object.Visible = false
+	StaffDetector_CustomBlacklist.Toggle = StaffDetector.CreateToggle({
+		Name = "CustomBlacklist",
+		Function = function(callback)
+			if callback then
+				StaffDetector_CustomBlacklist.TextList.Object.Visible = true
+			else
+				StaffDetector_CustomBlacklist.TextList.Object.Visible = false
+			end
+		end
+	})
+end)
 
 task.spawn(function()
-	repeat task.wait() until shared.VapeFullyLoaded
-	if not staffdetector.Enabled then
-		staffdetector.ToggleButton(false)
-	end
+	pcall(function()
+		repeat task.wait() until shared.VapeFullyLoaded
+		if (not StaffDetector.Enabled) then
+			StaffDetector.ToggleButton(false)
+		end
+	end)
 end)
 
 --[[local isEnabled = function() return false end
@@ -5545,7 +5631,7 @@ run(function()
     end
 	local checked_data = {}
 	StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.VoidwareWindow.Api.CreateOptionsButton({
-		Name = 'StaffDetector',
+		Name = 'StaffDetector - Roblox',
 		Function = function(calling)
 			if calling then 
 				if (not AutoCheck.Enabled) then
