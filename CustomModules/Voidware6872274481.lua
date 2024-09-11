@@ -5771,7 +5771,7 @@ end)
 task.spawn(function()
 	repeat task.wait() until shared.vapewhitelist.loaded
 	if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) > 0 then
-		run(function()
+		--[[run(function()
 			local ItemSpawner = {Enabled = false}
 			local Choice = {Value = "Chicken"}
 			local CustomChoice = {Enabled = false}
@@ -5826,8 +5826,8 @@ task.spawn(function()
 					end
 				end
 			})
-		end)
-		--[[run(function()
+		end)--]]
+		run(function()
 			local BeamExploit = {Enabled = false}
 			BeamExploit = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 				Name = "1[OP] BeamExploit",
@@ -5865,7 +5865,7 @@ task.spawn(function()
 					end
 				end
 			})
-		end)--]]
+		end)
 		--- credits for both go to private leaker
 	end
 end)
