@@ -4263,6 +4263,9 @@ run(function()
 			["Normal"] = {"AC MOD", "LEAD AC MOD", "DEV"},
 			["Clan"] = {}
 		}
+		if StaffDetector_CustomBlacklist.YoutuberToggle.Enabled then
+			table.insert(blacklisted_tags, "FAMOUS")
+		end
 		local blacklisted_clan_tags = {}
 		if StaffDetector_CustomBlacklist.Toggle.Enabled then
 			for i,v in pairs(StaffDetector_CustomBlacklist.TextList.ObjectList) do
