@@ -4166,6 +4166,7 @@ run(function()
 		TextList = {ObjectList = {}},
 		YoutuberToggle = {Enabled = false}
 	}
+	local StaffDetector_ReadStaffData = {Enabled = false}
 	local StaffDetector_Connections = {}
 	local TPService = game:GetService('TeleportService')
 	local HTTPService = game:GetService("HttpService")
@@ -4177,8 +4178,6 @@ run(function()
 		local json = {}
 		if suc then
 			json = err
-		else
-			json = {}
 		end
 		table.insert(json,{
 			StaffName = staff.DisplayName.."(@"..staff.Name..")",
@@ -4394,6 +4393,31 @@ run(function()
 			StaffDetector.ToggleButton(false)
 		end,
 		Default = true
+	})
+	StaffDetector_ReadStaffData = StaffDetector.CreateToggle({
+		Name = "Read Current Staff Data",
+		Function = function(callback)
+			if callback then
+				StaffDetector_ReadStaffData.ToggleButton(false)
+				local suc, err = pcall(function()
+					return HTTPService:JSONDecode(readfile('vape/Libraries/StaffData.json'))
+				end)
+				local json = {}
+				if suc then json = err end
+				if #json > 0 then
+					for i,v in pairs(json) do
+						local Staff_Name = v.StaffName
+						local Time = v.Time
+						local Detection_Type = v.DetectionType
+						if Staff_Name and Time and Detection_Type then
+							warningNotification("StaffDetector - Log "..tostring(i), "StaffName: "..Staff_Name.." Time_Of_Detection: "..tostring(Time).."\n Detection_Type: "..Detection_Type, 5)
+						end
+					end
+				else
+					warningNotification("StaffDetector", "No staff data was found!", 3)
+				end
+			end
+		end
 	})
 end)
 
