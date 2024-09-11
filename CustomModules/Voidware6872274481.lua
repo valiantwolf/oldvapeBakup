@@ -4163,7 +4163,8 @@ run(function()
 	}
 	local StaffDetector_CustomBlacklist = {
 		Toggle = {Enabled = false},
-		TextList = {ObjectList = {}}
+		TextList = {ObjectList = {}},
+		YoutuberToggle = {Enabled = false}
 	}
 	local StaffDetector_Connections = {}
 	local TPService = game:GetService('TeleportService')
@@ -4245,12 +4246,15 @@ run(function()
 		local state, Type = false, nil
 		local Rank_Table = {
 			[79029254] = "AC MOD",
-			[86172137] = "AC MOD", -- lead ac mod :D luv u chase
+			[86172137] = "Lead AC MOD (chase :D)", -- lead ac mod :D luv u chase
 			[43926962] = "Developer",
 			[37929139] = "Developer",
 			[87049509] = "Owner",
 			[37929138] = "Owner"
 		}
+		if StaffDetector_CustomBlacklist.YoutuberToggle.Enabled then
+			Rank_Table[42378457] = "Youtuber/Famous"
+		end
 		if Rank_Table[plrRank] then state = true; Type = Rank_Table[plrRank] end
 		return state, Type
 	end
@@ -4379,6 +4383,14 @@ run(function()
 				StaffDetector_CustomBlacklist.TextList.Object.Visible = false
 			end
 		end
+	})
+	StaffDetector_CustomBlacklist.YoutuberToggle = StaffDetector.CreateToggle({
+		Name = "Youtuber/Famous blacklist",
+		Function = function(callback)
+			StaffDetector.ToggleButton(false)
+			StaffDetector.ToggleButton(false)
+		end,
+		Default = true
 	})
 end)
 
