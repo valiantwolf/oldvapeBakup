@@ -4410,7 +4410,7 @@ run(function()
 						local Time = v.Time
 						local Detection_Type = v.DetectionType
 						if Staff_Name and Time and Detection_Type then
-							warningNotification("StaffDetector - Log "..tostring(i), "StaffName: "..Staff_Name.." Time_Of_Detection: "..tostring(Time).."\n Detection_Type: "..Detection_Type, 5)
+							warningNotification("StaffDetector - Log "..tostring(i), "StaffName: "..Staff_Name.." Time_Of_Detection: "..tostring(Time).."\n Detection_Type: "..Detection_Type, 7)
 						end
 					end
 				else
