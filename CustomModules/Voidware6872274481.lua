@@ -3124,17 +3124,28 @@ end)
 run(function()
 	local insta = {Enabled = false}
 	insta = GuiLibrary.ObjectsThatCanBeSaved.ExploitsWindow.Api.CreateOptionsButton({
-		Name = "EmberExploit",
+		Name = "EmberInstakill",
 		Function = function(callback)
 			if callback then
-				warningNotification("EmberExploit", "Ember blade is required for this to work", 3)
+				warningNotification("EmberInstakill", "Ember blade is required for this to work", 3)
 				task.spawn(function()
-					repeat task.wait()
-						game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.HellBladeRelease:FireServer({
-							["chargeTime"] = 0.999,
-							["player"] = game:GetService("Players").LocalPlayer,
-							["weapon"] =game:GetService("ReplicatedStorage").Inventories:FindFirstChild(lplr.Name.."infernal_saber"),
-						})
+					repeat 
+						local folder = nil
+						for i,v in pairs(game:GetService("ReplicatedStorage"):WaitForChild("Inventories"):GetChildren()) do
+							if v.ClassName == "Folder" and v.Name == game:GetService("Players").LocalPlayer.Name and #v:GetChildren() > 2 then
+								folder = v
+								break
+							end
+						end
+						local args = {
+							[1] = {
+								["chargeTime"] = 1.3664593696594238,
+								["player"] = game:GetService("Players").LocalPlayer,
+								["weapon"] = folder:WaitForChild("infernal_saber")
+							}
+						}
+						game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("HellBladeRelease"):FireServer(unpack(args))
+						task.wait(0.1)
 					until (not insta.Enabled)
 				end)
 			end
