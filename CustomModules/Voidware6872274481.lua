@@ -4325,7 +4325,9 @@ run(function()
 	end
 	local function checkUser(plr)
 		StaffDetector_Functions.Log_User_Friends(plr)
-		StaffDetector_Functions.CheckAndTrackPlrTags(plr)
+		pcall(function()
+			StaffDetector_Functions.CheckAndTrackPlrTags(plr)
+		end)
 		task.spawn(function()
 			repeat task.wait() until plr.Character
 			if tostring(plr.Team) == "Spectators" then
