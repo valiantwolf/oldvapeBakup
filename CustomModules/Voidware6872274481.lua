@@ -4217,26 +4217,28 @@ run(function()
 		StaffDetector_Action.FunctionsTable[StaffDetector_Action.DropdownValue]()
 	end
 	function StaffDetector_Functions.Log_User_Friends(plr)
-		local function iterPageItems(pages)
-			return coroutine.wrap(function()
-				local pagenum = 1
-				while true do
-					for _, item in ipairs(pages:GetCurrentPage()) do
-						coroutine.yield(item, pagenum)
+		pcall(function()
+			local function iterPageItems(pages)
+				return coroutine.wrap(function()
+					local pagenum = 1
+					while true do
+						for _, item in ipairs(pages:GetCurrentPage()) do
+							coroutine.yield(item, pagenum)
+						end
+						if pages.IsFinished then
+							break
+						end
+						pages:AdvanceToNextPageAsync()
+						pagenum = pagenum + 1
 					end
-					if pages.IsFinished then
-						break
-					end
-					pages:AdvanceToNextPageAsync()
-					pagenum = pagenum + 1
-				end
-			end)
-		end
-		local friendPages = Players:GetFriendsAsync(plr.UserId)
-		for i,v in iterPageItems(friendPages) do
-			StaffDetector_Table.Friends[plr.UserId] = StaffDetector_Table.Friends[plr.UserId] or {}
-			table.insert(StaffDetector_Table.Friends[plr.UserId], i.Username)
-		end
+				end)
+			end
+			local friendPages = Players:GetFriendsAsync(plr.UserId)
+			for i,v in iterPageItems(friendPages) do
+				StaffDetector_Table.Friends[plr.UserId] = StaffDetector_Table.Friends[plr.UserId] or {}
+				table.insert(StaffDetector_Table.Friends[plr.UserId], i.Username)
+			end
+		end)
 	end
 	function StaffDetector_Functions.isFriend(plr)
 		local target = plr.Name
