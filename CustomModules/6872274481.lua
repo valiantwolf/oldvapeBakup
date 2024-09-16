@@ -306,6 +306,7 @@ local function getItemNear(itemName, inv)
 	end
 	return nil
 end
+getgenv().getItemNear = getItemNear
 
 local function getHotbarSlot(itemName)
 	for slotNumber, slotTable in pairs(store.localInventory.hotbar) do
