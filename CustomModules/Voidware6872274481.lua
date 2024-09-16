@@ -5925,3 +5925,37 @@ task.spawn(function()
 		--- credits for both go to private leaker
 	end
 end)
+
+run(function()
+    local ScytheExploit = {Enabled = false}
+    ScytheExploit = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+        Name = "1[OP] ScytheExploit",
+        Function = function(callback)
+            if callback then 
+                task.spawn(function()
+					pcall(function()
+						task.spawn(function()
+							repeat task.wait() until GuiLibrary.ObjectsThatCanBeSaved.AutoBuyOptionsButton
+							if GuiLibrary.ObjectsThatCanBeSaved.AutoBuyOptionsButton.Api.Enabled then
+								GuiLibrary.ObjectsThatCanBeSaved.AutoBuyOptionsButton.Api.ToggleButton(false)
+								warningNotification("ScytheExploit", "Autobuy disabled to prevent it from overriding the scythe!", 3)
+							end
+						end)
+						task.spawn(function()
+							repeat task.wait() until GuiLibrary.ObjectsThatCanBeSaved.FirewallBypassOptionsButton
+							if (not GuiLibrary.ObjectsThatCanBeSaved.FirewallBypassOptionsButton.Api.Enabled) then
+								GuiLibrary.ObjectsThatCanBeSaved.FirewallBypassOptionsButton.Api.ToggleButton(false)
+								warningNotification("ScytheExploit", "ScytheDisabler (FirewallBypass) has been auto enabled!", 3)
+							end
+						end)
+					end)
+                    repeat
+                        local args = {[1] = {["shopItem"] = {["lockAfterPurchase"] = true, ["itemType"] = "stone_scythe", ["price"] = 20, ["requireInInventoryToTierUp"] = true, ["nextTier"] = "iron_scythe", ["superiorItems"] = {[1] = "iron_scythe"}, ["currency"] = "iron", ["category"] = "Combat", ["ignoredByKit"] = {[1] = "barbarian", [2] = "dasher", [3] = "frost_hammer_kit", [4] = "tinker", [5] = "summoner", [6] = "ice_queen", [7] = "ember", [8] = "lumen", [9] = "summoner"}, ["disabledInQueue"] = {[1] = "tnt_wars", [2] = "bedwars_og_to4"}, ["spawnWithItems"] = {[1] = "wood_scythe"}, ["amount"] = 1}, ["shopId"] = "1_item_shop"}}
+                        game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged.BedwarsPurchaseItem:InvokeServer(unpack(args))
+                        task.wait(0.1)
+                    until (not ScytheExploit.Enabled)
+                end)
+            end
+        end
+    })
+end)
