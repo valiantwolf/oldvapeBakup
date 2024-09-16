@@ -205,6 +205,7 @@ task.spawn(function()
 end)
 GuiLibrary = pload('GuiLibrary.lua', true)
 shared.GuiLibrary = GuiLibrary
+getgenv().GuiLibrary = GuiLibrary
 writefile("vape/CustomModules/cachechecked.txt", "verified")
 --[[if not isfile("vape/CustomModules/cachechecked.txt") then
 	local isNotCached = false
