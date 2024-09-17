@@ -1909,6 +1909,10 @@ local AnticheatDisabler = COB("Customisation", {
     HoverText = "IMPORTANT! THIS WILL NOT WORK WITH WINTER THEME OR FULLBRIGHT TURN THOSE OFF!"
 })
 
+if shared.ProfilesSavedCustom then
+	warningNotification("ProfilesSaver", "Profiles successfully saved!", 3)
+	shared.ProfilesSavedCustom = nil
+end
 run(function()
 	local ProfilesSaver = {Enabled = false}
 	ProfilesSaver = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
