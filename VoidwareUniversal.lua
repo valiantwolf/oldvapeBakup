@@ -1908,3 +1908,41 @@ local AnticheatDisabler = COB("Customisation", {
     Default = false,
     HoverText = "IMPORTANT! THIS WILL NOT WORK WITH WINTER THEME OR FULLBRIGHT TURN THOSE OFF!"
 })
+
+run(function()
+	local ProfilesSaver = {Enabled = false}
+	ProfilesSaver = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+		Name = "1[VW] ProfilesSaver",
+		Function = function(call)
+			if call then
+				ProfilesSaver.ToggleButton(false)
+				shared.GuiLibrary.SaveSettings()
+				shared.GuiLibrary.SaveSettings = function() end
+				shared.ProfilesSavedCustom = true
+				shared.GuiLibrary.Restart()
+			end
+		end
+	})
+end)
+task.spawn(function()
+	pcall(function()
+		repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved["1[VW] ProfilesSaverOptionsButton"]
+		local a = shared.GuiLibrary.ObjectsThatCanBeSaved["1[VW] ProfilesSaverOptionsButton"]
+		local function resetLayoutOrder()
+			if a.Object.LayoutOrder ~= 0 then
+				a.Object.LayoutOrder = 0
+			end
+		end
+		local function resetTextSize()
+			if a.Object.ButtonText.TextSize ~= 20 then
+				a.Object.ButtonText.TextSize = 20
+			end
+		end
+		resetLayoutOrder()
+		resetTextSize()
+		local con1 = a.Object:GetPropertyChangedSignal("LayoutOrder"):Connect(resetLayoutOrder)
+		local con2 = a.Object.ButtonText:GetPropertyChangedSignal("TextSize"):Connect(resetTextSize)
+		table.insert(vapeConnections, con1)
+		table.insert(vapeConnections, con2)
+	end)
+end)
