@@ -169,7 +169,7 @@ local function downloadVapeAsset(path)
 				textlabel.TextColor3 = Color3.new(1, 1, 1)
 				textlabel.Position = UDim2.new(0, 0, 0, -36)
 				textlabel.Parent = GuiLibrary.MainGui
-				repeat task.wait() until isfile(path)
+				task.wait(0.1)
 				textlabel:Destroy()
 			end)
 			local suc, req = pcall(function() return vapeGithubRequest(path:gsub("vape/assets", "assets")) end)
