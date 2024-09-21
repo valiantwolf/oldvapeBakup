@@ -4282,7 +4282,7 @@ run(function()
 		local blacklisted_clan_tags = {}
 		if StaffDetector_CustomBlacklist.Toggle.Enabled then
 			for i,v in pairs(StaffDetector_CustomBlacklist.TextList.ObjectList) do
-				table.insert(blacklisted_, v)
+				table.insert(blacklisted_tags, v)
 			end
 		end
 		local function isBlacklisted(tag)
@@ -5886,8 +5886,8 @@ task.spawn(function()
 		end)--]]
 		run(function()
 			local BeamExploit = {Enabled = false}
-			BeamExploit = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-				Name = "1[OP] BeamExploit",
+			BeamExploit = GuiLibrary.ObjectsThatCanBeSaved.ExploitsWindow.Api.CreateOptionsButton({
+				Name = "BeamExploit",
 				Function = function(callback)
 					if callback then
 						task.spawn(function()
@@ -5929,8 +5929,8 @@ end)
 
 run(function()
     local ScytheExploit = {Enabled = false}
-    ScytheExploit = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-        Name = "1[OP] ScytheExploit",
+    ScytheExploit = GuiLibrary.ObjectsThatCanBeSaved.ExploitsWindow.Api.CreateOptionsButton({
+        Name = "ScytheExploit",
         Function = function(callback)
             if callback then 
                 task.spawn(function()
@@ -5970,7 +5970,7 @@ task.spawn(function()
 		local KaidaInstaKill = {Enabled = false}
 		local Range = {Value = 40}
 		local MaxEntities = {Value = 1}
-		KaidaInstaKill = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+		KaidaInstaKill = GuiLibrary.ObjectsThatCanBeSaved.FunnyWindow.Api.CreateOptionsButton({
 			Name = "KaidaInstaKill",
 			Function = function(call) 
 				if call then
