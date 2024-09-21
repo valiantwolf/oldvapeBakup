@@ -2957,56 +2957,57 @@ run(function()
 		Name = "AntiHit/Godmode",
 		Function = function(callback)
 			if callback then
-				spawn(function()
-					while task.wait() do
-						if (not GodMode.Enabled) then return end
-						if (not GuiLibrary.ObjectsThatCanBeSaved.FlyOptionsButton.Api.Enabled) and (not GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled) then
-							for i, v in pairs(game:GetService("Players"):GetChildren()) do
-								if v.Team ~= lplr.Team and IsAlive(v) and IsAlive(lplr) then
-									if v and v ~= lplr then
-										local TargetDistance = lplr:DistanceFromCharacter(v.Character:FindFirstChild("HumanoidRootPart").CFrame.p)
-										if TargetDistance < 25 then
-											if not lplr.Character.HumanoidRootPart:FindFirstChildOfClass("BodyVelocity") then
-												repeat task.wait() until shared.GlobalStore.matchState ~= 0
-												if not (v.Character.HumanoidRootPart.Velocity.Y < -10*5) then
-													lplr.Character.Archivable = true
-			
-													local Clone = lplr.Character:Clone()
-													Clone.Parent = workspace
-													Clone.Head:ClearAllChildren()
-													gameCamera.CameraSubject = Clone:FindFirstChild("Humanoid")
+				task.spawn(function()
+					repeat task.wait()
+						pcall(function()
+							if (not GuiLibrary.ObjectsThatCanBeSaved.FlyOptionsButton.Api.Enabled) and (not GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled) then
+								for i, v in pairs(game:GetService("Players"):GetChildren()) do
+									if v.Team ~= lplr.Team and IsAlive(v) and IsAlive(lplr) then
+										if v and v ~= lplr then
+											local TargetDistance = lplr:DistanceFromCharacter(v.Character:FindFirstChild("HumanoidRootPart").CFrame.p)
+											if TargetDistance < 25 then
+												if not lplr.Character.HumanoidRootPart:FindFirstChildOfClass("BodyVelocity") then
+													repeat task.wait() until shared.GlobalStore.matchState ~= 0
+													if not (v.Character.HumanoidRootPart.Velocity.Y < -10*5) then
+														lplr.Character.Archivable = true
 				
-													for i,v in pairs(Clone:GetChildren()) do
-														if string.lower(v.ClassName):find("part") and v.Name ~= "HumanoidRootPart" then
-															v.Transparency = 1
+														local Clone = lplr.Character:Clone()
+														Clone.Parent = workspace
+														Clone.Head:ClearAllChildren()
+														gameCamera.CameraSubject = Clone:FindFirstChild("Humanoid")
+					
+														for i,v in pairs(Clone:GetChildren()) do
+															if string.lower(v.ClassName):find("part") and v.Name ~= "HumanoidRootPart" then
+																v.Transparency = 1
+															end
+															if v:IsA("Accessory") then
+																v:FindFirstChild("Handle").Transparency = 1
+															end
 														end
-														if v:IsA("Accessory") then
-															v:FindFirstChild("Handle").Transparency = 1
-														end
+					
+														lplr.Character.HumanoidRootPart.CFrame = lplr.Character.HumanoidRootPart.CFrame + Vector3.new(0,100000,0)
+					
+														game:GetService("RunService").RenderStepped:Connect(function()
+															if Clone ~= nil and Clone:FindFirstChild("HumanoidRootPart") then
+																Clone.HumanoidRootPart.Position = Vector3.new(lplr.Character.HumanoidRootPart.Position.X, Clone.HumanoidRootPart.Position.Y, lplr.Character.HumanoidRootPart.Position.Z)
+															end
+														end)
+					
+														task.wait(0.3)
+														lplr.Character.HumanoidRootPart.Velocity = Vector3.new(lplr.Character.HumanoidRootPart.Velocity.X, -1, lplr.Character.HumanoidRootPart.Velocity.Z)
+														lplr.Character.HumanoidRootPart.CFrame = Clone.HumanoidRootPart.CFrame
+														gameCamera.CameraSubject = lplr.Character:FindFirstChild("Humanoid")
+														Clone:Destroy()
+														task.wait(0.15)
 													end
-				
-													lplr.Character.HumanoidRootPart.CFrame = lplr.Character.HumanoidRootPart.CFrame + Vector3.new(0,100000,0)
-				
-													game:GetService("RunService").RenderStepped:Connect(function()
-														if Clone ~= nil and Clone:FindFirstChild("HumanoidRootPart") then
-															Clone.HumanoidRootPart.Position = Vector3.new(lplr.Character.HumanoidRootPart.Position.X, Clone.HumanoidRootPart.Position.Y, lplr.Character.HumanoidRootPart.Position.Z)
-														end
-													end)
-				
-													task.wait(0.3)
-													lplr.Character.HumanoidRootPart.Velocity = Vector3.new(lplr.Character.HumanoidRootPart.Velocity.X, -1, lplr.Character.HumanoidRootPart.Velocity.Z)
-													lplr.Character.HumanoidRootPart.CFrame = Clone.HumanoidRootPart.CFrame
-													gameCamera.CameraSubject = lplr.Character:FindFirstChild("Humanoid")
-													Clone:Destroy()
-													task.wait(0.15)
 												end
 											end
 										end
 									end
 								end
 							end
-						end
-					end
+						end)
+					until (not GodMode.Enabled)
 				end)
 			end
 		end
@@ -5950,12 +5951,77 @@ run(function()
 						end)
 					end)
                     repeat
-                        local args = {[1] = {["shopItem"] = {["lockAfterPurchase"] = true, ["itemType"] = "stone_scythe", ["price"] = 20, ["requireInInventoryToTierUp"] = true, ["nextTier"] = "iron_scythe", ["superiorItems"] = {[1] = "iron_scythe"}, ["currency"] = "iron", ["category"] = "Combat", ["ignoredByKit"] = {[1] = "barbarian", [2] = "dasher", [3] = "frost_hammer_kit", [4] = "tinker", [5] = "summoner", [6] = "ice_queen", [7] = "ember", [8] = "lumen", [9] = "summoner"}, ["disabledInQueue"] = {[1] = "tnt_wars", [2] = "bedwars_og_to4"}, ["spawnWithItems"] = {[1] = "wood_scythe"}, ["amount"] = 1}, ["shopId"] = "1_item_shop"}}
-                        game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged.BedwarsPurchaseItem:InvokeServer(unpack(args))
-                        task.wait(0.1)
-                    until (not ScytheExploit.Enabled)
+						if (not getItemNear("scythe")) then
+                        	local args = {[1] = {["shopItem"] = {["lockAfterPurchase"] = true, ["itemType"] = "stone_scythe", ["price"] = 20, ["requireInInventoryToTierUp"] = true, ["nextTier"] = "iron_scythe", ["superiorItems"] = {[1] = "iron_scythe"}, ["currency"] = "iron", ["category"] = "Combat", ["ignoredByKit"] = {[1] = "barbarian", [2] = "dasher", [3] = "frost_hammer_kit", [4] = "tinker", [5] = "summoner", [6] = "ice_queen", [7] = "ember", [8] = "lumen", [9] = "summoner"}, ["disabledInQueue"] = {[1] = "tnt_wars", [2] = "bedwars_og_to4"}, ["spawnWithItems"] = {[1] = "wood_scythe"}, ["amount"] = 1}, ["shopId"] = "1_item_shop"}}
+                        	game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged.BedwarsPurchaseItem:InvokeServer(unpack(args))
+                        	task.wait(0.1)
+						end
+                    until (not ScytheExploit.Enabled) or (getItemNear("scythe"))
                 end)
             end
         end
     })
+end)
+
+task.spawn(function()
+	repeat task.wait() until shared.vapewhitelist.loaded
+	if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) < 1 then return end
+	run(function()
+		local KaidaInstaKill = {Enabled = false}
+		local Range = {Value = 40}
+		local MaxEntities = {Value = 1}
+		KaidaInstaKill = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+			Name = "KaidaInstaKill",
+			Function = function(call) 
+				if call then
+					if store.queueType ~= "training_room" and store.equippedKit ~= "summoner" then warningNotification("KaidaInstakill", "Kaida kit is required!", 1.5); return KaidaInstaKill.ToggleButton(false); end
+					local npcsortmethods = {
+						Distance = function(a, b)
+							local check1 = a.HumanoidRootPart
+							local check2 = b.HumanoidRootPart
+							if a:FindFirstChild("RootPart") then check1 = a.RootPart end
+							if b:FindFirstChild("RootPart") then check2 = b.RootPart end
+							return (check1.Position - entityLibrary.character.HumanoidRootPart.Position).Magnitude < (check2.Position - entityLibrary.character.HumanoidRootPart.Position).Magnitude
+						end
+					}
+					local lplr = game:GetService("Players").LocalPlayer
+					local function sendRequest(entity)
+						local targetPosition = entity.HumanoidRootPart.Position
+						local direction = (targetPosition - lplr.Character.HumanoidRootPart.Position).unit
+						local args = {
+							[1] = {
+								["clientTime"] = tick(),
+								["direction"] = direction,
+								["position"] = targetPosition
+							}
+						}
+						return game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged.SummonerClawAttackRequest:FireServer(unpack(args))
+					end
+					repeat task.wait();
+						if entityLibrary.isAlive and store.matchState > 0 then
+							local res = AllNearPosition(Range.Value, MaxEntities.Value, npcsortmethods["Distance"], nil, true)
+							for i,v in pairs(res) do
+								local req_res = sendRequest(v)
+							end
+						end
+					until (not KaidaInstaKill.Enabled)
+				end
+			end
+		})
+		Range = KaidaInstaKill.CreateSlider({
+			Name = "Aura Range",
+			Min = 30,
+			Max = 50,
+			Function = function(val) end,
+			Default = 50
+		})
+		MaxEntities = KaidaInstaKill.CreateSlider({
+			Name = "Max Entities",
+			Min = 10,
+			Max = 15,
+			Function = function(val) end,
+			Default = 10,
+			HoverText = "Max entities to attack \n at the same time"
+		})
+	end)
 end)

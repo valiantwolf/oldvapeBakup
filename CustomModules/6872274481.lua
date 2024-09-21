@@ -658,7 +658,7 @@ local function EntityNearMouse(distance)
 	return closestEntity
 end
 
-local function AllNearPosition(distance, amount, sortfunction, prediction)
+--[[local function AllNearPosition(distance, amount, sortfunction, prediction)
 	local returnedplayer = {}
 	local currentamount = 0
 	if entityLibrary.isAlive then
@@ -745,7 +745,110 @@ local function AllNearPosition(distance, amount, sortfunction, prediction)
 		end
 	end
 	return returnedplayer
+end--]]
+
+local function AllNearPosition(distance, amount, sortfunction, prediction, npcIncluded)
+	local returnedplayer = {}
+	local currentamount = 0
+	if entityLibrary.isAlive then
+		local sortedentities = {}
+		local lplr = game:GetService("Players").LocalPlayer
+		if npcIncluded then
+			for _, npc in pairs(workspace:GetChildren()) do
+				if npc.Name == "Void Enemy Dummy" or npc.Name == "Emerald Enemy Dummy" or npc.Name == "Diamond Enemy Dummy" or npc.Name == "Leather Enemy Dummy" or npc.Name == "Regular Enemy Dummy" or npc.Name == "Iron Enemy Dummy" then
+					if npc:FindFirstChild("HumanoidRootPart") then
+						local distance2 = (npc.HumanoidRootPart.Position - lplr.Character.HumanoidRootPart.Position).Magnitude
+						if distance2 < distance then
+							table.insert(sortedentities, npc)
+						end
+					end
+				end
+			end
+		end
+		for i, v in pairs(entityLibrary.entityList) do
+			if not v.Targetable then end
+			if isVulnerable(v) then
+				local playerPosition = v.RootPart.Position
+				local mag = (entityLibrary.character.HumanoidRootPart.Position - playerPosition).magnitude
+				if prediction and mag > distance then
+					mag = (entityLibrary.LocalPosition - playerPosition).magnitude
+				end
+				if mag <= distance then
+					table.insert(sortedentities, v)
+				end
+			end
+		end
+		for i, v in pairs(collectionService:GetTagged("Monster")) do
+			if v.PrimaryPart then
+				local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+				if prediction and mag > distance then
+					mag = (entityLibrary.LocalPosition - v.PrimaryPart.Position).magnitude
+				end
+				if mag <= distance then
+					if v:GetAttribute("Team") == lplr:GetAttribute("Team") then end
+					table.insert(sortedentities, {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645), GetAttribute = function() return "none" end}, Character = v, RootPart = v.PrimaryPart, Humanoid = v.Humanoid})
+				end
+			end
+		end
+		for i, v in pairs(collectionService:GetTagged("DiamondGuardian")) do
+			if v.PrimaryPart then
+				local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+				if prediction and mag > distance then
+					mag = (entityLibrary.LocalPosition - v.PrimaryPart.Position).magnitude
+				end
+				if mag <= distance then
+					table.insert(sortedentities, {Player = {Name = "DiamondGuardian", UserId = 1443379645, GetAttribute = function() return "none" end}, Character = v, RootPart = v.PrimaryPart, Humanoid = v.Humanoid})
+				end
+			end
+		end
+		for i, v in pairs(collectionService:GetTagged("GolemBoss")) do
+			if v.PrimaryPart then
+				local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+				if prediction and mag > distance then
+					mag = (entityLibrary.LocalPosition - v.PrimaryPart.Position).magnitude
+				end
+				if mag <= distance then
+					table.insert(sortedentities, {Player = {Name = "GolemBoss", UserId = 1443379645, GetAttribute = function() return "none" end}, Character = v, RootPart = v.PrimaryPart, Humanoid = v.Humanoid})
+				end
+			end
+		end
+		for i, v in pairs(collectionService:GetTagged("Drone")) do
+			if v.PrimaryPart then
+				local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+				if prediction and mag > distance then
+					mag = (entityLibrary.LocalPosition - v.PrimaryPart.Position).magnitude
+				end
+				if mag <= distance then
+					if tonumber(v:GetAttribute("PlayerUserId")) == lplr.UserId then end
+					local droneplr = playersService:GetPlayerByUserId(v:GetAttribute("PlayerUserId"))
+					if droneplr and droneplr.Team == lplr.Team then end
+					table.insert(sortedentities, {Player = {Name = "Drone", UserId = 1443379645}, GetAttribute = function() return "none" end, Character = v, RootPart = v.PrimaryPart, Humanoid = v.Humanoid})
+				end
+			end
+		end
+		for i, v in pairs(store.pots) do
+			if v.PrimaryPart then
+				local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+				if prediction and mag > distance then
+					mag = (entityLibrary.LocalPosition - v.PrimaryPart.Position).magnitude
+				end
+				if mag <= distance then
+					table.insert(sortedentities, {Player = {Name = "Pot", UserId = 1443379645, GetAttribute = function() return "none" end}, Character = v, RootPart = v.PrimaryPart, Humanoid = {Health = 100, MaxHealth = 100}})
+				end
+			end
+		end
+		if sortfunction then
+			table.sort(sortedentities, sortfunction)
+		end
+		for i,v in pairs(sortedentities) do
+			table.insert(returnedplayer, v)
+			currentamount = currentamount + 1
+			if currentamount >= amount then break end
+		end
+	end
+	return returnedplayer
 end
+getgenv().AllNearPosition = AllNearPosition
 
 --pasted from old source since gui code is hard
 local function CreateAutoHotbarGUI(children2, argstable)
@@ -7377,6 +7480,57 @@ run(function()
 												[1] = "consume_life_foce"
 											}
 											game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"):WaitForChild("useAbility"):FireServer(unpack(args))
+										end
+									end
+								until (not AutoKit.Enabled)
+							end)
+						elseif store.equippedKit == "necromancer" then
+							local function activateGrave(obj)
+								if (not obj) then return warn("[AutoKit - necromancer.activateGrave]: No object specified!") end
+								local required_args = {
+									armorType = obj:GetAttribute("ArmorType"),
+									weaponType = obj:GetAttribute("SwordType"),
+									associatedPlayerUserId = obj:GetAttribute("GravestonePlayerUserId"),
+									secret = obj:GetAttribute("GravestoneSecret"),
+									position = obj:GetAttribute("GravestonePosition")
+								}
+								for i,v in pairs(required_args) do
+									if (not v) then return warn("[AutoKit - necromancer.activateGrave]: A required arg is missing! ArgName: "..tostring(i).." ObjectName: "..tostring(obj.Name)) end
+								end
+								local args = {
+									[1] = {
+										["skeletonData"] = {
+											["armorType"] = armorType,
+											["weaponType"] = weaponType,
+											["associatedPlayerUserId"] = associatedPlayerUserId
+										},
+										["secret"] = secret,
+										["position"] = position
+									}
+								}
+								return game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("ActivateGravestone"):InvokeServer(unpack(args))								
+							end
+							local function verifyAttributes(obj)
+								if (not obj) then return warn("[AutoKit - necromancer.verifyAttributes]: No object specified!") end
+								local required_attributes = {"ArmorType", "GravestonePlayerUserId", "GravestonePosition", "GravestoneSecret", "SwordType"}
+								for i,v in pairs(required_attributes) do
+									if (not obj:GetAttribute(v)) then print(v.." not found in "..obj.Name); return false end
+								end
+								return true
+							end
+							task.spawn(function()
+								repeat
+									task.wait(0.1)
+									if entityLibrary.isAlive then
+										for i,v in pairs(workspace:GetChildren()) do
+											local a = workspace:GetChildren()[i]
+											if (not a) then return warn("[AutoKit - Core]: The object went missing before it could get used!") end
+											if a.ClassName == "Model" and a:FindFirstChild("Root") and a.Name == "Gravestone" then
+												if verifyAttributes(a) then
+													local res = activateGrave(a)
+													warn("[AutoKit - necromancer.activateGrave - RESULT]: "..tostring(res))
+												end
+											end
 										end
 									end
 								until (not AutoKit.Enabled)
