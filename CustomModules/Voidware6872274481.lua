@@ -4326,7 +4326,24 @@ run(function()
 			table.insert(StaffDetector_Connections, con1)
 		end
 	end
+	function StaffDetector_Functions.CorePermissionCheck(plr)
+		--- Credits: relevant500#0
+		local KnitGotten, KnitClient
+		local lplr = game:GetService("Players").LocalPlayer
+		repeat
+			KnitGotten, KnitClient = pcall(function()
+				return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6)
+			end)
+			if KnitGotten then break end
+			task.wait()
+		until KnitGotten
+		repeat task.wait() until debug.getupvalue(KnitClient.Start, 1)
+		local KnitControllers = KnitClient.Controllers
+		local PermissionController = KnitControllers.PermissionController
+		if PermissionController:isStaffMember(plr) then StaffDetector_Functions.Trigger(plr, "CorePermissionCheck") end
+	end
 	local function checkUser(plr)
+		pcall(function() StaffDetector_Functions.CorePermissionCheck(plr) end)
 		StaffDetector_Functions.Log_User_Friends(plr)
 		pcall(function()
 			StaffDetector_Functions.CheckAndTrackPlrTags(plr)
@@ -4352,7 +4369,7 @@ run(function()
 			if callback then
 				for i,v in pairs(game:GetService("Players"):GetPlayers()) do
 					if v ~= game:GetService("Players").LocalPlayer then
-						checkUser(v)
+						task.spawn(function() checkUser(v) end)
 					end
 				end
 				local con = game:GetService("Players").PlayerAdded:Connect(function(plr)
