@@ -5901,7 +5901,7 @@ task.spawn(function()
 				end
 			})
 		end)--]]
-		run(function()
+		--[[run(function()
 			local BeamExploit = {Enabled = false}
 			BeamExploit = GuiLibrary.ObjectsThatCanBeSaved.ExploitsWindow.Api.CreateOptionsButton({
 				Name = "BeamExploit",
@@ -5939,7 +5939,7 @@ task.spawn(function()
 					end
 				end
 			})
-		end)
+		end)--]]
 		--- credits for both go to private leaker
 	end
 end)
