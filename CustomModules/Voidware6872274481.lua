@@ -13,6 +13,26 @@ local VoidwareStore = {
 	bedtable = {},
 	Tweening = false
 }
+
+local function BedwarsInfoNotification(mes)
+    local bedwars = shared.GlobalBedwars
+	local NotificationController = bedwars.NotificationController
+	NotificationController:sendInfoNotification({
+		message = tostring(mes),
+		image = "rbxassetid://18518244636"
+	});
+end
+getgenv().BedwarsInfoNotification = BedwarsInfoNotification
+local function BedwarsErrorNotification(mes)
+    local bedwars = shared.GlobalBedwars
+	local NotificationController = bedwars.NotificationController
+	NotificationController:sendErrorNotification({
+		message = tostring(mes),
+		image = "rbxassetid://18518244636"
+	});
+end
+getgenv().BedwarsErrorNotification = BedwarsErrorNotification
+
 local gameCamera = workspace.CurrentCamera
 
 local lplr = game:GetService("Players").LocalPlayer
@@ -1014,14 +1034,6 @@ run(function()
 	local TweenService = game:GetService("TweenService")
 	local playersService = game:GetService("Players")
 	local lplr = playersService.LocalPlayer
-	local function warningNotification(title, text, delay)
-		local suc, res = pcall(function()
-			local frame = GuiLibrary.CreateNotification(title, text, delay, "assets/InfoNotification.png")
-			frame.Frame.Frame.ImageColor3 = Color3.fromRGB(236, 129, 44)
-			return frame
-		end)
-		return (suc and res)
-	end
 	
 	local tppos2
 	local deathtpmod = {["Enabled"] = false}
@@ -4369,7 +4381,7 @@ run(function()
 			if callback then
 				for i,v in pairs(game:GetService("Players"):GetPlayers()) do
 					if v ~= game:GetService("Players").LocalPlayer then
-						task.spawn(function() checkUser(v) end)
+						task.spawn(function() pcall(function() checkUser(v) end) end)
 					end
 				end
 				local con = game:GetService("Players").PlayerAdded:Connect(function(plr)

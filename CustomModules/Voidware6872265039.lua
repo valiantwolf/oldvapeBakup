@@ -1,8 +1,30 @@
 repeat task.wait() until game:IsLoaded()
 repeat task.wait() until shared.GuiLibrary
+repeat task.wait() until shared.GlobalBedwars
 
 local GuiLibrary = shared.GuiLibrary
 local lplr = game:GetService("Players").LocalPlayer
+
+local bedwars = shared.GlobalBedwars
+
+local function BedwarsInfoNotification(mes)
+    local bedwars = shared.GlobalBedwars
+	local NotificationController = bedwars.NotificationController
+	NotificationController:sendInfoNotification({
+		message = tostring(mes),
+		image = "rbxassetid://18518244636"
+	});
+end
+getgenv().BedwarsInfoNotification = BedwarsInfoNotification
+local function BedwarsErrorNotification(mes)
+    local bedwars = shared.GlobalBedwars
+	local NotificationController = bedwars.NotificationController
+	NotificationController:sendErrorNotification({
+		message = tostring(mes),
+		image = "rbxassetid://18518244636"
+	});
+end
+getgenv().BedwarsErrorNotification = BedwarsErrorNotification
 
 local function queue()
 	local args = {

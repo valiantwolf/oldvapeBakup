@@ -236,6 +236,7 @@ runcode(function()
 			WeldTable = require(repstorage.TS.util["weld-util"]).WeldUtil,
 			QueueMeta = require(repstorage.TS.game["queue-meta"]).QueueMeta,
 			getEntityTable = require(repstorage.TS.entity["entity-util"]).EntityUtil,
+			NotificationController = Flamework.resolveDependency('@easy-games/game-core:client/controllers/notification-controller@NotificationController')
         }
 		if not shared.vapebypassed then
 			local realremote = repstorage:WaitForChild("GameAnalyticsError")
@@ -1445,3 +1446,25 @@ task.spawn(function()
 		end)
 	end)
 end)
+
+shared.GlobalBedwars = bedwars
+local function createMonitoredTable(originalTable, onChange)
+    local proxy = {}
+    local mt = {
+        __index = originalTable,
+        __newindex = function(t, key, value)
+            local oldValue = originalTable[key]
+            originalTable[key] = value
+            if onChange then
+                onChange(key, oldValue, value)
+            end
+        end
+    }
+    setmetatable(proxy, mt)
+    return proxy
+end
+local function onChange2(key, oldValue, newValue)
+	--print("Changed key:", key, "from", oldValue, "to", newValue)
+	 shared.GlobalBedwars = bedwars
+end
+bedwars = createMonitoredTable(bedwars, onChange2)
