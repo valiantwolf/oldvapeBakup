@@ -1000,8 +1000,8 @@ run(function()
 						end
 						return bypassMessage
 					end
-					text = text.." | discord.gg/voidware"
-					text = createBypassMessage(text)
+					--text = text.." | discord.gg/voidware"
+					--text = createBypassMessage(text)
 					local textChatService = game:GetService("TextChatService")
 					local replicatedStorageService = game:GetService("ReplicatedStorage")
 					if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
