@@ -1010,7 +1010,9 @@ run(function()
 						replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
 					end
 				end
-				sendmessage(tostring(args[1]))
+				local real_message = ""
+				for i = 1, #args do real_message = real_message.." "..args[i] end
+				sendmessage(tostring(real_message))
 			end)
 		end,
 		mute = function(sender, args)
