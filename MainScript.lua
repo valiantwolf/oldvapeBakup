@@ -1975,7 +1975,7 @@ GuiLibrary.UpdateUI2 = function()
 			if v.Toggle.Visible and v.Api.Enabled  then
 				makegradient(v.Toggle)
 			end
-		elseif (v.Type == "Button" or v.Type == "ButtonMain") and v.Api.Enabled then
+		elseif (v.Type == "Button" or v.Type ~= "ButtonMain") and v.Api.Enabled then
 			makegradient(v.Object.ButtonIcon)
 			--makegradient(v.Object.ButtonText)
 		elseif v.Type == "OptionsButton" then
@@ -1998,7 +1998,7 @@ GuiLibrary.UpdateUI2 = function()
 		end
 	end
     for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
-        if GuiLibrary.ObjectsThatCanBeSaved[i]["Api"] and GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] and (GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] == "OptionsButton" or GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] == "ButtonMain") and GuiLibrary.ObjectsThatCanBeSaved[i]["Object"] then
+        if GuiLibrary.ObjectsThatCanBeSaved[i]["Api"] and GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] and (GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] == "OptionsButton" or GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] ~= "ButtonMain") and GuiLibrary.ObjectsThatCanBeSaved[i]["Object"] then
 			makegradient(GuiLibrary.ObjectsThatCanBeSaved[i]["Object"])
 			task.spawn(function()
 				repeat task.wait() until GuiLibrary.ObjectsThatCanBeSaved["Gradient UIToggle"]
@@ -2384,51 +2384,58 @@ GUISettings.CreateButton2({
 		end
 	end
 })
-GUISettings.CreateButton2({
-	Name = "SORT GUI",
-	Function = function()
-		local sorttable = {}
-		local movedown = false
-		local sortordertable = {
-			GUIWindow = 1,
-			CombatWindow = 2,
-			BlatantWindow = 3,
-			RenderWindow = 4,
-			UtilityWindow = 5,
-			WorldWindow = 6,
-			FriendsWindow = 7,
-			TargetsWindow = 8,
-			ProfilesWindow = 9,
-			["Text GUICustomWindow"] = 10,
-			TargetInfoCustomWindow = 11,
-			RadarCustomWindow = 12
-		}
-		local storedpos = {}
-		local num = 6
-		for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
-			local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
-			if obj then
-				if v.Type == "Window" and v.Object.Visible then
-					local sortordernum = (sortordertable[i] or #sorttable)
-					sorttable[sortordernum] = v.Object
-				end
+shared.SortGUIFunction = function()
+	local sorttable = {}
+	local movedown = false
+	local sortordertable = {
+		GUIWindow = 1,
+		CombatWindow = 2,
+		BlatantWindow = 3,
+		RenderWindow = 4,
+		UtilityWindow = 5,
+		WorldWindow = 6,
+		HotWindow = 7,
+		ExploitsWindow = 8,
+		CustomisationWindow = 9,
+		TPWindow = 10,
+		VoidwareWindow = 11,
+		GUISwitcherWindow = 12,
+		FriendsWindow = 13,
+		TargetsWindow = 14,
+		ProfilesWindow = 15,
+		["Text GUICustomWindow"] = 16,
+		TargetInfoCustomWindow = 17,
+		RadarCustomWindow = 18
+	}
+	local storedpos = {}
+	local num = 6
+	for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
+		local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
+		if obj then
+			if v.Type == "Window" and v.Object.Visible then
+				local sortordernum = (sortordertable[i] or #sorttable)
+				sorttable[sortordernum] = v.Object
 			end
-		end
-		for i2,v2 in pairs(sorttable) do
-			if num > 1697 then
-				movedown = true
-				num = 6
-			end
-			v2.Position = UDim2.new(0, num, 0, (movedown and (storedpos[num] and (storedpos[num] + 9) or 400) or 39))
-			if not storedpos[num] then
-				storedpos[num] = v2.AbsoluteSize.Y
-				if v2.Name == "MainWindow" then
-					storedpos[num] = 400
-				end
-			end
-			num = num + 223
 		end
 	end
+	for i2,v2 in pairs(sorttable) do
+		if num > 1697 then
+			movedown = true
+			num = 6
+		end
+		v2.Position = UDim2.new(0, num, 0, (movedown and (storedpos[num] and (storedpos[num] + 9) or 400) or 39))
+		if not storedpos[num] then
+			storedpos[num] = v2.AbsoluteSize.Y
+			if v2.Name == "MainWindow" then
+				storedpos[num] = 400
+			end
+		end
+		num = num + 223
+	end
+end
+GUISettings.CreateButton2({
+	Name = "SORT GUI",
+	Function = shared.SortGUIFunction
 })
 GeneralSettings.CreateButton2({
 	Name = "UNINJECT",

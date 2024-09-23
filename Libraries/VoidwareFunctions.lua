@@ -86,54 +86,7 @@ function GuiLibrary.ExpandAllWindows(value)
     end
 end
 function GuiLibrary.SortGui()
-    local sorttable = {}
-    local movedown = false
-    local sortordertable = {
-        GUIWindow = 1,
-        HotWindow = 2,
-        ExploitsWindow = 3,
-        CustomisationWindow = 4,
-        TPWindow = 5,
-        VoidwareWindow = 6,
-        CombatWindow = 7,
-        BlatantWindow = 8,
-        RenderWindow = 9,
-        UtilityWindow = 10,
-        WorldWindow = 11,
-        FunnyWindow = 12,
-        --GUISwitcherWindow = 13,
-        FriendsWindow = 13,
-        TargetsWindow = 14,
-        ProfilesWindow = 15,
-        ["Text GUICustomWindow"] = 16,
-        TargetInfoCustomWindow = 17,
-        RadarCustomWindow = 18
-    }
-    local storedpos = {}
-    local num = 6
-    for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
-        local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
-        if obj then
-            if v.Type == "Window" and v.Object.Visible and (v.Object.Name ~= "GUISwitcher" or (not string.find(string.lower(v.Object.Name), "guiswitcher"))) then
-                local sortordernum = (sortordertable[i] or #sorttable)
-                sorttable[sortordernum] = v.Object
-            end
-        end
-    end
-    for i2,v2 in pairs(sorttable) do
-        if num > 1697 then
-            movedown = true
-            num = 6
-        end
-        v2.Position = UDim2.new(0, num, 0, (movedown and (storedpos[num] and (storedpos[num] + 9) or 400) or 39))
-        if not storedpos[num] then
-            storedpos[num] = v2.AbsoluteSize.Y
-            if v2.Name == "MainWindow" then
-                storedpos[num] = 400
-            end
-        end
-        num = num + 223
-    end
+    shared.SortGUIFunction()
 end
 function GuiLibrary.HideDivider(text, value)
     if not text then
