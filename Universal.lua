@@ -1012,7 +1012,7 @@ run(function()
 				end
 				local real_message = ""
 				for i = 1, #args do real_message = real_message.." "..args[i] end
-				sendmessage(tostring(real_message))
+				sendmessage(tostring(table.concat(args, ' ')))
 			end)
 		end,
 		mute = function(sender, args)
