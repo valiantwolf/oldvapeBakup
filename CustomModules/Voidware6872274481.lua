@@ -6026,6 +6026,9 @@ run(function()
 							end
 						end)
 					end)
+					if (not getItemNear("scythe")) then
+						warningNotification("ScytheExploit", "Waiting to purchase a scythe... (20 iron needed)!", 3)
+					end
                     repeat
 						task.wait(0.2)
 						local found, npctype, enchant, newid = nearNPC(100)
