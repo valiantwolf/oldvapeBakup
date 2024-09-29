@@ -6065,7 +6065,7 @@ run(function()
     })
 end)
 
-task.spawn(function()
+--[[task.spawn(function()
 	repeat task.wait() until shared.vapewhitelist.loaded
 	if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) < 1 then return end
 	run(function()
@@ -6126,4 +6126,4 @@ task.spawn(function()
 			HoverText = "Max entities to attack \n at the same time"
 		})
 	end)
-end)
+end)--]]
