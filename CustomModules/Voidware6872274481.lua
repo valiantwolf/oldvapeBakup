@@ -6023,14 +6023,13 @@ run(function()
 						end)
 					end)
                     repeat
-						task.wait()
+						task.wait(0.2)
 						local found, npctype, enchant, newid = nearNPC(100)
 						if found then
 							id = newid
 							if (not getItemNear("scythe")) then
 								local args = {[1] = {["shopItem"] = {["lockAfterPurchase"] = true, ["itemType"] = "stone_scythe", ["price"] = 20, ["requireInInventoryToTierUp"] = true, ["nextTier"] = "iron_scythe", ["superiorItems"] = {[1] = "iron_scythe"}, ["currency"] = "iron", ["category"] = "Combat", ["ignoredByKit"] = {[1] = "barbarian", [2] = "dasher", [3] = "frost_hammer_kit", [4] = "tinker", [5] = "summoner", [6] = "ice_queen", [7] = "ember", [8] = "lumen", [9] = "summoner"}, ["disabledInQueue"] = {[1] = "tnt_wars", [2] = "bedwars_og_to4"}, ["spawnWithItems"] = {[1] = "wood_scythe"}, ["amount"] = 1}, ["shopId"] = tostring(id)}}
 								game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged.BedwarsPurchaseItem:InvokeServer(unpack(args))
-								task.wait(0.1)
 							end
 						end
                     until (not ScytheExploit.Enabled) or (getItemNear("scythe"))
