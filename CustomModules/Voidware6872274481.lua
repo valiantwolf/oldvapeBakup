@@ -5956,12 +5956,55 @@ task.spawn(function()
 	end
 end)
 
+local vapeInjected = true
+GuiLibrary.SelfDestructEvent.Event:Connect(function()
+	vapeInjected = false
+end)
+local collectionService = game:GetService("CollectionService")
 run(function()
     local ScytheExploit = {Enabled = false}
     ScytheExploit = GuiLibrary.ObjectsThatCanBeSaved.ExploitsWindow.Api.CreateOptionsButton({
         Name = "ScytheExploit",
         Function = function(callback)
             if callback then 
+				local entityLibrary = shared.vapeentity
+				local id = "1_item_shop"
+				local bedwarsshopnpcs = {}
+				task.spawn(function()
+					repeat task.wait() until store.matchState ~= 0 or not vapeInjected
+					for i,v in pairs(collectionService:GetTagged("BedwarsItemShop")) do
+						table.insert(bedwarsshopnpcs, {Position = v.Position, TeamUpgradeNPC = true, Id = v.Name})
+					end
+					for i,v in pairs(collectionService:GetTagged("TeamUpgradeShopkeeper")) do
+						table.insert(bedwarsshopnpcs, {Position = v.Position, TeamUpgradeNPC = false, Id = v.Name})
+					end
+				end)
+				local function nearNPC(range)
+					local npc, npccheck, enchant, newid = nil, false, false, nil
+					if entityLibrary.isAlive then
+						local enchanttab = {}
+						for i,v in pairs(collectionService:GetTagged("broken-enchant-table")) do
+							table.insert(enchanttab, v)
+						end
+						for i,v in pairs(collectionService:GetTagged("enchant-table")) do
+							table.insert(enchanttab, v)
+						end
+						for i,v in pairs(enchanttab) do
+							if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - v.Position).magnitude <= 6 then
+								if ((not v:GetAttribute("Team")) or v:GetAttribute("Team") == lplr:GetAttribute("Team")) then
+									npc, npccheck, enchant = true, true, true
+								end
+							end
+						end
+						for i, v in pairs(bedwarsshopnpcs) do
+							if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - v.Position).magnitude <= (range or 20) then
+								npc, npccheck, enchant = true, (v.TeamUpgradeNPC or npccheck), false
+								newid = v.TeamUpgradeNPC and v.Id or newid
+							end
+						end
+					end
+					return npc, not npccheck, enchant, newid
+				end
                 task.spawn(function()
 					pcall(function()
 						task.spawn(function()
@@ -5980,10 +6023,14 @@ run(function()
 						end)
 					end)
                     repeat
-						if (not getItemNear("scythe")) then
-                        	local args = {[1] = {["shopItem"] = {["lockAfterPurchase"] = true, ["itemType"] = "stone_scythe", ["price"] = 20, ["requireInInventoryToTierUp"] = true, ["nextTier"] = "iron_scythe", ["superiorItems"] = {[1] = "iron_scythe"}, ["currency"] = "iron", ["category"] = "Combat", ["ignoredByKit"] = {[1] = "barbarian", [2] = "dasher", [3] = "frost_hammer_kit", [4] = "tinker", [5] = "summoner", [6] = "ice_queen", [7] = "ember", [8] = "lumen", [9] = "summoner"}, ["disabledInQueue"] = {[1] = "tnt_wars", [2] = "bedwars_og_to4"}, ["spawnWithItems"] = {[1] = "wood_scythe"}, ["amount"] = 1}, ["shopId"] = "1_item_shop"}}
-                        	game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged.BedwarsPurchaseItem:InvokeServer(unpack(args))
-                        	task.wait(0.1)
+						local found, npctype, enchant, newid = nearNPC(100)
+						if found then
+							id = newid
+							if (not getItemNear("scythe")) then
+								local args = {[1] = {["shopItem"] = {["lockAfterPurchase"] = true, ["itemType"] = "stone_scythe", ["price"] = 20, ["requireInInventoryToTierUp"] = true, ["nextTier"] = "iron_scythe", ["superiorItems"] = {[1] = "iron_scythe"}, ["currency"] = "iron", ["category"] = "Combat", ["ignoredByKit"] = {[1] = "barbarian", [2] = "dasher", [3] = "frost_hammer_kit", [4] = "tinker", [5] = "summoner", [6] = "ice_queen", [7] = "ember", [8] = "lumen", [9] = "summoner"}, ["disabledInQueue"] = {[1] = "tnt_wars", [2] = "bedwars_og_to4"}, ["spawnWithItems"] = {[1] = "wood_scythe"}, ["amount"] = 1}, ["shopId"] = tostring(id)}}
+								game:GetService("ReplicatedStorage").rbxts_include.node_modules:FindFirstChild("@rbxts").net.out._NetManaged.BedwarsPurchaseItem:InvokeServer(unpack(args))
+								task.wait(0.1)
+							end
 						end
                     until (not ScytheExploit.Enabled) or (getItemNear("scythe"))
                 end)
