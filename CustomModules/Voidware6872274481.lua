@@ -5963,6 +5963,8 @@ end)
 local collectionService = game:GetService("CollectionService")
 run(function()
     local ScytheExploit = {Enabled = false}
+	local autobuy = false
+	local firewallbypass = false
     ScytheExploit = GuiLibrary.ObjectsThatCanBeSaved.ExploitsWindow.Api.CreateOptionsButton({
         Name = "ScytheExploit",
         Function = function(callback)
@@ -6010,6 +6012,7 @@ run(function()
 						task.spawn(function()
 							repeat task.wait() until GuiLibrary.ObjectsThatCanBeSaved.AutoBuyOptionsButton
 							if GuiLibrary.ObjectsThatCanBeSaved.AutoBuyOptionsButton.Api.Enabled then
+								autobuy = true
 								GuiLibrary.ObjectsThatCanBeSaved.AutoBuyOptionsButton.Api.ToggleButton(false)
 								warningNotification("ScytheExploit", "Autobuy disabled to prevent it from overriding the scythe!", 3)
 							end
@@ -6017,6 +6020,7 @@ run(function()
 						task.spawn(function()
 							repeat task.wait() until GuiLibrary.ObjectsThatCanBeSaved.FirewallBypassOptionsButton
 							if (not GuiLibrary.ObjectsThatCanBeSaved.FirewallBypassOptionsButton.Api.Enabled) then
+								firewallbypass = true
 								GuiLibrary.ObjectsThatCanBeSaved.FirewallBypassOptionsButton.Api.ToggleButton(false)
 								warningNotification("ScytheExploit", "ScytheDisabler (FirewallBypass) has been auto enabled!", 3)
 							end
@@ -6034,7 +6038,26 @@ run(function()
 						end
                     until (not ScytheExploit.Enabled) or (getItemNear("scythe"))
                 end)
-            end
+            else
+				task.spawn(function()
+					pcall(function()
+						if autobuy then
+							if (not GuiLibrary.ObjectsThatCanBeSaved.AutoBuyOptionsButton.Api.Enabled) then
+								autobuy = false
+								GuiLibrary.ObjectsThatCanBeSaved.AutoBuyOptionsButton.Api.ToggleButton(false)
+								warningNotification("ScytheExploit", "Autobuy re-enabled!", 3)
+							end
+						end
+						if firewallbypass then
+							if GuiLibrary.ObjectsThatCanBeSaved.FirewallBypassOptionsButton.Api.Enabled then
+								firewallbypass = false
+								GuiLibrary.ObjectsThatCanBeSaved.FirewallBypassOptionsButton.Api.ToggleButton(false)
+								warningNotification("ScytheExploit", "ScytheDisabler (FirewallBypass) has been re-disabled!", 3)
+							end
+						end
+					end)
+				end)
+			end
         end
     })
 end)
