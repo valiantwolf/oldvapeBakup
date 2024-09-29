@@ -6023,6 +6023,7 @@ run(function()
 						end)
 					end)
                     repeat
+						task.wait()
 						local found, npctype, enchant, newid = nearNPC(100)
 						if found then
 							id = newid
