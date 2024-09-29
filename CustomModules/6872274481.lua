@@ -600,6 +600,17 @@ local function EntityNearPosition(distance, ignore, overridepos)
 					end
 				end
 			end
+			for i, v in pairs(collectionService:GetTagged("GuardianOfDream")) do
+				if v.PrimaryPart and v:GetAttribute("Team") ~= lplr:GetAttribute("Team") then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645)}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
 			for i, v in pairs(collectionService:GetTagged("DiamondGuardian")) do
 				if v.PrimaryPart then
 					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
@@ -779,6 +790,18 @@ local function AllNearPosition(distance, amount, sortfunction, prediction, npcIn
 			end
 		end
 		for i, v in pairs(collectionService:GetTagged("Monster")) do
+			if v.PrimaryPart then
+				local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+				if prediction and mag > distance then
+					mag = (entityLibrary.LocalPosition - v.PrimaryPart.Position).magnitude
+				end
+				if mag <= distance then
+					if v:GetAttribute("Team") == lplr:GetAttribute("Team") then end
+					table.insert(sortedentities, {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645), GetAttribute = function() return "none" end}, Character = v, RootPart = v.PrimaryPart, Humanoid = v.Humanoid})
+				end
+			end
+		end
+		for i, v in pairs(collectionService:GetTagged("GuardianOfDream")) do
 			if v.PrimaryPart then
 				local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
 				if prediction and mag > distance then
