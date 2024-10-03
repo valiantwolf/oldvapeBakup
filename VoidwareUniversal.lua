@@ -1240,7 +1240,8 @@ run(function()
 		{name = "Cyan", hex = "#00FFFF"},
 		{name = "Magenta", hex = "#FF00FF"},
 		{name = "Gray", hex = "#808080"},
-		{name = "Orange", hex = "#FFA500"}
+		{name = "Orange", hex = "#FFA500"},
+		{name = "Purple", hex = "#A020F0"}
 	}
 	local function checkAPIKey()
 		if API_KEY.Value ~= "" then
