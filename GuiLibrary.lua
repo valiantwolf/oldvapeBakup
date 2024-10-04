@@ -4703,7 +4703,7 @@ if shared.VapeExecuted then
 			button.MouseButton1Click:Connect(function()
 				buttonapi["ToggleButton"](true)
 			end)
-			if inputService.TouchEnabled then
+			if inputService.TouchEnabled or shared.MobileMode then
 				local touchedButton = false
 				button.MouseButton1Down:Connect(function()
 					touchedButton = true
@@ -8260,7 +8260,7 @@ if shared.VapeExecuted then
 			button.MouseButton1Click:Connect(function()
 				buttonapi["ToggleButton"](true)
 			end)
-			if inputService.TouchEnabled then
+			if inputService.TouchEnabled or shared.MobileMode then
 				local touchedButton = false
 				button.MouseButton1Down:Connect(function()
 					touchedButton = true
@@ -9515,7 +9515,7 @@ if shared.VapeExecuted then
 	GuiLibrary["LoadedAnimation"] = function(enabled)
 		if enabled then
 			--no cache but its ran 1 time so idc
-			GuiLibrary.CreateNotification("Finished Loading", inputService.TouchEnabled and GuiLibrary["GUIKeybind"] == "RightShift" and "Press the button in the top right to open GUI" or "Press "..string.upper(GuiLibrary["GUIKeybind"]).." to open GUI", 5)
+			GuiLibrary.CreateNotification("Finished Loading", (inputService.TouchEnabled or shared.MobileMode) and GuiLibrary["GUIKeybind"] == "RightShift" and "Press the button in the top right to open GUI" or "Press "..string.upper(GuiLibrary["GUIKeybind"]).." to open GUI", 5)
 		end
 	end
 
