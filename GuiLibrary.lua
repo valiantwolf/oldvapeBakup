@@ -9522,7 +9522,7 @@ if shared.VapeExecuted then
 	local holdingalt = false
 	local uninjected = false
 
-	if inputService.TouchEnabled then
+	if inputService.TouchEnabled or shared.MobileMode then
 		local button = Instance.new("TextButton")
 		button.Position = UDim2.new(1, -30, 0, 0)
 		button.Text = "Vape"
