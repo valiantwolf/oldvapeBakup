@@ -520,3 +520,217 @@ run(function()
 		end
 	}) 
 end)
+
+run(function()
+    local LeaderboardEditor = {Enabled = false}
+    local RankIconTable = {["Emerald"] = "rbxassetid://12599231807",["Nightmare"] = "rbxassetid://7904292926",["Voidware"] = "rbxassetid://18518244636"}
+    local AllowedMethods = {["Place"] = true,["Username"] = true,["RP"] = true}
+    local AllowedEditMethods = {["Place"] = true,["Username"] = true,["RP"] = true, ["CrownIconColor"] = true, ["RankIcon"] = true, --[[["ProfileImage"] = true,--]] ["RankName"] = true}
+    local ExtraFunctions = {extractUsername = function(richText) return richText:match("@</font></b>(.+)") end, extractNumberBeforeRP = function(text) return tonumber(text:match("<b>(%d+)%sRP</b>")) end, extractBoldText = function(text) return text:match("<b>(.-)</b>") end, resolvePlayerUserID = function(username) return game:GetService("Players"):GetUserIdFromNameAsync(username) end, resolveProfileImage = function(userid) return "rbxthumb://type=AvatarHeadShot&id="..tostring(userid).."&w=60&h=60" end, resolveUsername = function(username) return string.format('<b><font color="rgb(185, 188, 255)">@</font></b>%s', username) end, resolveNumberBeforeRP = function(number) return string.format('<b>%d RP</b>', number) end, resolveBoldText = function(text) return string.format('<b>%s</b>', text) end, resolveIconID = function(iconName) return RankIconTable[iconName] end, fetchDefaultTable = function() return {Place = nil, CrownIcon = nil, User = {Name = nil, Profile = nil}, Rank = {Name = nil, Icon = nil, RP = nil}} end}
+    local function getBoard()
+        --assert(game.workspace:findFirstChild("Lobby") and game.workspace:findFirstChild("Lobby").ClassName == "Folder", "Error finding Lobby folder in workspace!")
+        local suc, Leaderboard, Statboard = false, "Not found", "Not found"
+        for i,v in pairs(game.workspace:WaitForChild("Lobby"):GetChildren()) do
+            if v.Name == "Podium" and v.ClassName == "Model" and v:FindFirstChild("Boards") then
+                if v:FindFirstChild("Boards").ClassName == "Folder" then
+                    suc = true
+                    Leaderboard = v:findFirstChild("Boards"):FindFirstChild("Leaderboard") or "Not found"
+                    Statboard = v:findFirstChild("Boards"):FindFirstChild("Statboard") or "Not found"
+                end
+            end
+        end
+        return {Status = suc, Response = {Leaderboard = Leaderboard, Statboard = Statboard}}
+    end
+    local function findChild(name, className, children)
+        for i,v in pairs(children) do if v.Name == name and v.ClassName == className then return v end end
+        local args = {Name = tostring(name), ClassName == tostring(className), Children = children}
+        warn("[findChild]: CHILD NOT FOUND! Args: ", game:GetService("HttpService"):JSONEncode(args), name, className, children)
+        return nil
+    end
+    local function getLeaderboardFrame(Leaderboard)
+        local board = findChild("Board", "Part", Leaderboard:GetChildren())
+        if board then
+            local leaderboardApp = findChild("LeaderboardApp", "SurfaceGui", board:GetChildren())
+            if leaderboardApp then
+                local frame_1 = findChild("1", "Frame", leaderboardApp:GetChildren())
+                if frame_1 then
+                    local frame_1_1 = findChild("1", "Frame", frame_1:GetChildren())
+                    if frame_1_1 then
+                        local frame_2 = findChild("2", "Frame", frame_1_1:GetChildren())
+                        if frame_2 then
+                            local AutoCanvasScrollingFrame = findChild("AutoCanvasScrollingFrame", "ScrollingFrame", frame_2:GetChildren())
+                            if AutoCanvasScrollingFrame then return AutoCanvasScrollingFrame end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    local function resolveLeaderboardChildData(child)
+        local leaderboard_data = ExtraFunctions.fetchDefaultTable()
+        local leaderboard_editor = ExtraFunctions.fetchDefaultTable()
+        local PlayerContainer, StatValuesContainer, CrownIcon = findChild("PlayerContainer", "Frame", child:GetChildren()), findChild("StatValuesContainer", "Frame", child:GetChildren()), findChild("CrownIcon", "ImageLabel", child.Parent:GetChildren())
+        if PlayerContainer then
+            local LeaderboardRank, PlayerUsername, PlayerAvatar = findChild("LeaderboardRank", "TextLabel", PlayerContainer:GetChildren()), findChild("PlayerUsername", "TextLabel", PlayerContainer:GetChildren()), findChild("PlayerAvatar", "ImageLabel", PlayerContainer:GetChildren())
+            if LeaderboardRank then leaderboard_data.Place = tonumber(LeaderboardRank.Text); leaderboard_editor.Place = LeaderboardRank end
+            if PlayerUsername then leaderboard_data.User.Name = ExtraFunctions.extractUsername(PlayerUsername.Text); leaderboard_editor.User.Name = PlayerUsername end
+            if PlayerAvatar then leaderboard_data.User.Profile = PlayerAvatar.Image; leaderboard_editor.User.Profile = PlayerAvatar end
+        end 
+        if StatValuesContainer then
+            local StatValue, frame_2 = findChild("StatValue", "TextLabel", StatValuesContainer:GetChildren()), findChild("2", "Frame", StatValuesContainer:GetChildren())
+            if StatValue then leaderboard_data.Rank.RP = ExtraFunctions.extractNumberBeforeRP(StatValue.Text); leaderboard_editor.Rank.RP = StatValue end
+            if frame_2 then
+                local image_2, text_3 = findChild("2", "ImageLabel", frame_2:GetChildren()), findChild("3", "TextLabel", frame_2:GetChildren())
+                if image_2 then leaderboard_data.Rank.Icon = image_2.Image; leaderboard_editor.Rank.Icon = image_2 end
+                if text_3 then leaderboard_data.Rank.Name = ExtraFunctions.extractBoldText(text_3.Text); leaderboard_editor.Rank.Name = text_3 end
+            end
+        end
+        if CrownIcon then leaderboard_data.CrownIcon = CrownIcon.Image; leaderboard_editor.CrownIcon = CrownIcon end
+        return {data = leaderboard_data, editor = leaderboard_editor}
+    end
+    local function checkResolveResponseOfLeaderboard(methodType, methodArg, res)
+        local editor = res.editor
+        local MethodTypeMethods = {["Place"] = function(full) return ExtraFunctions.extractBoldText(editor.Place.Text) end,["Username"] = function(full) return ExtraFunctions.extractUsername(editor.User.Name.Text) end,["RP"] = function(full) return ExtraFunctions.extractNumberBeforeRP(editor.Rank.RP.Text) end}
+        local a = MethodTypeMethods[methodType](res.editor)
+        if a == methodArg or a == tostring(methodArg) or a == tonumber(methodArg) then return true, res else return false, nil end
+    end
+    local function getResolveResponseOfLeaderboard(leaderboard_frame, methodType, methodArg) 
+        if leaderboard_frame then
+            for i,v in pairs(leaderboard_frame:GetChildren()) do
+                local LeaderboardElementBody = findChild("LeaderboardElementBody", "Frame", v:GetChildren())
+                if LeaderboardElementBody then
+                    local UserLeaderBoardDataContainer = findChild("UserLeaderBoardDataContainer", "Frame", LeaderboardElementBody:GetChildren()) 
+                    if UserLeaderBoardDataContainer then
+                        --return resolveLeaderboardChildData(UserLeaderBoardDataContainer)
+                        local suc, res = checkResolveResponseOfLeaderboard(methodType, methodArg, resolveLeaderboardChildData(UserLeaderBoardDataContainer))
+                        if suc then return res end
+                    end
+                end
+            end
+            warn("ERROR FINDING PROPER CHILD!")
+            return nil
+        else
+            warn("Failure getting leaderboard frame!")
+        end
+    end
+    local function getLeaderboardChild(methodType, methodArg, leaderboard) if AllowedMethods[methodType] then return getResolveResponseOfLeaderboard(getLeaderboardFrame(leaderboard), methodType, methodArg) else return false end end
+    local function resolveEditArgs(editArgs, editor)
+        local resolveTable = {Place = editor.Place, Username = editor.User.Name, ProfileImage = editor.User.Profile, RankName = editor.Rank.Name, RP = editor.Rank.RP, RankIcon = editor.Rank.Icon, CrownIcon = editor.CrownIcon}
+        local function handleEditResolve(editName, editArg)
+            if resolveTable[editName] then
+                if editName == "Place" then resolveTable[editName].Text = ExtraFunctions.resolveBoldText(editArg);
+                elseif editName == "Username" then resolveTable[editName].Text = ExtraFunctions.resolveUsername(editArg);
+                elseif editName == "ProfileImage" then resolveTable[editName].Image = ExtraFunctions.resolveProfileImage(ExtraFunctions.resolvePlayerUserID(editArg));
+                elseif editName == "RankName" then resolveTable[editName].Text = ExtraFunctions.resolveBoldText(editArg);
+                elseif editName == "RP" then resolveTable[editName].Text = ExtraFunctions.resolveNumberBeforeRP(editArg);
+                elseif editName == "RankIcon" then resolveTable[editName].Image = ExtraFunctions.resolveIconID(editArg);
+                elseif editName == "CrownIcon" and resolveTable[editName] then resolveTable[editName].ImageColor3 = editArg end
+            end
+        end
+        for i,v in pairs(editArgs) do handleEditResolve(i, v) end
+    end
+    local function EditLeaderboard(methodType, methodArg, editArgs)
+        local res = getBoard()
+        local status, response = res.Status, res.Response
+        if status == true then
+            local Leaderboard, Statboard = response.Leaderboard, response.Statboard
+            local resolve = getLeaderboardChild(methodType, methodArg, Leaderboard)
+            local editor
+            if resolve then editor = resolve.editor end
+            if editor then resolveEditArgs(editArgs, editor) else warn("NO EDITOR FOUND!") end
+        end
+    end
+    local function msend(mes, dur)
+        warningNotification("LeaderboardEditor", mes, dur or 5)
+    end
+
+    local LeaderboardEditor_Types = {}
+    local LeaderboardEditor_Editors = {}
+
+    local Leaderboard_AddOnCreator_Helper = {}
+
+    local function fetchToggleObjectData(name)
+        local a = "LeaderboardEditor"..name.."Toggle"
+        local b = shared.GuiLibrary.ObjectsThatCanBeSaved[a] or {Api = {Enabled = false}}
+        return b.Api
+    end
+
+    local function fetchValidEditArgs()
+        local validated = {Place = LeaderboardEditor_Editors["Place"][Leaderboard_AddOnCreator_Helper["Place"].ResType]}
+        for i,v in pairs(LeaderboardEditor_Editors) do
+            print(fetchToggleObjectData(i).Enabled)
+            if fetchToggleObjectData(i).Enabled == true then
+                --print("[1]", i)
+                if i == "Username" then
+                    validated[i] = v[Leaderboard_AddOnCreator_Helper[i].ResType]
+                    validated["ProfileImage"] = v[Leaderboard_AddOnCreator_Helper[i].ResType]
+                elseif i == "CrownIconColor" then
+                    validated[i] = Color3.new(v.Hue, v.Sat, v.Value)
+                else
+                    validated[i] = v[Leaderboard_AddOnCreator_Helper[i].ResType]
+                end
+            --else
+              --  print("[2]", i)
+            end
+            --[[if LeaderboardEditor_Types[i] or i == "Place" then
+                if ((not LeaderboardEditor_Types[i]) and i == "Place") or (LeaderboardEditor_Types[i] and LeaderboardEditor_Types[i].Enabled) then
+                    if i == "Username" then
+                        validated[i] = v[Leaderboard_AddOnCreator_Helper[i].ResType]
+                        validated["ProfileImage"] = v[Leaderboard_AddOnCreator_Helper[i].ResType]
+                    elseif i == "CrownIconColor" then
+                        validated[i] = Color3.new(v.Hue, v.Sat, v.Value)
+                    else
+                        validated[i] = v[Leaderboard_AddOnCreator_Helper[i].ResType]
+                    end
+                end
+            end--]] -- old check v1
+        end
+        --print(game:GetService("HttpService"):JSONEncode(validated))
+        return validated
+    end
+
+    local function fetchObjectData(name)
+        local function convertText(input) return input:gsub("^Create", "") end
+        local a = "LeaderboardEditor"..name..convertText(Leaderboard_AddOnCreator_Helper[name].Type)
+        if Leaderboard_AddOnCreator_Helper[name].Type == "ColorSlider" then a = a.."Color" end
+        return shared.GuiLibrary.ObjectsThatCanBeSaved[a]
+    end
+
+    local function checkAddOns()
+        for i,v in pairs(LeaderboardEditor_Editors) do if i ~= "Place" then  fetchObjectData(i).Object.Visible = false end end
+        for i,v in pairs(LeaderboardEditor_Types) do if fetchToggleObjectData(i).Enabled == true then fetchObjectData(i).Object.Visible = true end end
+    end
+
+    LeaderboardEditor = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+        Name = "LeaderboardEditor",
+        Function = function(call)
+            checkAddOns()
+            if call then
+                EditLeaderboard("Place", LeaderboardEditor_Editors.Place[Leaderboard_AddOnCreator_Helper["Place"].ResType], fetchValidEditArgs())
+                getgenv().EditLeaderboard = EditLeaderboard
+                msend("Hello")
+            else
+                getgenv().EditLeaderboard = nil
+            end
+        end
+    })
+    local function fetchDefaultFunction(call) if call then LeaderboardEditor.Restart() end end
+    local function fetchRankIconNames() local iconNames = {}; for i,v in pairs(RankIconTable) do table.insert(iconNames, i) end; return iconNames end
+
+    local function registerType(typeName)
+        if typeName == "Place" then LeaderboardEditor_Editors["Place"] = {Value = 1}; Leaderboard_AddOnCreator_Helper["Place"] = {Type = "CreateTextBox", Args = {Name = "Place", TempText = "PlaceNumber", Function = fetchDefaultFunction}, ResType = "Value"}; 
+        elseif typeName == "Username" then LeaderboardEditor_Editors["Username"] = {Value = game:GetService("Players").LocalPlayer.Name}; Leaderboard_AddOnCreator_Helper["Username"] = {Type = "CreateTextBox", Args = {Name = "Username", TempText = "username", Function = fetchDefaultFunction}, ResType = "Value"};
+        elseif typeName == "RP" then LeaderboardEditor_Editors["RP"] = {Value = 9999}; Leaderboard_AddOnCreator_Helper["RP"] = {Type = "CreateTextBox", Args = {Name = "RP", TempText = "RP (number)", Function = fetchDefaultFunction}, ResType = "Value"}; 
+        elseif typeName == "RankIcon" then LeaderboardEditor_Editors["RankIcon"] = {Value = "Voidware"}; Leaderboard_AddOnCreator_Helper["RankIcon"] = {Type = "CreateDropdown", Args = {Name = "RankIcon", List = fetchRankIconNames(), Function = fetchDefaultFunction}, ResType = "Value"};
+        elseif typeName == "RankName" then LeaderboardEditor_Editors["RankName"] = {Value = "INFINITY"}; Leaderboard_AddOnCreator_Helper["RankName"] = {Type = "CreateTextBox", Args = {Name = "RankName", TempText = "rankname", Function = fetchDefaultFunction}, ResType = "Value"};
+        elseif typeName == "CrownIconColor" then LeaderboardEditor_Editors["CrownIconColor"] = {Hue = 255, Sat = 0, Value = 0}; Leaderboard_AddOnCreator_Helper["CrownIconColor"] = {Type = "CreateColorSlider", Args = {Name = "CrownIconColor", Function = fetchDefaultFunction}, ResType = {"Hue", "Sat", "Value"}}
+        else warn("Unknown registerType!", typeName) end
+    end
+
+    for i,v in pairs(AllowedEditMethods) do LeaderboardEditor_Types[i] = {Enabled = false}; registerType(i) end
+
+    for i,v in pairs(LeaderboardEditor_Editors) do v = LeaderboardEditor[Leaderboard_AddOnCreator_Helper[i].Type](Leaderboard_AddOnCreator_Helper[i].Args) end
+    for i,v in pairs(LeaderboardEditor_Types) do if i ~= "Place" then v = LeaderboardEditor.CreateToggle({Name = i, Function = function(call) fetchObjectData(i).Object.Visible = call end}) end end
+
+    checkAddOns()
+end)

@@ -4276,6 +4276,7 @@ if shared.VapeExecuted then
 						end)
 					end
 				end)
+				GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"]..argstable["Name"].."ColorSlider"] = {["Type"] = "ColorSlider", ["Object"] = frame, ["Object2"] = slidersat, ["Object3"] = sliderval, ["Api"] = sliderapi}
 				GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"]..argstable["Name"].."SliderColor"] = {["Type"] = "ColorSlider", ["Object"] = frame, ["Object2"] = slidersat, ["Object3"] = sliderval, ["Api"] = sliderapi}
 				return sliderapi
 			end
@@ -5942,6 +5943,7 @@ if shared.VapeExecuted then
 			frame.MouseLeave:Connect(function()
 				hoverbox.Visible = false
 			end)
+			GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"]..argstable["Name"].."ColorSlider"] = {["Type"] = "ColorSliderMain", ["Object"] = frame, ["Api"] = sliderapi}
 			GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"]..argstable["Name"].."SliderColor"] = {["Type"] = "ColorSliderMain", ["Object"] = frame, ["Api"] = sliderapi}
 			return sliderapi
 		end
@@ -6198,6 +6200,9 @@ if shared.VapeExecuted then
 		expandbutton.MouseButton2Click:Connect(windowapi["ExpandToggle"])
 
 		windowapi["CreateOptionsButton"] = function(argstablemain)
+			if shared.GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"].."OptionsButton"] then
+				GuiLibrary.RemoveObject(argstablemain["Name"].."OptionsButton")
+			end
 			local buttonapi = {}
 			buttonapi["Window"] = argstablemain2["Name"] or "Unknown"
 			local amount = #children:GetChildren()
@@ -7833,6 +7838,7 @@ if shared.VapeExecuted then
 						end)
 					end
 				end)
+				GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"]..argstable["Name"].."ColorSlider"] = {["Type"] = "ColorSlider", ["Object"] = frame, ["Object2"] = slidersat, ["Object3"] = sliderval, ["Api"] = sliderapi}
 				GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"]..argstable["Name"].."SliderColor"] = {["Type"] = "ColorSlider", ["Object"] = frame, ["Object2"] = slidersat, ["Object3"] = sliderval, ["Api"] = sliderapi}
 				return sliderapi
 			end
@@ -8358,6 +8364,12 @@ if shared.VapeExecuted then
 			button.MouseButton2Click:Connect(buttonapi["ExpandToggle"])
 			button2.MouseButton1Click:Connect(buttonapi["ExpandToggle"])
 			buttonapi["Name"] = argstablemain["Name"]
+			buttonapi["Restart"] = function()
+				if buttonapi["Enabled"] then
+					buttonapi["ToggleButton"](false)
+					buttonapi["ToggleButton"](false)
+				end
+			end
 			GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"].."OptionsButton"] = {["Type"] = "OptionsButton", ["Object"] = button, ["ChildrenObject"] = children2, ["Api"] = buttonapi, ["SortOrder"] = 0, ["Window"] = (argstablemain2["Name"] or "Unknown")}
 
 			local sorttable1 = {}

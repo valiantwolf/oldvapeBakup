@@ -283,7 +283,7 @@ local GUISwitcher = GuiLibrary.CreateWindow({
 	Icon = "vape/assets/WorldIcon.png",
 	IconSize = 16
 })
-local Funny = GuiLibrary.CreateWindow({
+--[[local Funny = GuiLibrary.CreateWindow({
 	Name = "Funny",
 	Icon = "vape/assets/WorldIcon.png",
 	IconSize = 16
@@ -312,7 +312,7 @@ local Voidware = GuiLibrary.CreateWindow({
 	Name = "Voidware",
 	Icon = "vape/assets/WorldIcon.png",
 	IconSize = 16
-})
+})--]]
 local Combat = GuiLibrary.CreateWindow({
 	Name = "Combat",
 	Icon = "vape/assets/CombatIcon.png",
@@ -360,7 +360,7 @@ GUI.CreateButton({
 	Icon = "vape/assets/CombatIcon.png",
 	IconSize = 15
 })
-GUI.CreateButton({
+--[[GUI.CreateButton({
 	Name = "Funny",
 	Function = function(callback) Funny.SetVisible(callback) end,
 	Icon = "vape/assets/CombatIcon.png",
@@ -395,7 +395,7 @@ GUI.CreateButton({
 	Function = function(callback) Voidware.SetVisible(callback) end,
 	Icon = "vape/assets/CombatIcon.png",
 	IconSize = 15
-})
+})--]]
 GUI.CreateButton({
 	Name = "Combat",
 	Function = function(callback) Combat.SetVisible(callback) end,
@@ -1666,17 +1666,14 @@ RewriteUIToggle = VWSettings.CreateToggle({
 		local table_to_send = {["Enabled"] = calling}
 		GuiLibrary["RewriteUI"]:Fire(table_to_send)
 	end,
-	Default = true,
+	Default = false,
 	HoverText = "Enabled Rewrite UI"
 })
-local Rewrite_Windows_Corresponder = {
-	["Funny"] = "Blatant",
-	["Hot"] = "Blatant",
-	["Exploits"] = "Blatant",
-	["Customisation"] = "Utility",
-	["TP"] = "World",
-	["Voidware"] = "Utility"
-}
+RewriteUIToggle.Object.Visible = false
+local function recodeWindows(tbl) for i,v in pairs(tbl) do GuiLibrary.ObjectsThatCanBeSaved[i.."Window"] = GuiLibrary.ObjectsThatCanBeSaved[v.."Window"] end end
+local Rewrite_Windows_Corresponder = {["Funny"] = "Blatant",["Hot"] = "Blatant",["Exploits"] = "Blatant",["Customisation"] = "Utility",["TP"] = "World",["Voidware"] = "Utility"}
+recodeWindows(Rewrite_Windows_Corresponder)
+task.spawn(function() repeat task.wait() until shared.VapeFullyLoaded; for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do if v.Type == "Window" then if (not v.Api.Expanded) then v.Api.ExpandToggle(false) end end end end)
 local Changed_Windows = {}
 local function Change_Window(button, windowName)
 	if windowName and type(windowName) == "string" and button and type(button) == "table" then
@@ -1907,33 +1904,39 @@ local function getVapeSaturation(val)
 	return sat
 end
 local makegradient = function(parent)
-	local gui_windows = {
-		"VapeGUI",
-		"VoidwareGUI",
-		"VPrivateGUI"
-	}
-	local isGuiWindow = false
-	for i,v in pairs(gui_windows) do
-		if string.find(string.lower(parent.Name), string.lower(gui_windows[i])) then 
-			isGuiWindow = true 
-			break 
+	pcall(function()
+		local gui_windows = {
+			"VapeGUI",
+			"VoidwareGUI",
+			"VPrivateGUI"
+		}
+		local isGuiWindow = false
+		for i,v in pairs(gui_windows) do
+			if string.find(string.lower(parent.Name), string.lower(gui_windows[i])) then 
+				isGuiWindow = true 
+				break 
+			end
 		end
-	end
-    local gradient = (parent:FindFirstChildWhichIsA('UIGradient') or Instance.new('UIGradient', parent))
-	if isGuiWindow then
-		gradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromHSV(0.1634375, 0.5834635416666667, 0.8509804010391235)), 
-			ColorSequenceKeypoint.new(1, Color3.fromHSV(0.16768229166666669, 0.9624060392379761, 0.5215686559677124))
-		})
-	else
-		gradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromHSV(GUIColor1.Hue, GUIColor1.Sat, GUIColor1.Value)), 
-			ColorSequenceKeypoint.new(1, Color3.fromHSV(GUIColor2.Hue, GUIColor2.Sat, GUIColor2.Value))
-		})
-	end
-	gradient.Rotation = 170
-    gradient.Name = "Gradient ParentName: "..tostring(parent.Name)
-    return gradient
+		local gradient = (parent:FindFirstChildWhichIsA('UIGradient') or Instance.new('UIGradient', parent))
+		if isGuiWindow then
+			gradient.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromHSV(0.1634375, 0.5834635416666667, 0.8509804010391235)), 
+				ColorSequenceKeypoint.new(1, Color3.fromHSV(0.16768229166666669, 0.9624060392379761, 0.5215686559677124))
+			})
+		else
+			gradient.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromHSV(GUIColor1.Hue, GUIColor1.Sat, GUIColor1.Value)), 
+				ColorSequenceKeypoint.new(1, Color3.fromHSV(GUIColor2.Hue, GUIColor2.Sat, GUIColor2.Value))
+			})
+		end
+		gradient.Rotation = 170
+		gradient.Name = "Gradient ParentName: "..tostring(parent.Name)
+		return gradient
+	end)
+end
+local delgradient = function(parent, check)
+	local gradient = parent:FindFirstChildWhichIsA('UIGradient')
+	if gradient then gradient:Destroy() end
 end
 
 GuiLibrary.RecordHSV = function()
@@ -1952,7 +1955,7 @@ GuiLibrary.RecordHSV = function()
 		["GUIColor2"] = table2
 	}
 	local final_table = game:GetService("HttpService"):JSONEncode(fullTable)
-	writefile("Record.txt", final_table)
+	writefile("Record.json", final_table)
 end
 
 local vapeConnections
@@ -1975,8 +1978,8 @@ GuiLibrary.UpdateUI2 = function()
 			if v.Toggle.Visible and v.Api.Enabled  then
 				makegradient(v.Toggle)
 			end
-		elseif (v.Type == "Button" or v.Type == "ButtonMain") and v.Api.Enabled then
-			makegradient(v.Object.ButtonIcon)
+		elseif (v.Type == "Button" or v.Type ~= "ButtonMain") and v.Api.Enabled then
+			--makegradient(v.Object.ButtonIcon)
 			--makegradient(v.Object.ButtonText)
 		elseif v.Type == "OptionsButton" then
 			if v.Api.Enabled then
@@ -1987,7 +1990,7 @@ GuiLibrary.UpdateUI2 = function()
 				makegradient(v.Object)
 			end
 		elseif (v.Type == "Toggle" or v.Type == "ToggleMain") and v.Api.Enabled then
-			makegradient(v.Object.ToggleFrame1)
+			--makegradient(v.Object.ToggleFrame1)
 		elseif v.Type == "Slider" or v.Type == "SliderMain" then
 			makegradient(v.Object.Slider.FillSlider)
 			makegradient(v.Object.Slider.FillSlider.ButtonSlider)
@@ -1998,7 +2001,8 @@ GuiLibrary.UpdateUI2 = function()
 		end
 	end
     for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
-        if GuiLibrary.ObjectsThatCanBeSaved[i]["Api"] and GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] and (GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] == "OptionsButton" or GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] == "ButtonMain") and GuiLibrary.ObjectsThatCanBeSaved[i]["Object"] then
+        if GuiLibrary.ObjectsThatCanBeSaved[i]["Api"] and GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] and (GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] == "OptionsButton" and GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] ~= "ButtonMain") and GuiLibrary.ObjectsThatCanBeSaved[i]["Object"] and GuiLibrary.ObjectsThatCanBeSaved[i]["Type"] ~= "CustomWindow" and (not string.find(string.lower(i), "overlay")) and (not string.find(string.lower(i), "text gui")) and (not string.find(string.lower(i), "target info")) and (not string.find(string.lower(i), "radar")) then
+			--if (not isBlacklisted(i)) then makegradient(GuiLibrary.ObjectsThatCanBeSaved[i]["Object"]) else delgradient(GuiLibrary.ObjectsThatCanBeSaved[i]["Object"]) end
 			makegradient(GuiLibrary.ObjectsThatCanBeSaved[i]["Object"])
 			task.spawn(function()
 				repeat task.wait() until GuiLibrary.ObjectsThatCanBeSaved["Gradient UIToggle"]
@@ -2006,17 +2010,20 @@ GuiLibrary.UpdateUI2 = function()
 					if GuiLibrary.ObjectsThatCanBeSaved[i].Api.Enabled then
 						GuiLibrary.ObjectsThatCanBeSaved[i]["Object"].BackgroundColor3 = Color3.new(255, 255, 255)
 						makegradient(GuiLibrary.ObjectsThatCanBeSaved[i]["Object"])
+						--if (not isBlacklisted(i)) then makegradient(GuiLibrary.ObjectsThatCanBeSaved[i]["Object"]) else delgradient(GuiLibrary.ObjectsThatCanBeSaved[i]["Object"]) end
 					end
 					GuiLibrary.ObjectsThatCanBeSaved[i]["Object"]:GetPropertyChangedSignal("BackgroundColor3"):Connect(function()
 						if GuiLibrary.ObjectsThatCanBeSaved[i].Api.Enabled then
 							GuiLibrary.ObjectsThatCanBeSaved[i]["Object"].BackgroundColor3 = Color3.new(255, 255, 255)
 							makegradient(GuiLibrary.ObjectsThatCanBeSaved[i]["Object"])
+							--if (not isBlacklisted(i)) then makegradient(GuiLibrary.ObjectsThatCanBeSaved[i]["Object"]) else delgradient(GuiLibrary.ObjectsThatCanBeSaved[i]["Object"]) end
 						end
 					end)
 				end
 			end)
         end
     end
+	--for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do if GuiLibrary.ObjectsThatCanBeSaved[i].Type == "CustomWindow" then delgradient(GuiLibrary.ObjectsThatCanBeSaved[i].Object) end end
 end
 GuiLibrary.SelfDestructEvent.Event:Connect(function()
 	for i, v in pairs(vapeConnections) do
@@ -2384,51 +2391,58 @@ GUISettings.CreateButton2({
 		end
 	end
 })
-GUISettings.CreateButton2({
-	Name = "SORT GUI",
-	Function = function()
-		local sorttable = {}
-		local movedown = false
-		local sortordertable = {
-			GUIWindow = 1,
-			CombatWindow = 2,
-			BlatantWindow = 3,
-			RenderWindow = 4,
-			UtilityWindow = 5,
-			WorldWindow = 6,
-			FriendsWindow = 7,
-			TargetsWindow = 8,
-			ProfilesWindow = 9,
-			["Text GUICustomWindow"] = 10,
-			TargetInfoCustomWindow = 11,
-			RadarCustomWindow = 12
-		}
-		local storedpos = {}
-		local num = 6
-		for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
-			local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
-			if obj then
-				if v.Type == "Window" and v.Object.Visible then
-					local sortordernum = (sortordertable[i] or #sorttable)
-					sorttable[sortordernum] = v.Object
-				end
+shared.SortGUIFunction = function()
+	local sorttable = {}
+	local movedown = false
+	local sortordertable = {
+		GUIWindow = 1,
+		CombatWindow = 2,
+		BlatantWindow = 3,
+		RenderWindow = 4,
+		UtilityWindow = 5,
+		WorldWindow = 6,
+		--[[HotWindow = 7,
+		ExploitsWindow = 8,
+		CustomisationWindow = 9,
+		TPWindow = 10,
+		VoidwareWindow = 11,--]]
+		GUISwitcherWindow = 7,
+		FriendsWindow = 8,
+		TargetsWindow = 9,
+		ProfilesWindow = 10,
+		["Text GUICustomWindow"] = 11,
+		TargetInfoCustomWindow = 12,
+		RadarCustomWindow = 13
+	}
+	local storedpos = {}
+	local num = 6
+	for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
+		local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
+		if obj then
+			if v.Type == "Window" and v.Object.Visible then
+				local sortordernum = (sortordertable[i] or #sorttable)
+				sorttable[sortordernum] = v.Object
 			end
-		end
-		for i2,v2 in pairs(sorttable) do
-			if num > 1697 then
-				movedown = true
-				num = 6
-			end
-			v2.Position = UDim2.new(0, num, 0, (movedown and (storedpos[num] and (storedpos[num] + 9) or 400) or 39))
-			if not storedpos[num] then
-				storedpos[num] = v2.AbsoluteSize.Y
-				if v2.Name == "MainWindow" then
-					storedpos[num] = 400
-				end
-			end
-			num = num + 223
 		end
 	end
+	for i2,v2 in pairs(sorttable) do
+		if num > 1697 then
+			movedown = true
+			num = 6
+		end
+		v2.Position = UDim2.new(0, num, 0, (movedown and (storedpos[num] and (storedpos[num] + 9) or 400) or 39))
+		if not storedpos[num] then
+			storedpos[num] = v2.AbsoluteSize.Y
+			if v2.Name == "MainWindow" then
+				storedpos[num] = 400
+			end
+		end
+		num = num + 223
+	end
+end
+GUISettings.CreateButton2({
+	Name = "SORT GUI",
+	Function = shared.SortGUIFunction
 })
 GeneralSettings.CreateButton2({
 	Name = "UNINJECT",
@@ -2501,29 +2515,30 @@ local function loadVape()
 			if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) == 0 then
 				InfoNotification("Voidware Loader", "Voidware Public successfully loaded! | discord.gg/voidware", 1.5)
 			else
-				InfoNotification("Voidware Loader", "Voidware successfully loaded! | discord.gg/voidware", 1.5)
-				--InfoNotification("Voidware Loader", "Voidware Private successfully loaded! | discord.gg/voidware", 1.5)
+				InfoNotification("Voidware Loader", "Voidware Private successfully loaded! | discord.gg/voidware", 1.5)
 			end
 		end)
 	else
 		repeat task.wait() until shared.VapeManualLoad
 	end
 	repeat task.wait() until shared.VoidwareLoaded
-	local suc, err = pcall(function()
-		if #ProfilesTextList.ObjectList == 0 then
-			table.insert(ProfilesTextList.ObjectList, "default")
-			ProfilesTextList.RefreshValues(ProfilesTextList.ObjectList)
-		end
-		GuiLibrary.LoadSettings(shared.VapeCustomProfile)
-		local profiles = {}
-		for i,v in pairs(GuiLibrary.Profiles) do
-			table.insert(profiles, i)
-		end
-		table.sort(profiles, function(a, b) return b == "default" and true or a:lower() < b:lower() end)
-		ProfilesTextList.RefreshValues(profiles)
-	end)
+	if (not shared.ProfilesDisabled) then
+		local suc, err = pcall(function()
+			if #ProfilesTextList.ObjectList == 0 then
+				table.insert(ProfilesTextList.ObjectList, "default")
+				ProfilesTextList.RefreshValues(ProfilesTextList.ObjectList)
+			end
+			GuiLibrary.LoadSettings(shared.VapeCustomProfile)
+			local profiles = {}
+			for i,v in pairs(GuiLibrary.Profiles) do
+				table.insert(profiles, i)
+			end
+			table.sort(profiles, function(a, b) return b == "default" and true or a:lower() < b:lower() end)
+			ProfilesTextList.RefreshValues(profiles)
+		end)
+		print("Suc: "..tostring(suc).." Err: "..tostring(err))
+	end
 	--if not suc then game:GetService("Players").LocalPlayer:Kick("[Voidware Profile Saving]: Error saving your profiles! Error: "..tostring(err).." Please send this to erchobg#0000 on discord or make a support ticket in discord.gg/voidware") end
-	print("Suc: "..tostring(suc).." Err: "..tostring(err))
 	GUIbind.Reload()
 	TextGUIUpdate()
 	GuiLibrary.UpdateUI(GUIColor1.Hue, GUIColor1.Sat, GUIColor1.Value, true)
@@ -2544,8 +2559,9 @@ local function loadVape()
 		--game:GetService("RunService"):SetRobloxGuiFocused(GuiLibrary.MainBlur.Size ~= 0)
 		shared.VapeOpenGui = nil
 	end
-
-	coroutine.resume(saveSettingsLoop)
+	if (not shared.ProfilesDisabled) then
+		coroutine.resume(saveSettingsLoop)
+	end
 	shared.VapeFullyLoaded = true
 end
 
