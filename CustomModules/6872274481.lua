@@ -8184,7 +8184,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local BowExploit = {Enabled = false}
 	local BowExploitTarget = {Value = "Mouse"}
 	local BowExploitAutoShootFOV = {Value = 1000}
@@ -8268,7 +8268,7 @@ run(function()
 		Max = 1000,
 		Default = 1000
 	})
-end)
+end)--]]
 
 run(function()
 	local RavenTP = {Enabled = false}
