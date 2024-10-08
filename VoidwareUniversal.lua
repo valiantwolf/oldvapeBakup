@@ -1407,53 +1407,55 @@ GuiLibrary.SelfDestructEvent.Event:Connect(function()
 	end
 end)
 task.spawn(function()
-	local suc, err = pcall(function()
-		local topbarappgui = lplr.PlayerGui:WaitForChild("TopBarAppGui")
-		local topbarapp = topbarappgui:WaitForChild("TopBarApp")
-		if topbarapp:FindFirstChild("3") then
-			local thing_to_clone
-			for i,v in pairs(topbarapp:GetChildren()) do
-				if topbarapp:GetChildren()[i].ClassName == "Frame" then
-					if topbarapp:GetChildren()[i]:FindFirstChild("2"):FindFirstChild("3") and topbarapp:GetChildren()[i]:FindFirstChild("2"):FindFirstChild("3").ClassName == "ImageLabel" then
-						if topbarapp:GetChildren()[i]:FindFirstChild("2"):FindFirstChild("3").Image == "rbxassetid://8531706273" then
-							thing_to_clone = topbarapp:GetChildren()[i]
-							break
+	if (not shared.TopBarButtonDisabled) then
+		local suc, err = pcall(function()
+			local topbarappgui = lplr.PlayerGui:WaitForChild("TopBarAppGui")
+			local topbarapp = topbarappgui:WaitForChild("TopBarApp")
+			if topbarapp:FindFirstChild("3") then
+				local thing_to_clone
+				for i,v in pairs(topbarapp:GetChildren()) do
+					if topbarapp:GetChildren()[i].ClassName == "Frame" then
+						if topbarapp:GetChildren()[i]:FindFirstChild("2"):FindFirstChild("3") and topbarapp:GetChildren()[i]:FindFirstChild("2"):FindFirstChild("3").ClassName == "ImageLabel" then
+							if topbarapp:GetChildren()[i]:FindFirstChild("2"):FindFirstChild("3").Image == "rbxassetid://8531706273" then
+								thing_to_clone = topbarapp:GetChildren()[i]
+								break
+							end
 						end
 					end
 				end
-			end
-			local clone
-			if thing_to_clone then
-				clone = thing_to_clone:Clone() 
-				local coreGui
-				local suc, err = pcall(function()
-					coreGui = game:GetService("CoreGui")
-				end)
-				if err then 
-					clone.Parent = topbarappgui
-					GuiLibrary.SelfDestructEvent.Event:Connect(function()
-						clone:Destroy()
+				local clone
+				if thing_to_clone then
+					clone = thing_to_clone:Clone() 
+					local coreGui
+					local suc, err = pcall(function()
+						coreGui = game:GetService("CoreGui")
 					end)
-				else
-					local frame = Instance.new("Frame")
-					frame.Parent = coreGui:FindFirstChild("TopBarApp"):FindFirstChild("TopBarFrame"):FindFirstChild("LeftFrame")
-					clone.Parent = frame
-					GuiLibrary.SelfDestructEvent.Event:Connect(function()
-						frame:Destroy()
-					end)
+					if err then 
+						clone.Parent = topbarappgui
+						GuiLibrary.SelfDestructEvent.Event:Connect(function()
+							clone:Destroy()
+						end)
+					else
+						local frame = Instance.new("Frame")
+						frame.Parent = coreGui:FindFirstChild("TopBarApp"):FindFirstChild("TopBarFrame"):FindFirstChild("LeftFrame")
+						clone.Parent = frame
+						GuiLibrary.SelfDestructEvent.Event:Connect(function()
+							frame:Destroy()
+						end)
+					end
+					print(tostring(clone.Parent))
+					clone.Position = UDim2.new(0, 100, 0, 5)
+					clone:WaitForChild("2"):WaitForChild("3").Image = "rbxassetid://18518244636"
+					print(tostring(clone:WaitForChild("2"):WaitForChild("3").ClassName))
+					table.insert(vapeConnections, clone:WaitForChild("2").MouseButton1Click:Connect(function()
+						shared.GUIKeybindFunction() 
+					end))
 				end
-				print(tostring(clone.Parent))
-				clone.Position = UDim2.new(0, 100, 0, 5)
-				clone:WaitForChild("2"):WaitForChild("3").Image = "rbxassetid://18518244636"
-				print(tostring(clone:WaitForChild("2"):WaitForChild("3").ClassName))
-				table.insert(vapeConnections, clone:WaitForChild("2").MouseButton1Click:Connect(function()
-					shared.GUIKeybindFunction() 
-				end))
 			end
+		end)
+		if err then
+			warn("Error making mobile button! Error: "..tostring(err))
 		end
-	end)
-	if err then
-		warn("Error making mobile button! Error: "..tostring(err))
 	end
 end)
 
