@@ -1431,19 +1431,15 @@ task.spawn(function()
 				end)
 				if err then 
 					clone.Parent = topbarappgui
-					shared.MobileButtonFrame = clone
 					GuiLibrary.SelfDestructEvent.Event:Connect(function()
 						clone:Destroy()
-						shared.MobileButtonFrame = nil
 					end)
 				else
 					local frame = Instance.new("Frame")
 					frame.Parent = coreGui:FindFirstChild("TopBarApp"):FindFirstChild("TopBarFrame"):FindFirstChild("LeftFrame")
 					clone.Parent = frame
-					shared.MobileButtonFrame = clone
 					GuiLibrary.SelfDestructEvent.Event:Connect(function()
 						frame:Destroy()
-						shared.MobileButtonFrame = nil
 					end)
 				end
 				print(tostring(clone.Parent))
