@@ -7558,6 +7558,37 @@ run(function()
 									end
 								until (not AutoKit.Enabled)
 							end)
+						elseif store.equippedKit == "jailor" then
+							local function activateSoul(obj)
+								local args = {
+									[1] = {
+										["id"] = obj:GetAttribute("Id"),
+										["collectableName"] = "JailorSoul"
+									}
+								}
+								game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
+							end
+							local function verifyAttributes(obj)
+								if obj:GetAttribute("Id") then return true else return false end
+							end
+							task.spawn(function()
+								repeat
+									task.wait(0.1)
+									if entityLibrary.isAlive then
+										for i,v in pairs(workspace:GetChildren()) do
+											local a = workspace:GetChildren()[i]
+											if (not a) then return warn("[AutoKit - Core]: The object went missing before it could get used!") end
+											if a.ClassName == "Model" and a.Name == "JailorSoul" then
+												if verifyAttributes(a) then
+													local res = activateSoul(a)
+													warn("[AutoKit - jailor.activateSoul - RESULT]: "..tostring(res))
+												end
+											end
+										end
+									end
+								until (not AutoKit.Enabled)
+							end)
+							warn("Jailor!")
 						end
 					end
 				end)
