@@ -4311,16 +4311,18 @@ run(function()
 			return false, nil
 		end
 		local function checkTags(tagsFolder)
-			for i,v in pairs(tagsFolder:GetChildren()) do
-				if v.Text then
-					local state, Type = isBlacklisted(v.Text)
-					if state then
-						local add_on = "TagName: "..v.Text
-						if Type == "Clan" then add_on = add_on.." Type: "..Type end
-						StaffDetector_Functions.Trigger(plr, "TAG", add_on)
+			pcall(function()
+				for i,v in pairs(tagsFolder:GetChildren()) do
+					if v.Text then
+						local state, Type = isBlacklisted(v.Text)
+						if state then
+							local add_on = "TagName: "..v.Text
+							if Type == "Clan" then add_on = add_on.." Type: "..Type end
+							StaffDetector_Functions.Trigger(plr, "TAG", add_on)
+						end
 					end
 				end
-			end
+			end)
 		end
 		local tags = plr:FindFirstChild("Tags")
 		if tags then
@@ -4338,24 +4340,7 @@ run(function()
 			table.insert(StaffDetector_Connections, con1)
 		end
 	end
-	function StaffDetector_Functions.CorePermissionCheck(plr)
-		--- Credits: relevant500#0
-		local KnitGotten, KnitClient
-		local lplr = game:GetService("Players").LocalPlayer
-		repeat
-			KnitGotten, KnitClient = pcall(function()
-				return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6)
-			end)
-			if KnitGotten then break end
-			task.wait()
-		until KnitGotten
-		repeat task.wait() until debug.getupvalue(KnitClient.Start, 1)
-		local KnitControllers = KnitClient.Controllers
-		local PermissionController = KnitControllers.PermissionController
-		if PermissionController:isStaffMember(plr) then StaffDetector_Functions.Trigger(plr, "CorePermissionCheck") end
-	end
 	local function checkUser(plr)
-		pcall(function() StaffDetector_Functions.CorePermissionCheck(plr) end)
 		StaffDetector_Functions.Log_User_Friends(plr)
 		pcall(function()
 			StaffDetector_Functions.CheckAndTrackPlrTags(plr)
@@ -4381,7 +4366,7 @@ run(function()
 			if callback then
 				for i,v in pairs(game:GetService("Players"):GetPlayers()) do
 					if v ~= game:GetService("Players").LocalPlayer then
-						task.spawn(function() pcall(function() checkUser(v) end) end)
+						checkUser(v)
 					end
 				end
 				local con = game:GetService("Players").PlayerAdded:Connect(function(plr)
@@ -6127,3 +6112,164 @@ end)
 		})
 	end)
 end)--]]
+
+local ReportDetector_Cooldown = 0
+run(function()
+    local ReportDetector = {Enabled = false}
+    local HttpService = game:GetService("HttpService")
+    local ReportDetector_GUIObjects = {}
+    local ReportDetector_Connections = {}
+
+    local function fetchReports(username)
+        if not username then return {Suc = false, Error = "Username not specified!"} end
+        local url = 'https://detections.vapevoidware.xyz/reportdetector?user=' .. tostring(username)
+        local res = request({Url = url, Method = "GET"})
+
+        if res and res.StatusCode == 200 then
+            return {Suc = true, Data = res.Body}
+        else
+            return {Suc = false, Error = "HTTP Error: " .. tostring(res.StatusCode) .. " | " .. tostring(res.Body), StatusCode = res.StatusCode, Body = res.Body}
+        end
+    end
+
+    local function resolveData(data)
+        if not data then return {Suc = false, Error = "No data to resolve"} end
+        local suc, decodedData = pcall(function() return HttpService:JSONDecode(data) end)
+        if not suc then return {Suc = false, Error = "Failed to decode JSON"} end
+
+        local resolvedReports = {}
+        for _, guildData in pairs(decodedData) do
+            if guildData.guild_id and guildData.Reports then
+                for reportID, report in pairs(guildData.Reports) do
+                    table.insert(resolvedReports, {
+                        Message = report.content or "No message",
+                        AuthorData = {
+                            UserID = report.author.id or "Unknown",
+                            Username = report.author.username or "Unknown",
+                            ReporterHashNumber = report.author.discriminator or "Unknown"
+                        },
+                        ChannelID = report.channel.id or "Unknown",
+                        GuildID = guildData.guild_id
+                    })
+                end
+            end
+        end
+        return {Suc = true, ResolvedReports = resolvedReports}
+    end
+
+    local function convertData(data)
+        local convertedData = {}
+        for i, v in ipairs(data) do
+            table.insert(convertedData, {
+                ReportNumber = tostring(i),
+                TotalReports = tostring(#data),
+                Notifications = {
+                    {Title = "ReportInfo - Message/Sender", Message = "[Sender:" .. v.AuthorData.Username .. "#" .. v.AuthorData.ReporterHashNumber .. "] - [Message:" .. v.Message .. "]           ", Duration = 7},
+                    {Title = "ReportInfo - ServerInfo", Message = "[ServerID:" .. v.GuildID .. "] - [ChannelID:" .. v.ChannelID .. "]           ", Duration = 7}
+                }
+            })
+        end
+        return convertedData
+    end
+
+    local function handleError(res)
+        local ErrorHandling = {
+            ["404"] = "Critical error in the API endpoint!",
+            ["400"] = "No username specified! Contact erchodev#0 on discord.",
+            ["500"] = "Critical server error! Try again later.",
+            ["429"] = "You are being rate-limited. Please wait."
+        }
+        local message = ErrorHandling[tostring(res.StatusCode)] or "Unknown error! StatusCode: " .. tostring(res.StatusCode)
+        errorNotification("ReportDetector_ErrorHandler ["..tostring(res.StatusCode).."]", message, 10)
+    end
+
+    local function getPlayers()
+        local plrs = {}
+        for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+            table.insert(plrs, player.Name)
+        end
+        return plrs
+    end
+
+    local function createGUIElement(api, argsTbl)
+        local name = argsTbl.GUI_Name
+        local creationType = argsTbl.GUI_Args.Type
+        local creationArgs = argsTbl.GUI_Args.Creation_Args
+
+        ReportDetector_GUIObjects[name] = api[creationType](creationArgs)
+    end
+
+	local function getObject(name)
+		return ReportDetector_GUIObjects[name] and ReportDetector_GUIObjects[name].Object
+	end
+
+    local Methods_Functions = {
+        ["Self"] = function() getObject("ServerUsername").Visible = false; getObject("CustomUsername").Visible = false end,
+        ["Server"] = function() getObject("ServerUsername").Visible = true; getObject("CustomUsername").Visible = false end,
+        ["Global"] = function() getObject("ServerUsername").Visible = false; getObject("CustomUsername").Visible = true end,
+    }
+
+	local function getUsername()
+		local CorresponderTable = {
+			["Self"] = nil,
+			["Server"] = "ServerUsername",
+			["Global"] = "CustomUsername"
+		}
+		local val = ReportDetector_GUIObjects["Mode"].Value
+		local function verifyVal(value) if value ~= nil and value ~= "" then return true, value else return false, value end end
+		if val ~= "Self" then 
+			local suc, res = verifyVal(ReportDetector_GUIObjects[CorresponderTable[val]].Value)
+			if suc then return res else return nil, {Step = 1, ErrorInfo = "Invalid value!", Debug = {Type = val, Res = tostring(res)}} end
+		else
+			return game:GetService("Players").LocalPlayer.Name
+		end
+	end
+
+	ReportDetector = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+		Name = "ReportDetector",
+		Function = function(call)
+			if call then
+				ReportDetector.ToggleButton(false)
+				local targetUsername, errorInfo = getUsername()
+				if (not targetUsername) then return errorNotification("ReportDetector_ErrorHandler_V2", game:GetService("HttpService"):JSONEncode(errorInfo), 10) end
+				warningNotification("ReportDetector", "Request sent to VW API for user: "..tostring(targetUsername).."!           ", 3)
+				local res = fetchReports(targetUsername)
+				if res.Suc then
+					local resolvedData = resolveData(res.Data)
+					if resolvedData.Suc then
+						local convertedData = convertData(resolvedData.ResolvedReports)
+                        local saveTable = {}
+						for _, report in ipairs(convertedData) do
+							for _, notification in ipairs(report.Notifications) do
+                                saveTable["[Report #" .. report.ReportNumber .. "/" .. report.TotalReports .. "]"] = saveTable["[Report #" .. report.ReportNumber .. "/" .. report.TotalReports .. "]"] or {}
+                                table.insert(saveTable["[Report #" .. report.ReportNumber .. "/" .. report.TotalReports .. "]"], {
+                                    Title = notification.Title,
+                                    Message = notification.Message
+                                })
+								warningNotification("[Report #" .. report.ReportNumber .. "/" .. report.TotalReports .. "] " .. notification.Title, notification.Message, notification.Duration)
+							end
+						end
+						if #convertedData < 1 then warningNotification("ReportDetector", "No reports found for " .. targetUsername .. "!", 10) end
+                        writefile("ReportDetectorLog.json", game:GetService("HttpService"):JSONEncode(saveTable))
+                        warningNotification("ReportDetector_LogSaver", "Successfully saved the report logs to ReportDetectorLog.json in your \n executor's workspace folder!", 10)
+					else
+						errorNotification("ReportDetector", "Data sorting failed: " .. resolvedData.Error, 10)
+					end
+				else
+					handleError(res)
+					errorNotification("ReportDetector", "Failed to fetch reports: " .. res.Error, 10)
+				end
+			end
+		end,
+		HoverText = "Detects if anyone has reported you."
+	})
+	local GUI_Elements = {
+		{GUI_Name = "Mode", GUI_Args = {Type = "CreateDropdown", Arg = {Value = "Self"}, Creation_Args = {Name = "Mode", List = {"Self", "Server", "Global"}, Function = function(val) Methods_Functions[val]() end}}},
+		{GUI_Name = "ServerUsername", GUI_Args = {Type = "CreateDropdown", Arg = {Value = game:GetService("Players").LocalPlayer.Name}, Creation_Args = {Name = "Players", List = getPlayers(), Function = function() end}}},
+		{GUI_Name = "CustomUsername", GUI_Args = {Type = "CreateTextBox", Arg = {Value = game:GetService("Players").LocalPlayer.Name}, Creation_Args = {Name = "Username", TempText = "Type here a username", Function = function() end}}}
+	}
+
+	for _, element in ipairs(GUI_Elements) do
+		createGUIElement(ReportDetector, element)
+	end
+end)
