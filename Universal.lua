@@ -159,14 +159,8 @@ end
 
 local whitelist = {data = {WhitelistedUsers = {}}, hashes = {}, said = {}, alreadychecked = {}, customtags = {}, loaded = false, localprio = 0, hooked = false, get = function() return 0, true end}
 local entityLibrary = loadstring(vapeGithubRequest("Libraries/entityHandler.lua"))()
+if (not entityLibrary) and type(entityLibrary) ~= "table" then entityLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VoidwareBakup/main/Libraries/entityHandler.lua", true))() end
 shared.vapeentity = entityLibrary
-if type(entityLibrary) ~= "table" then
-	entityLibrary = {
-		selfDestruct = function() end,
-		fullEntityRefresh = function() end
-	}
-	shared.vapeentity = entityLibrary
-end
 do
 	pcall(function() entityLibrary.selfDestruct() end)
 	table.insert(vapeConnections, GuiLibrary.ObjectsThatCanBeSaved.FriendsListTextCircleList.Api.FriendRefresh.Event:Connect(function()
