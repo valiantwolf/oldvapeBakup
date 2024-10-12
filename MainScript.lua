@@ -278,11 +278,11 @@ end)
 
 local GUI = GuiLibrary.CreateMainWindow()
 shared.GUI = GUI
-local GUISwitcher = GuiLibrary.CreateWindow({
+--[[local GUISwitcher = GuiLibrary.CreateWindow({
 	Name = "GUISwitcher",
 	Icon = "vape/assets/WorldIcon.png",
 	IconSize = 16
-})
+})--]]
 --[[local Funny = GuiLibrary.CreateWindow({
 	Name = "Funny",
 	Icon = "vape/assets/WorldIcon.png",
@@ -354,12 +354,12 @@ local Profiles = GuiLibrary.CreateWindow2({
 	IconSize = 19
 })
 GUI.CreateDivider()
-GUI.CreateButton({
+--[[GUI.CreateButton({
 	Name = "GUISwitcher",
 	Function = function(callback) GUISwitcher.SetVisible(callback) end,
 	Icon = "vape/assets/CombatIcon.png",
 	IconSize = 15
-})
+})--]]
 --[[GUI.CreateButton({
 	Name = "Funny",
 	Function = function(callback) Funny.SetVisible(callback) end,
@@ -2406,13 +2406,13 @@ shared.SortGUIFunction = function()
 		CustomisationWindow = 9,
 		TPWindow = 10,
 		VoidwareWindow = 11,--]]
-		GUISwitcherWindow = 7,
-		FriendsWindow = 8,
-		TargetsWindow = 9,
-		ProfilesWindow = 10,
-		["Text GUICustomWindow"] = 11,
-		TargetInfoCustomWindow = 12,
-		RadarCustomWindow = 13
+		--GUISwitcherWindow = 7,
+		FriendsWindow = 7,
+		TargetsWindow = 8,
+		ProfilesWindow = 9,
+		["Text GUICustomWindow"] = 10,
+		TargetInfoCustomWindow = 11,
+		RadarCustomWindow = 12
 	}
 	local storedpos = {}
 	local num = 6
