@@ -161,7 +161,7 @@ local whitelist = {data = {WhitelistedUsers = {}}, hashes = {}, said = {}, alrea
 local entityLibrary = loadstring(vapeGithubRequest("Libraries/entityHandler.lua"))()
 shared.vapeentity = entityLibrary
 do
-	entityLibrary.selfDestruct()
+	pcall(function() entityLibrary.selfDestruct() end)
 	table.insert(vapeConnections, GuiLibrary.ObjectsThatCanBeSaved.FriendsListTextCircleList.Api.FriendRefresh.Event:Connect(function()
 		entityLibrary.fullEntityRefresh()
 	end))
@@ -1174,7 +1174,7 @@ end
 
 GuiLibrary.SelfDestructEvent.Event:Connect(function()
 	vapeInjected = false
-	entityLibrary.selfDestruct()
+	pcall(function() entityLibrary.selfDestruct() end)
 	for i, v in pairs(vapeConnections) do
 		if v.Disconnect then pcall(function() v:Disconnect() end) continue end
 		if v.disconnect then pcall(function() v:disconnect() end) continue end
