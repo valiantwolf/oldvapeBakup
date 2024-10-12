@@ -5941,7 +5941,7 @@ task.spawn(function()
 	end
 end)
 
-local vapeInjected = true
+--[[local vapeInjected = true
 GuiLibrary.SelfDestructEvent.Event:Connect(function()
 	vapeInjected = false
 end)
@@ -6048,7 +6048,7 @@ run(function()
 			end
         end
     })
-end)
+end)--]]
 
 --[[task.spawn(function()
 	repeat task.wait() until shared.vapewhitelist.loaded
