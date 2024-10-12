@@ -3096,6 +3096,43 @@ if shared.VapeExecuted then
 				return buttonGuiLibrary
 			end
 
+			buttonapi["CreateTextLabel"] = function(argstable)
+				local buttonGuiLibrary = {}
+				local amount = #children2:GetChildren()
+				local frame = Instance.new("Frame")
+				frame.Size = UDim2.new(0, 220, 0, 20)
+				frame.BackgroundTransparency = 1
+				frame.ClipsDescendants = true
+				frame.LayoutOrder = amount
+				frame.Name = argstable["Name"]
+				frame.Parent = children2
+			
+				local creditLabel = Instance.new("TextLabel")
+				creditLabel.Font = Enum.Font.SourceSans
+				creditLabel.TextSize = 16
+				creditLabel.Size = UDim2.new(1, 0, 0, 1)
+				creditLabel.Position = UDim2.new(0, 0, 0.1, 0)
+				creditLabel.BackgroundTransparency = 1
+				creditLabel.TextXAlignment = Enum.TextXAlignment.Left
+				creditLabel.TextYAlignment = Enum.TextYAlignment.Top
+				creditLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+				creditLabel.Text = "   "..(argstable["Text"] or "")
+				creditLabel.Parent = frame
+			
+				buttonGuiLibrary["Object"] = frame
+				buttonGuiLibrary["EditText"] = function(newText)
+					creditLabel.Text = "   "..tostring(newText)
+				end
+			
+				GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"]..argstable["Name"].."TextLabelFunction"] = {
+					["Type"] = "TextLabelFunction",
+					["Api"] = buttonGuiLibrary,
+					["Object"] = frame
+				}
+				
+				return buttonGuiLibrary
+			end
+
 			buttonapi["CreateTargetWindow"] = function(argstablemain3)
 				local buttonapi = {}
 				local buttonreturned = {}
@@ -6658,6 +6695,43 @@ if shared.VapeExecuted then
 				return buttonGuiLibrary
 			end
 
+			buttonapi["CreateTextLabel"] = function(argstable)
+				local buttonGuiLibrary = {}
+				local amount = #children2:GetChildren()
+				local frame = Instance.new("Frame")
+				frame.Size = UDim2.new(0, 220, 0, 20)
+				frame.BackgroundTransparency = 1
+				frame.ClipsDescendants = true
+				frame.LayoutOrder = amount
+				frame.Name = argstable["Name"]
+				frame.Parent = children2
+			
+				local creditLabel = Instance.new("TextLabel")
+				creditLabel.Font = Enum.Font.SourceSans
+				creditLabel.TextSize = 16
+				creditLabel.Size = UDim2.new(1, 0, 0, 1)
+				creditLabel.Position = UDim2.new(0, 0, 0.1, 0)
+				creditLabel.BackgroundTransparency = 1
+				creditLabel.TextXAlignment = Enum.TextXAlignment.Left
+				creditLabel.TextYAlignment = Enum.TextYAlignment.Top
+				creditLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+				creditLabel.Text = "   "..(argstable["Text"] or "")
+				creditLabel.Parent = frame
+			
+				buttonGuiLibrary["Object"] = frame
+				buttonGuiLibrary["EditText"] = function(newText)
+					creditLabel.Text = "   "..tostring(newText)
+				end
+			
+				GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"]..argstable["Name"].."TextLabelFunction"] = {
+					["Type"] = "TextLabelFunction",
+					["Api"] = buttonGuiLibrary,
+					["Object"] = frame
+				}
+				
+				return buttonGuiLibrary
+			end
+
 			buttonapi["CreateTargetWindow"] = function(argstablemain3)
 				local buttonapi = {}
 				local buttonreturned = {}
@@ -9369,12 +9443,14 @@ if shared.VapeExecuted then
 		textlabel2.Parent = frame
 		task.spawn(function()
 			pcall(function()
-				bettertween2(frame, UDim2.new(1, -(size - 4), 1, -(150 + 80 * offset)), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.15, true)
-				task.wait(0.15)
+				shared.CreateNotificationDuration = shared.CreateNotificationDuration or 0.15
+				local dur = shared.CreateNotificationDuration 
+				bettertween2(frame, UDim2.new(1, -(size - 4), 1, -(150 + 80 * offset)), Enum.EasingDirection.In, Enum.EasingStyle.Sine, dur, true)
+				task.wait(dur)
 				frame2:TweenSize(UDim2.new(0, 0, 0, 2), Enum.EasingDirection.In, Enum.EasingStyle.Linear, duration, true)
 				task.wait(duration)
-				bettertween2(frame, UDim2.new(1, 0, 1, frame.Position.Y.Offset), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.15, true)
-				task.wait(0.15)
+				bettertween2(frame, UDim2.new(1, 0, 1, frame.Position.Y.Offset), Enum.EasingDirection.In, Enum.EasingStyle.Sine, dur, true)
+				task.wait(dur)
 				frame:Remove()
 			end)
 		end)

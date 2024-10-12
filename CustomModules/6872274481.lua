@@ -7230,6 +7230,374 @@ run(function()
 		return lowestplayer
 	end
 
+	local AutoKit_Functions = {
+		["melody"] = function()
+			task.spawn(function()
+				repeat
+					task.wait(0.1)
+					if getItem("guitar") then
+						local plr = GetTeammateThatNeedsMost()
+						if plr and healtick <= tick() then
+							bedwars.Client:Get(bedwars.GuitarHealRemote):SendToServer({
+								healTarget = plr.Character
+							})
+							healtick = tick() + 2
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["bigman"] = function()
+			task.spawn(function()
+				repeat
+					task.wait()
+					local itemdrops = collectionService:GetTagged("treeOrb")
+					for i,v in pairs(itemdrops) do
+						if entityLibrary.isAlive and v:FindFirstChild("Spirit") and (entityLibrary.character.HumanoidRootPart.Position - v.Spirit.Position).magnitude <= 20 then
+							if bedwars.Client:Get(bedwars.TreeRemote):CallServer({
+								treeOrbSecret = v:GetAttribute("TreeOrbSecret")
+							}) then
+								v:Destroy()
+								collectionService:RemoveTag(v, "treeOrb")
+							end
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["metal_detector"] = function()
+			task.spawn(function()
+				repeat
+					task.wait()
+					local itemdrops = collectionService:GetTagged("hidden-metal")
+					for i,v in pairs(itemdrops) do
+						if entityLibrary.isAlive and v.PrimaryPart and (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude <= 20 then
+							bedwars.Client:Get(bedwars.PickupMetalRemote):SendToServer({
+								id = v:GetAttribute("Id")
+							})
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["battery"] = function()
+			task.spawn(function()
+				repeat
+					task.wait()
+					local itemdrops = bedwars.BatteryEffectsController.liveBatteries
+					for i,v in pairs(itemdrops) do
+						if entityLibrary.isAlive and (entityLibrary.character.HumanoidRootPart.Position - v.position).magnitude <= 10 then
+							bedwars.Client:Get(bedwars.BatteryRemote):SendToServer({
+								batteryId = i
+							})
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["grim_reaper"] = function()
+			task.spawn(function()
+				repeat
+					task.wait()
+					local itemdrops = bedwars.GrimReaperController.soulsByPosition
+					for i,v in pairs(itemdrops) do
+						if entityLibrary.isAlive and lplr.Character:GetAttribute("Health") <= (lplr.Character:GetAttribute("MaxHealth") / 4) and v.PrimaryPart and (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude <= 120 and (not lplr.Character:GetAttribute("GrimReaperChannel")) then
+							bedwars.Client:Get(bedwars.ConsumeSoulRemote):CallServer({
+								secret = v:GetAttribute("GrimReaperSoulSecret")
+							})
+							v:Destroy()
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["farmer_cletus"] = function()
+			task.spawn(function()
+				repeat
+					task.wait()
+					local itemdrops = collectionService:GetTagged("HarvestableCrop")
+					for i,v in pairs(itemdrops) do
+						if entityLibrary.isAlive and (entityLibrary.character.HumanoidRootPart.Position - v.Position).magnitude <= 10 then
+							bedwars.Client:Get("CropHarvest"):CallServerAsync({
+								position = bedwars.BlockController:getBlockPosition(v.Position)
+							}):andThen(function(suc)
+								if suc then
+									bedwars.GameAnimationUtil.playAnimation(lplr.Character, 1)
+									bedwars.SoundManager:playSound(bedwars.SoundList.CROP_HARVEST)
+								end
+							end)
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["pinata"] = function()
+			task.spawn(function()
+				repeat
+					task.wait()
+					local itemdrops = collectionService:GetTagged(lplr.Name..':pinata')
+					for i,v in pairs(itemdrops) do
+						if entityLibrary.isAlive and getItem('candy') then
+							bedwars.Client:Get(bedwars.PinataRemote):CallServer(v)
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["dragon_slayer"] = function()
+			task.spawn(function()
+				repeat
+					task.wait(0.1)
+					if entityLibrary.isAlive then
+						for i,v in pairs(bedwars.DragonSlayerController.dragonEmblems) do
+							if v.stackCount >= 3 then
+								bedwars.DragonSlayerController:deleteEmblem(i)
+								local localPos = lplr.Character:GetPrimaryPartCFrame().Position
+								local punchCFrame = CFrame.new(localPos, (i:GetPrimaryPartCFrame().Position * Vector3.new(1, 0, 1)) + Vector3.new(0, localPos.Y, 0))
+								lplr.Character:SetPrimaryPartCFrame(punchCFrame)
+								bedwars.DragonSlayerController:playPunchAnimation(punchCFrame - punchCFrame.Position)
+								bedwars.Client:Get(bedwars.DragonRemote):SendToServer({
+									target = i
+								})
+							end
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["mage"] = function()
+			task.spawn(function()
+				repeat
+					task.wait(0.1)
+					if entityLibrary.isAlive then
+						for i, v in pairs(collectionService:GetTagged("TomeGuidingBeam")) do
+							local obj = v.Parent and v.Parent.Parent and v.Parent.Parent.Parent
+							if obj and (entityLibrary.character.HumanoidRootPart.Position - obj.PrimaryPart.Position).Magnitude < 5 and obj:GetAttribute("TomeSecret") then
+								local res = bedwars.Client:Get(bedwars.MageRemote):CallServer({
+									secret = obj:GetAttribute("TomeSecret")
+								})
+								if res.success and res.element then
+									bedwars.GameAnimationUtil.playAnimation(lplr, bedwars.AnimationType.PUNCH)
+									bedwars.ViewmodelController:playAnimation(bedwars.AnimationType.FP_USE_ITEM)
+									bedwars.MageController:destroyTomeGuidingBeam()
+									bedwars.MageController:playLearnLightBeamEffect(lplr, obj)
+									local sound = bedwars.MageKitUtil.MageElementVisualizations[res.element].learnSound
+									if sound and sound ~= "" then
+										bedwars.SoundManager:playSound(sound)
+									end
+									task.delay(bedwars.BalanceFile.LEARN_TOME_DURATION, function()
+										bedwars.MageController:fadeOutTome(obj)
+										if lplr.Character and res.element then
+											bedwars.MageKitUtil.changeMageKitAppearance(lplr, lplr.Character, res.element)
+										end
+									end)
+								end
+							end
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["angel"] = function()
+			warningNotification("AutoKit", "Trinity kit detected! A dropdown has been created. Please tap the 3 dots \n next to the module to choose type.", 4)
+			table.insert(AutoKit.Connections, vapeEvents.AngelProgress.Event:Connect(function(angelTable)
+				task.wait(0.5)
+				if not AutoKit.Enabled then return end
+				if bedwars.ClientStoreHandler:getState().Kit.angelProgress >= 1 and lplr.Character:GetAttribute("AngelType") == nil then
+					bedwars.Client:Get(bedwars.TrinityRemote):SendToServer({
+						angel = AutoKitTrinity.Value
+					})
+				end
+			end))
+		end,
+		["miner"] = function()
+			task.spawn(function()
+				repeat 
+					task.wait(0.1)
+					if entityLibrary.isAlive then
+						for i,v in pairs(workspace:GetChildren()) do
+							local a = workspace:GetChildren()[i]
+							if a.ClassName == "Model" and #a:GetChildren() > 1 then
+								if a:GetAttribute("PetrifyId") then
+									local args = {
+										[1] = {
+											["petrifyId"] = a:GetAttribute("PetrifyId")
+										}
+									}
+									local b = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("DestroyPetrifiedPlayer"):FireServer(unpack(args))
+								end
+							end
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["sorcerer"] = function()
+			task.spawn(function()
+				repeat 
+					task.wait(0.1)
+					if entityLibrary.isAlive then
+						local player = game.Players.LocalPlayer
+						local character = player.Character or player.CharacterAdded:Wait()
+						local thresholdDistance = 10
+						for i, v in pairs(workspace:GetChildren()) do
+							local a = v
+							pcall(function()
+								if a.ClassName == "Model" and #a:GetChildren() > 1 then
+									if a:GetAttribute("Id") then
+										local c = (a:FindFirstChild(a.Name:lower().."_PESP") or Instance.new("BoxHandleAdornment"))
+										c.Name = a.Name:lower().."_PESP"
+										c.Parent = a
+										c.Adornee = a
+										c.AlwaysOnTop = true
+										c.ZIndex = 0
+										task.spawn(function()
+											local d = a:WaitForChild("2")
+											c.Size = d.Size
+										end)
+										c.Transparency = 0.3
+										c.Color = BrickColor.new("Magenta")
+										local playerPosition = character.HumanoidRootPart.Position
+										local partPosition = a.PrimaryPart.Position
+										local distance = (playerPosition - partPosition).Magnitude
+										if distance <= thresholdDistance then
+											local args = {
+												[1] = {
+													["id"] = a:GetAttribute("Id"),
+													["collectableName"] = "AlchemyCrystal"
+												}
+											}
+											game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
+										end
+									end
+								end
+							end)
+						end										
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["nazar"] = function()
+			task.spawn(function()
+				repeat 
+					task.wait(0.5)
+					if entityLibrary.isAlive then
+						local args = {
+							[1] = "enable_life_force_attack"
+						}
+						game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"):WaitForChild("useAbility"):FireServer(unpack(args))
+						local function shouldUse()
+							local lplr = game:GetService("Players").LocalPlayer
+							if not (lplr.Character:FindFirstChild("Humanoid")) then
+								local healthbar = pcall(function() return lplr.PlayerGui.hotbar['1'].HotbarHealthbarContainer["1"] end)
+								local classname = pcall(function() return healthbar.ClassName end)
+								if healthbar and classname == "TextLabel" then 
+									local health = tonumber(healthbar.Text)
+									if health < 100 then return true, "SucBackup" else return false, "SucBackup" end
+								else
+									return true, "Backup"
+								end
+							else
+								if lplr.Character.Humanoid.Health < lplr.Character.Humanoid.MaxHealth then return true else return false end
+							end
+						end
+						local val, extra = shouldUse()
+						if extra then print("Using backup method: "..tostring(extra)) end
+						if val then
+							local args = {
+								[1] = "consume_life_foce"
+							}
+							game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"):WaitForChild("useAbility"):FireServer(unpack(args))
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["necromancer"] = function()
+			local function activateGrave(obj)
+				if (not obj) then return warn("[AutoKit - necromancer.activateGrave]: No object specified!") end
+				local required_args = {
+					armorType = obj:GetAttribute("ArmorType"),
+					weaponType = obj:GetAttribute("SwordType"),
+					associatedPlayerUserId = obj:GetAttribute("GravestonePlayerUserId"),
+					secret = obj:GetAttribute("GravestoneSecret"),
+					position = obj:GetAttribute("GravestonePosition")
+				}
+				for i,v in pairs(required_args) do
+					if (not v) then return warn("[AutoKit - necromancer.activateGrave]: A required arg is missing! ArgName: "..tostring(i).." ObjectName: "..tostring(obj.Name)) end
+				end
+				local args = {
+					[1] = {
+						["skeletonData"] = {
+							["armorType"] = armorType,
+							["weaponType"] = weaponType,
+							["associatedPlayerUserId"] = associatedPlayerUserId
+						},
+						["secret"] = secret,
+						["position"] = position
+					}
+				}
+				return game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("ActivateGravestone"):InvokeServer(unpack(args))								
+			end
+			local function verifyAttributes(obj)
+				if (not obj) then return warn("[AutoKit - necromancer.verifyAttributes]: No object specified!") end
+				local required_attributes = {"ArmorType", "GravestonePlayerUserId", "GravestonePosition", "GravestoneSecret", "SwordType"}
+				for i,v in pairs(required_attributes) do
+					if (not obj:GetAttribute(v)) then print(v.." not found in "..obj.Name); return false end
+				end
+				return true
+			end
+			task.spawn(function()
+				repeat
+					task.wait(0.1)
+					if entityLibrary.isAlive then
+						for i,v in pairs(workspace:GetChildren()) do
+							local a = workspace:GetChildren()[i]
+							if (not a) then return warn("[AutoKit - Core]: The object went missing before it could get used!") end
+							if a.ClassName == "Model" and a:FindFirstChild("Root") and a.Name == "Gravestone" then
+								if verifyAttributes(a) then
+									local res = activateGrave(a)
+									warn("[AutoKit - necromancer.activateGrave - RESULT]: "..tostring(res))
+								end
+							end
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
+		["jailor"] = function()
+			local function activateSoul(obj)
+				local args = {
+					[1] = {
+						["id"] = obj:GetAttribute("Id"),
+						["collectableName"] = "JailorSoul"
+					}
+				}
+				game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
+			end
+			local function verifyAttributes(obj)
+				if obj:GetAttribute("Id") then return true else return false end
+			end
+			task.spawn(function()
+				repeat
+					task.wait(0.1)
+					if entityLibrary.isAlive then
+						for i,v in pairs(workspace:GetChildren()) do
+							local a = workspace:GetChildren()[i]
+							if (not a) then return warn("[AutoKit - Core]: The object went missing before it could get used!") end
+							if a.ClassName == "Model" and a.Name == "JailorSoul" then
+								if verifyAttributes(a) then
+									local res = activateSoul(a)
+									warn("[AutoKit - jailor.activateSoul - RESULT]: "..tostring(res))
+								end
+							end
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end
+	}
+
 	AutoKit = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 		Name = "AutoKit",
 		Function = function(callback)
@@ -7239,357 +7607,359 @@ run(function()
 				task.spawn(function()
 					repeat task.wait() until store.equippedKit ~= ""
 					if AutoKit.Enabled then
-						if store.equippedKit == "melody" then
-							task.spawn(function()
-								repeat
-									task.wait(0.1)
-									if getItem("guitar") then
-										local plr = GetTeammateThatNeedsMost()
-										if plr and healtick <= tick() then
-											bedwars.Client:Get(bedwars.GuitarHealRemote):SendToServer({
-												healTarget = plr.Character
-											})
-											healtick = tick() + 2
+						--[[local old = function()
+							if store.equippedKit == "melody" then
+								task.spawn(function()
+									repeat
+										task.wait(0.1)
+										if getItem("guitar") then
+											local plr = GetTeammateThatNeedsMost()
+											if plr and healtick <= tick() then
+												bedwars.Client:Get(bedwars.GuitarHealRemote):SendToServer({
+													healTarget = plr.Character
+												})
+												healtick = tick() + 2
+											end
 										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "bigman" then
-							task.spawn(function()
-								repeat
-									task.wait()
-									local itemdrops = collectionService:GetTagged("treeOrb")
-									for i,v in pairs(itemdrops) do
-										if entityLibrary.isAlive and v:FindFirstChild("Spirit") and (entityLibrary.character.HumanoidRootPart.Position - v.Spirit.Position).magnitude <= 20 then
-											if bedwars.Client:Get(bedwars.TreeRemote):CallServer({
-												treeOrbSecret = v:GetAttribute("TreeOrbSecret")
-											}) then
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "bigman" then
+								task.spawn(function()
+									repeat
+										task.wait()
+										local itemdrops = collectionService:GetTagged("treeOrb")
+										for i,v in pairs(itemdrops) do
+											if entityLibrary.isAlive and v:FindFirstChild("Spirit") and (entityLibrary.character.HumanoidRootPart.Position - v.Spirit.Position).magnitude <= 20 then
+												if bedwars.Client:Get(bedwars.TreeRemote):CallServer({
+													treeOrbSecret = v:GetAttribute("TreeOrbSecret")
+												}) then
+													v:Destroy()
+													collectionService:RemoveTag(v, "treeOrb")
+												end
+											end
+										end
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "metal_detector" then
+								task.spawn(function()
+									repeat
+										task.wait()
+										local itemdrops = collectionService:GetTagged("hidden-metal")
+										for i,v in pairs(itemdrops) do
+											if entityLibrary.isAlive and v.PrimaryPart and (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude <= 20 then
+												bedwars.Client:Get(bedwars.PickupMetalRemote):SendToServer({
+													id = v:GetAttribute("Id")
+												})
+											end
+										end
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "battery" then
+								task.spawn(function()
+									repeat
+										task.wait()
+										local itemdrops = bedwars.BatteryEffectsController.liveBatteries
+										for i,v in pairs(itemdrops) do
+											if entityLibrary.isAlive and (entityLibrary.character.HumanoidRootPart.Position - v.position).magnitude <= 10 then
+												bedwars.Client:Get(bedwars.BatteryRemote):SendToServer({
+													batteryId = i
+												})
+											end
+										end
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "grim_reaper" then
+								task.spawn(function()
+									repeat
+										task.wait()
+										local itemdrops = bedwars.GrimReaperController.soulsByPosition
+										for i,v in pairs(itemdrops) do
+											if entityLibrary.isAlive and lplr.Character:GetAttribute("Health") <= (lplr.Character:GetAttribute("MaxHealth") / 4) and v.PrimaryPart and (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude <= 120 and (not lplr.Character:GetAttribute("GrimReaperChannel")) then
+												bedwars.Client:Get(bedwars.ConsumeSoulRemote):CallServer({
+													secret = v:GetAttribute("GrimReaperSoulSecret")
+												})
 												v:Destroy()
-												collectionService:RemoveTag(v, "treeOrb")
 											end
 										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "metal_detector" then
-							task.spawn(function()
-								repeat
-									task.wait()
-									local itemdrops = collectionService:GetTagged("hidden-metal")
-									for i,v in pairs(itemdrops) do
-										if entityLibrary.isAlive and v.PrimaryPart and (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude <= 20 then
-											bedwars.Client:Get(bedwars.PickupMetalRemote):SendToServer({
-												id = v:GetAttribute("Id")
-											})
-										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "battery" then
-							task.spawn(function()
-								repeat
-									task.wait()
-									local itemdrops = bedwars.BatteryEffectsController.liveBatteries
-									for i,v in pairs(itemdrops) do
-										if entityLibrary.isAlive and (entityLibrary.character.HumanoidRootPart.Position - v.position).magnitude <= 10 then
-											bedwars.Client:Get(bedwars.BatteryRemote):SendToServer({
-												batteryId = i
-											})
-										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "grim_reaper" then
-							task.spawn(function()
-								repeat
-									task.wait()
-									local itemdrops = bedwars.GrimReaperController.soulsByPosition
-									for i,v in pairs(itemdrops) do
-										if entityLibrary.isAlive and lplr.Character:GetAttribute("Health") <= (lplr.Character:GetAttribute("MaxHealth") / 4) and v.PrimaryPart and (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude <= 120 and (not lplr.Character:GetAttribute("GrimReaperChannel")) then
-											bedwars.Client:Get(bedwars.ConsumeSoulRemote):CallServer({
-												secret = v:GetAttribute("GrimReaperSoulSecret")
-											})
-											v:Destroy()
-										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "farmer_cletus" then
-							task.spawn(function()
-								repeat
-									task.wait()
-									local itemdrops = collectionService:GetTagged("HarvestableCrop")
-									for i,v in pairs(itemdrops) do
-										if entityLibrary.isAlive and (entityLibrary.character.HumanoidRootPart.Position - v.Position).magnitude <= 10 then
-											bedwars.Client:Get("CropHarvest"):CallServerAsync({
-												position = bedwars.BlockController:getBlockPosition(v.Position)
-											}):andThen(function(suc)
-												if suc then
-													bedwars.GameAnimationUtil.playAnimation(lplr.Character, 1)
-													bedwars.SoundManager:playSound(bedwars.SoundList.CROP_HARVEST)
-												end
-											end)
-										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "pinata" then
-							task.spawn(function()
-								repeat
-									task.wait()
-									local itemdrops = collectionService:GetTagged(lplr.Name..':pinata')
-									for i,v in pairs(itemdrops) do
-										if entityLibrary.isAlive and getItem('candy') then
-											bedwars.Client:Get(bedwars.PinataRemote):CallServer(v)
-										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "dragon_slayer" then
-							task.spawn(function()
-								repeat
-									task.wait(0.1)
-									if entityLibrary.isAlive then
-										for i,v in pairs(bedwars.DragonSlayerController.dragonEmblems) do
-											if v.stackCount >= 3 then
-												bedwars.DragonSlayerController:deleteEmblem(i)
-												local localPos = lplr.Character:GetPrimaryPartCFrame().Position
-												local punchCFrame = CFrame.new(localPos, (i:GetPrimaryPartCFrame().Position * Vector3.new(1, 0, 1)) + Vector3.new(0, localPos.Y, 0))
-												lplr.Character:SetPrimaryPartCFrame(punchCFrame)
-												bedwars.DragonSlayerController:playPunchAnimation(punchCFrame - punchCFrame.Position)
-												bedwars.Client:Get(bedwars.DragonRemote):SendToServer({
-													target = i
-												})
-											end
-										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "mage" then
-							task.spawn(function()
-								repeat
-									task.wait(0.1)
-									if entityLibrary.isAlive then
-										for i, v in pairs(collectionService:GetTagged("TomeGuidingBeam")) do
-											local obj = v.Parent and v.Parent.Parent and v.Parent.Parent.Parent
-											if obj and (entityLibrary.character.HumanoidRootPart.Position - obj.PrimaryPart.Position).Magnitude < 5 and obj:GetAttribute("TomeSecret") then
-												local res = bedwars.Client:Get(bedwars.MageRemote):CallServer({
-													secret = obj:GetAttribute("TomeSecret")
-												})
-												if res.success and res.element then
-													bedwars.GameAnimationUtil.playAnimation(lplr, bedwars.AnimationType.PUNCH)
-													bedwars.ViewmodelController:playAnimation(bedwars.AnimationType.FP_USE_ITEM)
-													bedwars.MageController:destroyTomeGuidingBeam()
-													bedwars.MageController:playLearnLightBeamEffect(lplr, obj)
-													local sound = bedwars.MageKitUtil.MageElementVisualizations[res.element].learnSound
-													if sound and sound ~= "" then
-														bedwars.SoundManager:playSound(sound)
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "farmer_cletus" then
+								task.spawn(function()
+									repeat
+										task.wait()
+										local itemdrops = collectionService:GetTagged("HarvestableCrop")
+										for i,v in pairs(itemdrops) do
+											if entityLibrary.isAlive and (entityLibrary.character.HumanoidRootPart.Position - v.Position).magnitude <= 10 then
+												bedwars.Client:Get("CropHarvest"):CallServerAsync({
+													position = bedwars.BlockController:getBlockPosition(v.Position)
+												}):andThen(function(suc)
+													if suc then
+														bedwars.GameAnimationUtil.playAnimation(lplr.Character, 1)
+														bedwars.SoundManager:playSound(bedwars.SoundList.CROP_HARVEST)
 													end
-													task.delay(bedwars.BalanceFile.LEARN_TOME_DURATION, function()
-														bedwars.MageController:fadeOutTome(obj)
-														if lplr.Character and res.element then
-															bedwars.MageKitUtil.changeMageKitAppearance(lplr, lplr.Character, res.element)
+												end)
+											end
+										end
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "pinata" then
+								task.spawn(function()
+									repeat
+										task.wait()
+										local itemdrops = collectionService:GetTagged(lplr.Name..':pinata')
+										for i,v in pairs(itemdrops) do
+											if entityLibrary.isAlive and getItem('candy') then
+												bedwars.Client:Get(bedwars.PinataRemote):CallServer(v)
+											end
+										end
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "dragon_slayer" then
+								task.spawn(function()
+									repeat
+										task.wait(0.1)
+										if entityLibrary.isAlive then
+											for i,v in pairs(bedwars.DragonSlayerController.dragonEmblems) do
+												if v.stackCount >= 3 then
+													bedwars.DragonSlayerController:deleteEmblem(i)
+													local localPos = lplr.Character:GetPrimaryPartCFrame().Position
+													local punchCFrame = CFrame.new(localPos, (i:GetPrimaryPartCFrame().Position * Vector3.new(1, 0, 1)) + Vector3.new(0, localPos.Y, 0))
+													lplr.Character:SetPrimaryPartCFrame(punchCFrame)
+													bedwars.DragonSlayerController:playPunchAnimation(punchCFrame - punchCFrame.Position)
+													bedwars.Client:Get(bedwars.DragonRemote):SendToServer({
+														target = i
+													})
+												end
+											end
+										end
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "mage" then
+								task.spawn(function()
+									repeat
+										task.wait(0.1)
+										if entityLibrary.isAlive then
+											for i, v in pairs(collectionService:GetTagged("TomeGuidingBeam")) do
+												local obj = v.Parent and v.Parent.Parent and v.Parent.Parent.Parent
+												if obj and (entityLibrary.character.HumanoidRootPart.Position - obj.PrimaryPart.Position).Magnitude < 5 and obj:GetAttribute("TomeSecret") then
+													local res = bedwars.Client:Get(bedwars.MageRemote):CallServer({
+														secret = obj:GetAttribute("TomeSecret")
+													})
+													if res.success and res.element then
+														bedwars.GameAnimationUtil.playAnimation(lplr, bedwars.AnimationType.PUNCH)
+														bedwars.ViewmodelController:playAnimation(bedwars.AnimationType.FP_USE_ITEM)
+														bedwars.MageController:destroyTomeGuidingBeam()
+														bedwars.MageController:playLearnLightBeamEffect(lplr, obj)
+														local sound = bedwars.MageKitUtil.MageElementVisualizations[res.element].learnSound
+														if sound and sound ~= "" then
+															bedwars.SoundManager:playSound(sound)
 														end
-													end)
-												end
-											end
-										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "angel" then
-							table.insert(AutoKit.Connections, vapeEvents.AngelProgress.Event:Connect(function(angelTable)
-								task.wait(0.5)
-								if not AutoKit.Enabled then return end
-								if bedwars.ClientStoreHandler:getState().Kit.angelProgress >= 1 and lplr.Character:GetAttribute("AngelType") == nil then
-									bedwars.Client:Get(bedwars.TrinityRemote):SendToServer({
-										angel = AutoKitTrinity.Value
-									})
-								end
-							end))
-						elseif store.equippedKit == "miner" then
-							task.spawn(function()
-								repeat 
-									task.wait(0.1)
-									if entityLibrary.isAlive then
-										for i,v in pairs(workspace:GetChildren()) do
-											local a = workspace:GetChildren()[i]
-											if a.ClassName == "Model" and #a:GetChildren() > 1 then
-												if a:GetAttribute("PetrifyId") then
-													local args = {
-														[1] = {
-															["petrifyId"] = a:GetAttribute("PetrifyId")
-														}
-													}
-													local b = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("DestroyPetrifiedPlayer"):FireServer(unpack(args))
-												end
-											end
-										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "sorcerer" then
-							task.spawn(function()
-								repeat 
-									task.wait(0.1)
-									if entityLibrary.isAlive then
-										local player = game.Players.LocalPlayer
-										local character = player.Character or player.CharacterAdded:Wait()
-										local thresholdDistance = 10
-										for i, v in pairs(workspace:GetChildren()) do
-											local a = v
-											pcall(function()
-												if a.ClassName == "Model" and #a:GetChildren() > 1 then
-													if a:GetAttribute("Id") then
-														local c = (a:FindFirstChild(a.Name:lower().."_PESP") or Instance.new("BoxHandleAdornment"))
-														c.Name = a.Name:lower().."_PESP"
-														c.Parent = a
-														c.Adornee = a
-														c.AlwaysOnTop = true
-														c.ZIndex = 0
-														task.spawn(function()
-															local d = a:WaitForChild("2")
-															c.Size = d.Size
+														task.delay(bedwars.BalanceFile.LEARN_TOME_DURATION, function()
+															bedwars.MageController:fadeOutTome(obj)
+															if lplr.Character and res.element then
+																bedwars.MageKitUtil.changeMageKitAppearance(lplr, lplr.Character, res.element)
+															end
 														end)
-														c.Transparency = 0.3
-														c.Color = BrickColor.new("Magenta")
-														local playerPosition = character.HumanoidRootPart.Position
-														local partPosition = a.PrimaryPart.Position
-														local distance = (playerPosition - partPosition).Magnitude
-														if distance <= thresholdDistance then
-															local args = {
-																[1] = {
-																	["id"] = a:GetAttribute("Id"),
-																	["collectableName"] = "AlchemyCrystal"
-																}
-															}
-															game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
-														end
 													end
 												end
-											end)
-										end										
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "nazar" then
-							task.spawn(function()
-								repeat 
-									task.wait(0.5)
-									if entityLibrary.isAlive then
-										local args = {
-											[1] = "enable_life_force_attack"
-										}
-										game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"):WaitForChild("useAbility"):FireServer(unpack(args))
-										local function shouldUse()
-											local lplr = game:GetService("Players").LocalPlayer
-											if not (lplr.Character:FindFirstChild("Humanoid")) then
-												local healthbar = pcall(function() return lplr.PlayerGui.hotbar['1'].HotbarHealthbarContainer["1"] end)
-												local classname = pcall(function() return healthbar.ClassName end)
-												if healthbar and classname == "TextLabel" then 
-													local health = tonumber(healthbar.Text)
-													if health < 100 then return true, "SucBackup" else return false, "SucBackup" end
-												else
-													return true, "Backup"
-												end
-											else
-												if lplr.Character.Humanoid.Health < lplr.Character.Humanoid.MaxHealth then return true else return false end
 											end
 										end
-										local val, extra = shouldUse()
-										if extra then print("Using backup method: "..tostring(extra)) end
-										if val then
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "angel" then
+								table.insert(AutoKit.Connections, vapeEvents.AngelProgress.Event:Connect(function(angelTable)
+									task.wait(0.5)
+									if not AutoKit.Enabled then return end
+									if bedwars.ClientStoreHandler:getState().Kit.angelProgress >= 1 and lplr.Character:GetAttribute("AngelType") == nil then
+										bedwars.Client:Get(bedwars.TrinityRemote):SendToServer({
+											angel = AutoKitTrinity.Value
+										})
+									end
+								end))
+							elseif store.equippedKit == "miner" then
+								task.spawn(function()
+									repeat 
+										task.wait(0.1)
+										if entityLibrary.isAlive then
+											for i,v in pairs(workspace:GetChildren()) do
+												local a = workspace:GetChildren()[i]
+												if a.ClassName == "Model" and #a:GetChildren() > 1 then
+													if a:GetAttribute("PetrifyId") then
+														local args = {
+															[1] = {
+																["petrifyId"] = a:GetAttribute("PetrifyId")
+															}
+														}
+														local b = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("DestroyPetrifiedPlayer"):FireServer(unpack(args))
+													end
+												end
+											end
+										end
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "sorcerer" then
+								task.spawn(function()
+									repeat 
+										task.wait(0.1)
+										if entityLibrary.isAlive then
+											local player = game.Players.LocalPlayer
+											local character = player.Character or player.CharacterAdded:Wait()
+											local thresholdDistance = 10
+											for i, v in pairs(workspace:GetChildren()) do
+												local a = v
+												pcall(function()
+													if a.ClassName == "Model" and #a:GetChildren() > 1 then
+														if a:GetAttribute("Id") then
+															local c = (a:FindFirstChild(a.Name:lower().."_PESP") or Instance.new("BoxHandleAdornment"))
+															c.Name = a.Name:lower().."_PESP"
+															c.Parent = a
+															c.Adornee = a
+															c.AlwaysOnTop = true
+															c.ZIndex = 0
+															task.spawn(function()
+																local d = a:WaitForChild("2")
+																c.Size = d.Size
+															end)
+															c.Transparency = 0.3
+															c.Color = BrickColor.new("Magenta")
+															local playerPosition = character.HumanoidRootPart.Position
+															local partPosition = a.PrimaryPart.Position
+															local distance = (playerPosition - partPosition).Magnitude
+															if distance <= thresholdDistance then
+																local args = {
+																	[1] = {
+																		["id"] = a:GetAttribute("Id"),
+																		["collectableName"] = "AlchemyCrystal"
+																	}
+																}
+																game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
+															end
+														end
+													end
+												end)
+											end										
+										end
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "nazar" then
+								task.spawn(function()
+									repeat 
+										task.wait(0.5)
+										if entityLibrary.isAlive then
 											local args = {
-												[1] = "consume_life_foce"
+												[1] = "enable_life_force_attack"
 											}
 											game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"):WaitForChild("useAbility"):FireServer(unpack(args))
+											local function shouldUse()
+												local lplr = game:GetService("Players").LocalPlayer
+												if not (lplr.Character:FindFirstChild("Humanoid")) then
+													local healthbar = pcall(function() return lplr.PlayerGui.hotbar['1'].HotbarHealthbarContainer["1"] end)
+													local classname = pcall(function() return healthbar.ClassName end)
+													if healthbar and classname == "TextLabel" then 
+														local health = tonumber(healthbar.Text)
+														if health < 100 then return true, "SucBackup" else return false, "SucBackup" end
+													else
+														return true, "Backup"
+													end
+												else
+													if lplr.Character.Humanoid.Health < lplr.Character.Humanoid.MaxHealth then return true else return false end
+												end
+											end
+											local val, extra = shouldUse()
+											if extra then print("Using backup method: "..tostring(extra)) end
+											if val then
+												local args = {
+													[1] = "consume_life_foce"
+												}
+												game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"):WaitForChild("useAbility"):FireServer(unpack(args))
+											end
 										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "necromancer" then
-							local function activateGrave(obj)
-								if (not obj) then return warn("[AutoKit - necromancer.activateGrave]: No object specified!") end
-								local required_args = {
-									armorType = obj:GetAttribute("ArmorType"),
-									weaponType = obj:GetAttribute("SwordType"),
-									associatedPlayerUserId = obj:GetAttribute("GravestonePlayerUserId"),
-									secret = obj:GetAttribute("GravestoneSecret"),
-									position = obj:GetAttribute("GravestonePosition")
-								}
-								for i,v in pairs(required_args) do
-									if (not v) then return warn("[AutoKit - necromancer.activateGrave]: A required arg is missing! ArgName: "..tostring(i).." ObjectName: "..tostring(obj.Name)) end
-								end
-								local args = {
-									[1] = {
-										["skeletonData"] = {
-											["armorType"] = armorType,
-											["weaponType"] = weaponType,
-											["associatedPlayerUserId"] = associatedPlayerUserId
-										},
-										["secret"] = secret,
-										["position"] = position
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "necromancer" then
+								local function activateGrave(obj)
+									if (not obj) then return warn("[AutoKit - necromancer.activateGrave]: No object specified!") end
+									local required_args = {
+										armorType = obj:GetAttribute("ArmorType"),
+										weaponType = obj:GetAttribute("SwordType"),
+										associatedPlayerUserId = obj:GetAttribute("GravestonePlayerUserId"),
+										secret = obj:GetAttribute("GravestoneSecret"),
+										position = obj:GetAttribute("GravestonePosition")
 									}
-								}
-								return game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("ActivateGravestone"):InvokeServer(unpack(args))								
-							end
-							local function verifyAttributes(obj)
-								if (not obj) then return warn("[AutoKit - necromancer.verifyAttributes]: No object specified!") end
-								local required_attributes = {"ArmorType", "GravestonePlayerUserId", "GravestonePosition", "GravestoneSecret", "SwordType"}
-								for i,v in pairs(required_attributes) do
-									if (not obj:GetAttribute(v)) then print(v.." not found in "..obj.Name); return false end
+									for i,v in pairs(required_args) do
+										if (not v) then return warn("[AutoKit - necromancer.activateGrave]: A required arg is missing! ArgName: "..tostring(i).." ObjectName: "..tostring(obj.Name)) end
+									end
+									local args = {
+										[1] = {
+											["skeletonData"] = {
+												["armorType"] = armorType,
+												["weaponType"] = weaponType,
+												["associatedPlayerUserId"] = associatedPlayerUserId
+											},
+											["secret"] = secret,
+											["position"] = position
+										}
+									}
+									return game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("ActivateGravestone"):InvokeServer(unpack(args))								
 								end
-								return true
-							end
-							task.spawn(function()
-								repeat
-									task.wait(0.1)
-									if entityLibrary.isAlive then
-										for i,v in pairs(workspace:GetChildren()) do
-											local a = workspace:GetChildren()[i]
-											if (not a) then return warn("[AutoKit - Core]: The object went missing before it could get used!") end
-											if a.ClassName == "Model" and a:FindFirstChild("Root") and a.Name == "Gravestone" then
-												if verifyAttributes(a) then
-													local res = activateGrave(a)
-													warn("[AutoKit - necromancer.activateGrave - RESULT]: "..tostring(res))
+								local function verifyAttributes(obj)
+									if (not obj) then return warn("[AutoKit - necromancer.verifyAttributes]: No object specified!") end
+									local required_attributes = {"ArmorType", "GravestonePlayerUserId", "GravestonePosition", "GravestoneSecret", "SwordType"}
+									for i,v in pairs(required_attributes) do
+										if (not obj:GetAttribute(v)) then print(v.." not found in "..obj.Name); return false end
+									end
+									return true
+								end
+								task.spawn(function()
+									repeat
+										task.wait(0.1)
+										if entityLibrary.isAlive then
+											for i,v in pairs(workspace:GetChildren()) do
+												local a = workspace:GetChildren()[i]
+												if (not a) then return warn("[AutoKit - Core]: The object went missing before it could get used!") end
+												if a.ClassName == "Model" and a:FindFirstChild("Root") and a.Name == "Gravestone" then
+													if verifyAttributes(a) then
+														local res = activateGrave(a)
+														warn("[AutoKit - necromancer.activateGrave - RESULT]: "..tostring(res))
+													end
 												end
 											end
 										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-						elseif store.equippedKit == "jailor" then
-							local function activateSoul(obj)
-								local args = {
-									[1] = {
-										["id"] = obj:GetAttribute("Id"),
-										["collectableName"] = "JailorSoul"
+									until (not AutoKit.Enabled)
+								end)
+							elseif store.equippedKit == "jailor" then
+								local function activateSoul(obj)
+									local args = {
+										[1] = {
+											["id"] = obj:GetAttribute("Id"),
+											["collectableName"] = "JailorSoul"
+										}
 									}
-								}
-								game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
-							end
-							local function verifyAttributes(obj)
-								if obj:GetAttribute("Id") then return true else return false end
-							end
-							task.spawn(function()
-								repeat
-									task.wait(0.1)
-									if entityLibrary.isAlive then
-										for i,v in pairs(workspace:GetChildren()) do
-											local a = workspace:GetChildren()[i]
-											if (not a) then return warn("[AutoKit - Core]: The object went missing before it could get used!") end
-											if a.ClassName == "Model" and a.Name == "JailorSoul" then
-												if verifyAttributes(a) then
-													local res = activateSoul(a)
-													warn("[AutoKit - jailor.activateSoul - RESULT]: "..tostring(res))
+									game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
+								end
+								local function verifyAttributes(obj)
+									if obj:GetAttribute("Id") then return true else return false end
+								end
+								task.spawn(function()
+									repeat
+										task.wait(0.1)
+										if entityLibrary.isAlive then
+											for i,v in pairs(workspace:GetChildren()) do
+												local a = workspace:GetChildren()[i]
+												if (not a) then return warn("[AutoKit - Core]: The object went missing before it could get used!") end
+												if a.ClassName == "Model" and a.Name == "JailorSoul" then
+													if verifyAttributes(a) then
+														local res = activateSoul(a)
+														warn("[AutoKit - jailor.activateSoul - RESULT]: "..tostring(res))
+													end
 												end
 											end
 										end
-									end
-								until (not AutoKit.Enabled)
-							end)
-							warn("Jailor!")
-						end
+									until (not AutoKit.Enabled)
+								end)
+							end
+						end--]]
+						if AutoKit_Functions[store.equippedKit] then AutoKit_Functions[store.equippedKit]() end
 					end
 				end)
 			else
@@ -7599,11 +7969,23 @@ run(function()
 		end,
 		HoverText = "Automatically uses a kits ability"
 	})
+	local function resolveKitName(kitName)
+		local repstorage = game:GetService("ReplicatedStorage")
+		local KitMeta = require(repstorage.TS.games.bedwars.kit["bedwars-kit-meta"]).BedwarsKitMeta
+		if KitMeta[kitName] then return (KitMeta[kitName].name or kitName) else return kitName end
+	end
+	local function isSupportedKit(kit) if AutoKit_Functions[kit] then return "Supported" else return "Not Supported" end end
+	local SupportedKit = AutoKit.CreateTextLabel({
+		Name = "SupportedKit",
+		Text = "Kit: "..tostring(resolveKitName(store.equippedKit)).." ["..isSupportedKit(store.equippedKit).."]"
+	})
 	AutoKitTrinity = AutoKit.CreateDropdown({
 		Name = "Angel",
 		List = {"Void", "Light"},
 		Function = function() end
 	})
+	AutoKitTrinity.Object.Visible = false
+	if store.equippedKit == "angel" then AutoKitTrinity.Object.Visible = true end
 end)
 
 run(function()
