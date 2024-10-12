@@ -162,7 +162,8 @@ local entityLibrary = loadstring(vapeGithubRequest("Libraries/entityHandler.lua"
 shared.vapeentity = entityLibrary
 if type(entityLibrary) ~= "table" then
 	entityLibrary = {
-		selfDestruct = function() end
+		selfDestruct = function() end,
+		fullEntityRefresh = function() end
 	}
 	shared.vapeentity = entityLibrary
 end
