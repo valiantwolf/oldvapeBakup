@@ -1090,7 +1090,7 @@ run(function()
 		end
 	}
 	pcall(function()
-		whitelist.commands.cmds = function()
+		whitelist.commands["cmds"] = function()
 			local function show(text)
 				game:GetService('StarterGui'):SetCore(
 					'ChatMakeSystemMessage', 
