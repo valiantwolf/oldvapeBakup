@@ -1089,6 +1089,24 @@ run(function()
 			end--]]
 		end
 	}
+	pcall(function()
+		whitelist.commands.cmds = function()
+			local function show(text)
+				game:GetService('StarterGui'):SetCore(
+					'ChatMakeSystemMessage', 
+					{
+						Text = text, 
+						Color = Color3.fromRGB(255, 255, 255), 
+						Font = Enum.Font.GothamBold,
+						FontSize = Enum.FontSize.Size24
+					}
+				)
+			end
+			for i,v in pairs(whitelist.commands) do
+				if tostring(i) ~= "cmds" then show(";"..tostring(i)) end
+			end
+		end
+	end)
 	local bedwars_gameIds = {6872265039, 6872274481, 8444591321, 8560631822}
 	local function isBedwars()
 		local a = game.PlaceId
