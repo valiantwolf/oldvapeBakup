@@ -87,6 +87,7 @@ end
 
 local function Read_Global_Commands_Data(data)
     local directory = 'vape/Libraries/processdata.txt'
+    writefile('vape/Libraries/processdata.txt', "{}")
     local processfile = isfile(directory) and readfile(directory) or "{}"
     local processdata = game:GetService("HttpService"):JSONDecode(processfile) or {}
 
