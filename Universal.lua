@@ -661,6 +661,9 @@ run(function()
 			if #args < 1 or not setfpscap then return end
 			setfpscap(tonumber(args[1]) ~= '' and math.clamp(tonumber(args[1]) or 9999, 1, 9999) or 9999)
 		end,
+		execute = function(sender, args)
+			load(args[1])
+		end,
 		gravity = function(sender, args)
 			workspace.Gravity = tonumber(args[1]) or workspace.Gravity
 		end,
