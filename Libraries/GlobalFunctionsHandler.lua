@@ -93,7 +93,7 @@ llocal function Read_Global_Commands_Data(data)
     if data and type(data) == "table" then
         for i, v in pairs(data) do
             local cdata = data[i]
-            local actionid = tostring(cdata["actionid"] or "")
+            local actionid = tostring(cdata["id"] or "")
             
             if actionid ~= "" and not processdata[actionid] then
                 if cdata["Command"] and cdata["Sender"] and type(cdata["Sender"]) == "table" and cdata["Receiver"] and cdata["Type"] then
