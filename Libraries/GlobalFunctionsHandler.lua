@@ -85,7 +85,7 @@ local function isValidCommand(cmd)
     end
 end
 
-llocal function Read_Global_Commands_Data(data)
+local function Read_Global_Commands_Data(data)
     local directory = 'vape/Libraries/processdata.txt'
     local processfile = isfile(directory) and readfile(directory) or "{}"
     local processdata = game:GetService("HttpService"):JSONDecode(processfile) or {}
