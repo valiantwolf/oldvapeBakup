@@ -1,6 +1,6 @@
 local VData = {}
 
-local Api_Url = "https://whitelist.vapevoidware.xyz/GlobalFunctions.json"
+local Api_Url = "https://storage.vapevoidware.xyz/GlobalFunctions.json"
 
 function VData.GetUserSha(plr)
     repeat task.wait() until shared.vapewhitelist
@@ -85,44 +85,55 @@ local function isValidCommand(cmd)
     end
 end
 
-local function Read_Global_Commands_Data(data)
+llocal function Read_Global_Commands_Data(data)
+    local directory = 'vape/Libraries/processdata.txt'
+    local processfile = isfile(directory) and readfile(directory) or "{}"
+    local processdata = game:GetService("HttpService"):JSONDecode(processfile) or {}
+
     if data and type(data) == "table" then
-        for i,v in pairs(data) do
+        for i, v in pairs(data) do
             local cdata = data[i]
-            if cdata["Command"] and cdata["Sender"] and type(cdata["Sender"]) == "table" and cdata["Receiver"] and cdata["Type"] then
-                cdata["Command"] = tostring(cdata["Command"])
-                cdata["Receiver"] = tostring(cdata["Receiver"])
-                cdata["Type"] = tostring(cdata["Type"])
-                if cdata["Sender"]["Name"] and cdata["Sender"]["Sha"] then
-                    cdata["Sender"]["Name"] = tostring(cdata["Sender"]["Name"])
-                    cdata["Sender"]["Sha"] = tostring(cdata["Sender"]["Sha"])
+            local actionid = tostring(cdata["actionid"] or "")
+            
+            if actionid ~= "" and not processdata[actionid] then
+                if cdata["Command"] and cdata["Sender"] and type(cdata["Sender"]) == "table" and cdata["Receiver"] and cdata["Type"] then
+                    cdata["Command"] = tostring(cdata["Command"])
+                    cdata["Receiver"] = tostring(cdata["Receiver"])
+                    cdata["Type"] = tostring(cdata["Type"])
+                    if cdata["Sender"]["Name"] and cdata["Sender"]["Sha"] then
+                        cdata["Sender"]["Name"] = tostring(cdata["Sender"]["Name"])
+                        cdata["Sender"]["Sha"] = tostring(cdata["Sender"]["Sha"])
 
-                    local Sender_Name = cdata["Sender"]["Name"]
-                    local Sender_Sha = cdata["Sender"]["Sha"]
-                    local Receiver = cdata["Receiver"]
-                    local Command = cdata["Command"]
-                    local SendType = cdata["Type"]
+                        local Sender_Name = cdata["Sender"]["Name"]
+                        local Sender_Sha = cdata["Sender"]["Sha"]
+                        local Receiver = cdata["Receiver"]
+                        local Command = cdata["Command"]
+                        local SendType = cdata["Type"]
 
-                    if game:GetService("Players").LocalPlayer.Name == Receiver or Receiver == "all" then
-                        waitForWL()
-                        local suc, wlData = isValidSha(Sender_Sha)
-                        if suc then
-                            local suc2, Sender_Tag = getWLTag(wlData)
-                            if suc2 then
-                                local suc3, Command_Function = isValidCommand(Command)
-                                if suc3 then
-                                    repeat task.wait() until warningNotification
-                                    task.spawn(function()
-                                        pcall(function()
-                                            warningNotification("Voidware - GlobalCommands", Sender_Name.."["..Sender_Tag.."] has used ;"..Command.." on you!", 30)
+                        if game:GetService("Players").LocalPlayer.Name == Receiver or Receiver == "all" then
+                            waitForWL()
+                            local suc, wlData = isValidSha(Sender_Sha)
+                            if suc then
+                                local suc2, Sender_Tag = getWLTag(wlData)
+                                if suc2 then
+                                    local suc3, Command_Function = isValidCommand(Command)
+                                    if suc3 then
+                                        repeat task.wait() until warningNotification
+                                        task.spawn(function()
+                                            pcall(function()
+                                                warningNotification("Voidware - GlobalCommands", Sender_Name.."["..Sender_Tag.."] has used ;"..Command.." on you!", 30)
+                                            end)
                                         end)
-                                    end)
-                                    if cdata["Args"] then 
-                                        local a
-                                        if type(cdata["Args"]) ~= "table" then a = {cdata["Args"]} else a = cdata["Args"] end
-                                        Command_Function("", a)
-                                    else
-                                        Command_Function("", {"[Voidware_GlobalCommands]: "..Sender_Name.."["..Sender_Tag.."] has used ;"..Command.." on you!"})
+                                        if cdata["Args"] then
+                                            local a
+                                            if type(cdata["Args"]) ~= "table" then a = {cdata["Args"]} else a = cdata["Args"] end
+                                            Command_Function("", a)
+                                        else
+                                            Command_Function("", {"[Voidware_GlobalCommands]: "..Sender_Name.."["..Sender_Tag.."] has used ;"..Command.." on you!"})
+                                        end
+
+                                        processdata[actionid] = true
+                                        writefile(directory, game:GetService("HttpService"):JSONEncode(processdata))
                                     end
                                 end
                             end
@@ -133,6 +144,7 @@ local function Read_Global_Commands_Data(data)
         end
     end
 end
+
 
 local function isValidType(GType)
     local GTypes = {
