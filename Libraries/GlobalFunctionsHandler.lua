@@ -1,6 +1,6 @@
 local VData = {}
 
-local Api_Url = ""
+local Api_Url = "https://storage.vapevoidware.xyz/GlobalFunctions.json"
 
 function VData.GetUserSha(plr)
     repeat task.wait() until shared.vapewhitelist
