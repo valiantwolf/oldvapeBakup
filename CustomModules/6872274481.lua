@@ -389,7 +389,7 @@ local function attackValue(vec)
 	return {value = vec}
 end
 
-local function getSpeed()
+--[[local function getSpeed()
 	local speed = 0
 	if lplr.Character then
 		local SpeedDamageBoost = lplr.Character:GetAttribute("SpeedBoost")
@@ -412,6 +412,43 @@ local function getSpeed()
 		end
 		if store.zephyrOrb ~= 0 then
 			speed = speed + 12
+		end
+	end
+	return speed
+end--]]
+local isZephyr = false
+--local desyncboost = {Enabled = false}
+--local killauraNearPlayer
+
+shared.zephyrActive = false
+shared.scytheActive = false
+shared.scytheSpeed = 5
+local function getSpeed()
+	local speed = 0
+	if lplr.Character then
+		local SpeedDamageBoost = lplr.Character:GetAttribute("SpeedBoost")
+		if SpeedDamageBoost and SpeedDamageBoost > 1 then
+			speed = speed + (8 * (SpeedDamageBoost - 1))
+		end
+		if store.grapple > tick() then
+			speed = speed + 90
+		end
+		if store.scythe > tick() and shared.scytheActive then
+			speed = speed + shared.scytheSpeed
+		end
+		if lplr.Character:GetAttribute("GrimReaperChannel") then
+			speed = speed + 20
+		end
+		--if store.desyncing and desyncboost.Enabled and not vape.istoggled('LongJump') then speed += 2.3 end
+		local armor = store.localInventory.inventory.armor[3]
+		if type(armor) ~= "table" then armor = {itemType = ""} end
+		if armor.itemType == "speed_boots" then
+			speed = speed + 12
+		end
+		if store.zephyrOrb ~= 0 and shared.zephyrActive then
+			isZephyr = true
+		else
+			isZephyr = false
 		end
 	end
 	return speed
@@ -6722,6 +6759,14 @@ run(function()
 		[5] = "emerald_sword"
 	}
 
+	local scythes = {
+		[1] = "wood_scythe",
+		[2] = "stone_scythe",
+		[3] = "iron_scythe",
+		[4] = "diamond_scythe",
+		[5] = "mythic_scythe"
+	}
+
 	local axes = {
 		[1] = "wood_axe",
 		[2] = "stone_axe",
@@ -6860,16 +6905,25 @@ run(function()
 		end,
 		Sword = function(inv, upgrades, shoptype)
 			if AutoBuySword.Enabled == false or shoptype ~= "item" then return end
-			local currentsword = getItemNear("sword", inv.items)
+			local currentsword = shared.scythexp and getItemNear("scythe", inv.items) or getItemNear("sword", inv.items)
 			local swordindex = (currentsword and table.find(swords, currentsword.itemType) or 0) + 1
-			if currentsword ~= nil and table.find(swords, currentsword.itemType) == nil then return end
+			if shared.scythexp then
+				swordindex = (currentsword and table.find(scythes, currentsword.itemType) or 0) + 1
+			end
+			if getItemNear("scythe", inv.items) then 
+				if currentsword ~= nil and table.find(scythes, currentsword.itemType) == nil then return end
+			else
+				if currentsword ~= nil and table.find(swords, currentsword.itemType) == nil then return end
+			end
 			local highestbuyable = nil
-			for i = swordindex, #swords, 1 do
-				local shopitem = getShopItem(swords[i])
+			local tableToDo = shared.scythexp and scythes or swords
+			for i = swordindex, #tableToDo, 1 do
+				local shopitem = shared.scythexp and getShopItem(scythes[i]) or getShopItem(swords[i])
 				if shopitem and i == swordindex then
 					local currency = getItem(shopitem.currency, inv.items)
 					if currency and currency.amount >= shopitem.price and (shopitem.category ~= "Armory" or upgrades.armory) then
 						highestbuyable = shopitem
+						if getItemNear("sword", inv.items) and shared.scythexp then shopitem = getShopItem("wood_scythe") end
 						bedwars.ClientStoreHandler:dispatch({
 							type = "BedwarsAddItemPurchased",
 							itemType = shopitem.itemType
@@ -9871,6 +9925,210 @@ task.spawn(function()
 	if not AutoLeave.Enabled then
 		AutoLeave.ToggleButton(false)
 	end
+end)
+
+--[[run(function() --- max will get mad :(
+	local PingSpoof = {Enabled = false}
+	local PingSpoofValue = {Value = 1000}
+	local remote = game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.RecordClientPing
+	local originalMethod
+	PingSpoof = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+		Name = "PingSpoof",
+		Function = function() end,
+		ExtraText = function() return PingSpoofValue.Value end
+	})
+	PingSpoofValue = PingSpoof.CreateSlider({
+		Name = 'Delay',
+		Min = 1,
+		Max = 1000,
+		Function = function() end,
+		Default = 1000
+	})
+	originalMethod = hookmetamethod(game, '__namecall', function(self, ...)
+		local args = {...}
+		if not checkcaller() and self == remote and getnamecallmethod() == 'FireServer' and PingSpoof.Enabled then
+			for i, v in ipairs(args[1].pings) do
+				v = (PingSpoofValue.Value / 10) / 100
+			end
+			return originalMethod(self, unpack(args))
+		end
+		return originalMethod(self, ...)
+	end)
+end)--]] 
+
+run(function()
+	local ScytheExploit = {Enabled = false}
+	ScytheExploit = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+		Name = "ScytheExploit",
+		Function = function(callback)
+			shared.scythexp = callback
+		end
+	})
+end)
+
+run(function() 
+    local Settings = {
+        BypassActive = {Enabled = false},
+        ZephyrMode = {Enabled = false},
+        ScytheEnabled = {Enabled = false},
+        ScytheSpeed = {Value = 5},
+        ScytheBypassSpeed = {Value = 50},
+        NoKillauraForScythe = {Enabled = false},
+        ClientMod = {Enabled = false},
+        DirectionMode = {Value = "LookVector + MoveDirection"},
+        DelayActive = {Enabled = false},
+        Multiplier = {Value = 0.01},
+        Divider = {Value = 0.01},
+        DivVal = {Value = 2},
+        BlinkStatus = false,
+        TickCounter = 0,
+        ScytheTickCounter = {Value = 2},
+        ScytheDelay = {Value = 0},
+        WeaponTiers = {
+            [1] = 'stone_sword',
+            [2] = 'iron_sword',
+            [3] = 'diamond_sword',
+            [4] = 'emerald_sword',
+            [5] = 'rageblade'
+        }
+    }
+    Settings.BypassActive = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+        Name = "ActivateBypass",
+        Function = function(toggle)
+            if toggle then
+                RunLoops:BindToStepped("ActivateBypass", function()
+                    shared.zephyrActive = Settings.ZephyrMode.Enabled
+                    shared.scytheActive = Settings.ScytheEnabled
+                    shared.scytheSpeed = Settings.ScytheSpeed.Value
+                    if Settings.ScytheEnabled then
+                        local weapon = getItemNear("scythe")
+                        if weapon and (not killauraNearPlayer and store.queueType:find("skywars") or not store.queueType:find("skywars")) then
+                            switchItem(weapon.tool)
+                        end
+                        if weapon then
+                            if killauraNearPlayer and Settings.NoKillauraForScythe.Enabled then
+                                scytheSpeed = math.random(5, 10)
+                            end
+                            Settings.TickCounter = Settings.TickCounter + 1
+                            if entityLibrary.isAlive then
+                                if Settings.TickCounter >= Settings.ScytheBypassSpeed.Value then
+                                    pcall(function() sethiddenproperty(entityLibrary.character.HumanoidRootPart, "NetworkIsSleeping", false) end)
+                                    Settings.TickCounter = 0
+                                    Settings.BlinkStatus = false
+                                else
+                                    pcall(function() sethiddenproperty(entityLibrary.character.HumanoidRootPart, "NetworkIsSleeping", true) end)
+                                    Settings.BlinkStatus = true
+                                end
+                            end
+                            store.holdingscythe = true
+                            local direction
+                            if Settings.DirectionMode.Value == "LookVector" then
+                                direction = entityLibrary.character.HumanoidRootPart.CFrame.LookVector
+                            elseif Settings.DirectionMode.Value == "MoveDirection" then
+                                direction = entityLibrary.character.Humanoid.MoveDirection
+                            elseif Settings.DirectionMode.Value == "LookVector + MoveDirection" then
+                                direction = entityLibrary.character.HumanoidRootPart.CFrame.LookVector + entityLibrary.character.Humanoid.MoveDirection
+                            end
+                            if Settings.Divider.Value ~= 0 then
+                                bedwars.Client:Get("ScytheDash"):SendToServer({direction = direction / Settings.Divider.Value * Settings.Multiplier.Value})
+                            else
+                                bedwars.Client:Get("ScytheDash"):SendToServer({direction = direction * Settings.Multiplier.Value})
+                            end
+                            if entityLibrary.isAlive and entityLibrary.character.Head.Transparency ~= 0 then
+                                store.scythe = tick() + 1
+                            else
+                                store.scythe = 0
+                            end
+                            if not isnetworkowner(entityLibrary.character.HumanoidRootPart) then
+                                store.scythe = 0
+                            end
+                        else
+                            store.holdingscythe = false
+                            store.scythe = 0
+                        end
+                    end
+                    if Settings.ClientMod.Enabled then
+                        local playerScripts = lplr.PlayerScripts
+                        if playerScripts.Modules:FindFirstChild("anticheat") then
+                            playerScripts.Modules.anticheat:Destroy()
+                        end
+                        if playerScripts:FindFirstChild("GameAnalyticsClient") then
+                            playerScripts.GameAnalyticsClient:Destroy()
+                        end
+                        if game:GetService("ReplicatedStorage").Modules:FindFirstChild("anticheat") then
+                            game:GetService("ReplicatedStorage").Modules.anticheat:Destroy()
+                        end
+                    end
+                end)
+            else
+                RunLoops:UnbindFromStepped("ActivateBypass")
+                Settings.TickCounter = 0
+				pcall(function() sethiddenproperty(entityLibrary.character.HumanoidRootPart, "NetworkIsSleeping", false) end)
+            end
+        end,
+        HoverText = "Disables AntiCheat and adjusts scythe mechanics",
+        ExtraText = function()
+            local activeCount = 0
+            if Settings.ZephyrMode.Enabled then activeCount = activeCount + 1 end
+            if Settings.ScytheEnabled then activeCount = activeCount + 1 end
+            if Settings.ClientMod.Enabled then activeCount = activeCount + 1 end
+            return activeCount.." Features Active"
+        end
+    })
+    
+    Settings.ClientMod = Settings.BypassActive.CreateToggle({
+        Name = "Disable AntiCheat",
+        Default = true,
+        Function = function() end
+    })
+    
+    Settings.ScytheEnabled = Settings.BypassActive.CreateToggle({
+        Name = "Enable Scythe",
+        Default = true,
+        Function = function() end
+    })
+
+    Settings.ScytheSpeed = Settings.BypassActive.CreateSlider({
+        Name = "Scythe Speed Control",
+        Min = 0,
+        Max = 35,
+        Default = 25,
+        Function = function() end
+    })
+    
+    Settings.ScytheBypassSpeed = Settings.BypassActive.CreateSlider({
+        Name = "Bypass Speed",
+        Min = 0,
+        Max = 300,
+        Default = 50,
+        Function = function() end
+    })
+    
+    Settings.NoKillauraForScythe = Settings.BypassActive.CreateToggle({
+        Name = "Disable Killaura",
+        Default = true,
+        Function = function() end
+    })
+
+    Settings.DirectionMode = Settings.BypassActive.CreateDropdown({
+        Name = "Direction Control",
+        List = {"LookVector", "MoveDirection", "LookVector + MoveDirection"},
+        Function = function() end
+    })
+    
+    Settings.Multiplier = Settings.BypassActive.CreateSlider({
+        Name = "Direction Multiplier",
+        Min = 0,
+        Max = 0.01,
+        Default = 0.001,
+        Function = function() end
+    })
+
+    Settings.ZephyrMode = Settings.BypassActive.CreateToggle({
+        Name = "Enable Zephyr",
+        Default = true,
+        Function = function() end
+    })
 end)
 
 shared.GlobalStore = store

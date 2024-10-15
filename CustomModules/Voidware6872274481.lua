@@ -3170,6 +3170,10 @@ end)
 run(function()
 	local Anime = {}
 	local Anime_table = {
+		["SHREKDADDY"] = {
+			["ID"] = 131192839895812,
+			["Size"] = UDim2.new(0, 150, 0, 200)
+		},
 		["AnimeWaifu1"] = 18498989965,
 		["Anime2"] = {
 			["ID"] = 18499238992,
