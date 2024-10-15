@@ -9927,35 +9927,6 @@ task.spawn(function()
 	end
 end)
 
---[[run(function() --- max will get mad :(
-	local PingSpoof = {Enabled = false}
-	local PingSpoofValue = {Value = 1000}
-	local remote = game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.RecordClientPing
-	local originalMethod
-	PingSpoof = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-		Name = "PingSpoof",
-		Function = function() end,
-		ExtraText = function() return PingSpoofValue.Value end
-	})
-	PingSpoofValue = PingSpoof.CreateSlider({
-		Name = 'Delay',
-		Min = 1,
-		Max = 1000,
-		Function = function() end,
-		Default = 1000
-	})
-	originalMethod = hookmetamethod(game, '__namecall', function(self, ...)
-		local args = {...}
-		if not checkcaller() and self == remote and getnamecallmethod() == 'FireServer' and PingSpoof.Enabled then
-			for i, v in ipairs(args[1].pings) do
-				v = (PingSpoofValue.Value / 10) / 100
-			end
-			return originalMethod(self, unpack(args))
-		end
-		return originalMethod(self, ...)
-	end)
-end)--]] 
-
 run(function()
 	local ScytheExploit = {Enabled = false}
 	ScytheExploit = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
