@@ -2254,7 +2254,6 @@ run(function()
                 self.hrp.Anchored = false
                 self.boost = false
 
-                -- Reset the notification state when health is above the threshold
                 if self.hasNotified then
                     self.hasNotified = false
                 end
@@ -2321,8 +2320,6 @@ run(function()
                 end
             end
             self.inf = false
-
-            -- Reset the notification state when Infinite Fly is disabled
             self.hasNotified = false
         end
     end
@@ -2474,6 +2471,14 @@ run(function()
         Default = true,
         Function = function(callback) end
     })
+
+	local Credits
+	pcall(function()
+		Credits = antiDeath.CreateCredits({
+			Name = 'CreditsButtonInstance',
+			Credits = 'Null (the gay)'
+		})
+	end)
 end)
 
 run(function()
