@@ -9967,6 +9967,7 @@ run(function()
         Name = "ActivateBypass",
         Function = function(toggle)
             if toggle then
+				warningNotification("ActivateBypass", "WARNING! Using this might result in an AUTO-BAN (the chances are small but NOT 0)", 7)
                 RunLoops:BindToStepped("ActivateBypass", function()
                     shared.zephyrActive = Settings.ZephyrMode.Enabled
                     shared.scytheActive = Settings.ScytheEnabled
