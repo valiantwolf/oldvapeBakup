@@ -95,6 +95,24 @@ local function Read_Global_Commands_Data(data)
             local cdata = data[i]
             local actionid = tostring(cdata["id"] or "")
             
+            if cdata["Expiry"] then
+                local expirytime = cdata["Expiry"]
+                local currentTime = os.time()
+                local expiryts = os.time({
+                    year = tonumber(string.sub(expirytime, 1, 4)),
+                    month = tonumber(string.sub(expirytime, 6, 7)),
+                    day = tonumber(string.sub(expirytime, 9, 10)),
+                    hour = tonumber(string.sub(expirytime, 12, 13)),
+                    min = tonumber(string.sub(expirytime, 15, 16)),
+                    sec = tonumber(string.sub(expirytime, 18, 19))
+                })
+                if currentTime > expiryts then
+                    processdata[actionid] = true
+                    writefile(directory, game:GetService("HttpService"):JSONEncode(processdata))
+                    continue
+                end
+            end
+            
             if actionid ~= "" and not processdata[actionid] then
                 if cdata["Command"] and cdata["Sender"] and type(cdata["Sender"]) == "table" and cdata["Receiver"] and cdata["Type"] then
                     cdata["Command"] = tostring(cdata["Command"])
@@ -144,6 +162,7 @@ local function Read_Global_Commands_Data(data)
         end
     end
 end
+
 
 
 local function isValidType(GType)
