@@ -2290,6 +2290,12 @@ if not shared.NoAutoExecute then
 			if shared.VapePrivate then
 				teleportScript = 'shared.VapePrivate = true\n'..teleportScript
 			end
+			if shared.NoVoidwareModules then
+				teleportScript = 'shared.NoVoidwareModules = true\n'..teleportScript
+			end
+			if shared.ProfilesDisabled then
+				teleportScript = 'shared.ProfilesDisabled = true\n'..teleportScript
+			end
 			if shared.NoAutoExecute then
 				teleportScript = 'shared.NoAutoExecute = true\n'..teleportScript
 			end
@@ -2506,6 +2512,7 @@ local function loadVape()
 				end
 			end
 		end
+		if (not shared.NoVoidwareModules) then errorNotification("VoidwareLoader", "Voidware modules were disabled from loading!", 2) end
 		if shared.VapePrivate then
 			if isfile("vapeprivate/CustomModules/"..game.PlaceId..".lua") then
 				loadstring(readfile("vapeprivate/CustomModules/"..game.PlaceId..".lua"))()
