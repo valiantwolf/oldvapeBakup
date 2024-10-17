@@ -940,3 +940,215 @@ run(function()
 		})
 	else warn("PlayerChangerOptionsButton NOT found!") end
 end)
+
+run(function()
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 300, 0, 500)
+    mainFrame.Position = UDim2.new(1, 0, 0.8, -250)
+    mainFrame.AnchorPoint = Vector2.new(0, 0.5) 
+    mainFrame.BackgroundTransparency = 1
+    mainFrame.Parent = shared.GuiLibrary.MainGui.ScaledGui
+    shared.GuiLibrary.SelfDestructEvent.Event:Connect(function()
+        mainFrame:Destroy()
+    end)
+    --[[game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("CoolGUI") or Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
+    mainFrame.Parent.Name = "CoolGUI"--]]
+    
+    local groupId = 5774246
+    local roleIds = {
+        79029254,
+        86172137,
+        43926962,
+        37929139,
+        87049509,
+        37929138
+    }
+    
+    local scrollingFrame = Instance.new("ScrollingFrame")
+    scrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 1000)
+    scrollingFrame.ScrollBarThickness = 5
+    scrollingFrame.BackgroundTransparency = 1 
+    scrollingFrame.Parent = mainFrame
+    
+    local function createUICorner(instance, radius)
+        local uiCorner = Instance.new("UICorner")
+        uiCorner.CornerRadius = UDim.new(0, radius)
+        uiCorner.Parent = instance
+    end
+    
+    local tweenService = game:GetService("TweenService")
+    local function fadeOut(frame)
+        local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local tween = tweenService:Create(frame, tweenInfo, {Transparency = 1, Position = frame.Position + UDim2.new(0, 100, 0, 0)})
+        tween:Play()
+        tween.Completed:Connect(function() frame:Destroy() end)
+    end
+    
+    local function fadeIn(frame)
+        frame.Transparency = 1
+        frame.Position = frame.Position - UDim2.new(0, 100, 0, 0)
+        local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        local tween = tweenService:Create(frame, tweenInfo, {Position = frame.Position + UDim2.new(0, 100, 0, 0)})
+        tween:Play()
+    end
+    
+    local function updateUsers(users)
+        for _, child in pairs(scrollingFrame:GetChildren()) do
+            if child:IsA("Frame") then
+                fadeOut(child)
+            end
+        end
+    
+        for index, user in ipairs(users) do
+            local userFrame = Instance.new("Frame")
+            userFrame.Size = UDim2.new(1, -10, 0, 50)
+            userFrame.Position = UDim2.new(0, 5, 0, (index - 1) * 55) 
+            userFrame.BackgroundTransparency = 1
+            userFrame.Parent = scrollingFrame
+    
+            local avatar = Instance.new("ImageLabel")
+            avatar.Size = UDim2.new(0, 40, 0, 40)
+            avatar.Position = UDim2.new(0, 5, 0, 5)
+            avatar.Image = "rbxthumb://type=AvatarHeadShot&id="..user.userId.."&w=420&h=420"
+            avatar.Parent = userFrame
+            avatar.BackgroundTransparency = 1
+    
+            createUICorner(avatar, 40)
+    
+            local statusIndicator = Instance.new("Frame")
+            statusIndicator.Size = UDim2.new(0, 10, 0, 10)
+            statusIndicator.Position = UDim2.new(1, -10, 1, -10)
+            statusIndicator.BackgroundColor3 = user.StatusColor
+            statusIndicator.BorderSizePixel = 2
+            statusIndicator.BorderColor3 = Color3.fromRGB(255, 255, 255)
+            statusIndicator.Parent = avatar
+    
+            createUICorner(statusIndicator, 10)
+    
+            local userInfo = Instance.new("TextLabel")
+            userInfo.Size = UDim2.new(1, -60, 1, 0)
+            userInfo.Position = UDim2.new(0, 55, 0, 0)
+            --[[userInfo.RichText = true
+            local function Color3ToHex(color)
+                return string.format("#%02X%02X%02X", color.R * 255, color.G * 255, color.B * 255)
+            end
+            local statusColorHex = Color3ToHex(user.StatusColor)
+            userInfo.Text = user.displayName .. "(@" .. user.username .. ")<br>Status: <font color=\"" .. statusColorHex .. "\">" .. user.StatusType .. "</font>    ID: " .. user.userId--]]
+            userInfo.Text = tostring(user.displayName) .. "(@".. tostring(user.username) ..")\nStatus: "..tostring(user.StatusType).."    ID: " .. tostring(user.userId)
+            userInfo.TextColor3 = Color3.fromRGB(255, 255, 255)
+            userInfo.TextXAlignment = Enum.TextXAlignment.Left
+            userInfo.TextYAlignment = Enum.TextYAlignment.Center
+            userInfo.Font = Enum.Font.ArialBold
+            userInfo.TextSize = 14
+            userInfo.Parent = userFrame
+            userInfo.BackgroundTransparency = 1
+    
+            fadeIn(userFrame)
+        end
+    end
+    
+    local function getUsersInRole(groupId, roleId, cursor)
+        local limit = 100
+        local url = "https://groups.roblox.com/v1/groups/"..groupId.."/roles/"..roleId.."/users?limit="..limit
+        if cursor then
+            url = url .. "&cursor=" .. cursor
+        end
+    
+        local response = request({
+            Url = url,
+            Method = "GET"
+        })
+    
+        return game:GetService("HttpService"):JSONDecode(response.Body)
+    end
+    
+    local function getUserPresence(userIds)
+        local url = "https://presence.roblox.com/v1/presence/users"
+        local requestBody = game:GetService("HttpService"):JSONEncode({userIds = userIds})
+    
+        local response = request({
+            Url = url,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = requestBody
+        })
+        return game:GetService("HttpService"):JSONDecode(response.Body)
+    end
+    
+    local function getUsersForRolesWithPresence(groupId, roleIds)
+        local users = {}
+        local userIds = {}
+        for _, roleId in pairs(roleIds) do
+            local cursor = nil
+            repeat
+                local data = getUsersInRole(groupId, roleId, cursor)
+                for _, user in pairs(data.data) do
+                    table.insert(users, user)
+                    table.insert(userIds, user.userId)
+                end
+                cursor = data.nextPageCursor
+            until not cursor
+        end
+    
+        local presenceData = getUserPresence(userIds)
+        for _, user in pairs(users) do
+            for _, presence in pairs(presenceData.userPresences) do
+                if user.userId == presence.userId then
+                    user.presenceType = presence.userPresenceType
+                    user.lastLocation = presence.lastLocation
+                    break
+                end
+            end
+        end
+        return users
+    end
+    
+    local function filterUsersByPresence(users, presenceType)
+        local filteredUsers = {}
+        for _, user in pairs(users) do
+            if user.presenceType == presenceType then
+                table.insert(filteredUsers, user)
+            end
+        end
+        updateUsers(filteredUsers)
+    end
+    
+    local function getUsersForRolesPresence(groupId, roleIds)
+        local users = getUsersForRolesWithPresence(groupId, roleIds)
+    
+        local StatusTypes = {
+            ["0"] = "Offline",
+            ["1"] = "Online",
+            ["2"] = "InGame"
+        }
+        
+        for _, user in pairs(users) do
+            local statusColor = Color3.fromRGB(0, 255, 0)
+            if user.presenceType == 0 then
+                statusColor = Color3.fromRGB(255, 0, 0)
+            elseif user.presenceType == 2 then
+                statusColor = Color3.fromRGB(0, 0, 255)
+            end
+            user.StatusColor = statusColor
+            user.StatusType = StatusTypes[tostring(user.presenceType)]
+        end
+        updateUsers(users)
+    end
+    
+    local refreshButton = Instance.new("TextButton")
+    refreshButton.Size = UDim2.new(0, 80, 0, 30)
+    refreshButton.Position = UDim2.new(0.5, -40, 0, -40)
+    refreshButton.Text = "Refresh"
+    refreshButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    refreshButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    refreshButton.Parent = mainFrame
+    refreshButton.TextScaled = true
+    refreshButton.BackgroundTransparency = 1
+    refreshButton.MouseButton1Click:Connect(function()
+        getUsersForRolesPresence(groupId, roleIds)
+    end)
+    getUsersForRolesPresence(groupId, roleIds)    
+end)
