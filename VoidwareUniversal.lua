@@ -1953,3 +1953,134 @@ task.spawn(function()
 		table.insert(vapeConnections, con2)
 	end)
 end)
+
+run(function()
+	local PlayerChanger = {Enabled = false}
+	local Players = game:GetService("Players")
+	local function getPlayers()
+        local plrs = {}
+        for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+            table.insert(plrs, player.Name)
+        end
+        return plrs
+    end
+	local PlayerChanger_DisconnectActions = {}
+	local PlayerChanger_Functions = {
+		getPlayerFromUsername = function(username)
+			return Players:FindFirstChild(username)
+		end,
+		getPlayerCharacter = function(plr)
+			return plr.Character
+		end,
+		editPlayerCharacterColor = function(char, color)
+			local Objects_Original_Color = {}
+			for i,v in pairs(char:GetChildren()) do
+				if v.ClassName == "MeshPart" then
+					table.insert(Objects_Original_Color, {Object = v, Color = v.Color})
+					pcall(function() v.Color = color end)
+				end
+			end
+			table.insert(PlayerChanger_DisconnectActions, function()
+				for i,v in pairs(Objects_Original_Color) do
+					v.Object.Color = v.Color
+				end
+			end)
+		end,
+		editPlayerCharacterName = function(char, name)
+			local originalName = char.Name
+			table.insert(PlayerChanger_DisconnectActions, function()
+				char.Name = originalName
+			end)
+			pcall(function() char.Name = name end)
+		end
+	}
+	local PlayerChanger_GUI_Elements = {
+		PlayersDropdown = {Value = game:GetService("Players").LocalPlayer.Name},
+		CharacterColor = {Hue = 0, Sat = 0, Value = 0},
+		PlayerName = {Value = "Nigger"}
+	}
+	local function fetchDefaultFunction() if PlayerChanger.Enabled then PlayerChanger.Restart() end end
+	local function fetchCurrentTargetUsername() return PlayerChanger_GUI_Elements.PlayersDropdown.Value end
+	shared.PlayerChanger_GUI_Elements_PlayersDropdown_Value = PlayerChanger_GUI_Elements.PlayersDropdown.Value
+	shared.fetchCurrentTargetUsername = fetchCurrentTargetUsername
+	shared.PlayerChanger_Functions = PlayerChanger_Functions
+	shared.PlayerChanger_DisconnectActions = PlayerChanger_DisconnectActions
+	GuiLibrary.SelfDestructEvent.Event:Connect(function()
+		shared.fetchCurrentTargetUsername = nil
+		shared.PlayerChanger_Functions = nil
+		shared.PlayerChanger_DisconnectActions = nil
+		shared.PlayerChanger_GUI_Elements_PlayersDropdown_Value = nil
+	end)
+	PlayerChanger = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+		Name = "PlayerChanger",
+		Function = function(call) if call then else
+			for i,v in pairs(PlayerChanger_DisconnectActions) do pcall(function() PlayerChanger_DisconnectActions[i]() end) end end 
+		end
+	})
+	PlayerChanger_GUI_Elements.PlayersDropdown = PlayerChanger.CreateDropdown({
+		Name = "PlayerChoice",
+		Function = function(val) shared.PlayerChanger_GUI_Elements_PlayersDropdown_Value = val end,
+		List = getPlayers()
+	})
+	PlayerChanger_GUI_Elements.CharacterColor = PlayerChanger.CreateColorSlider({
+		Name = "Character Color",
+		Function = function(h, s, v)
+			if PlayerChanger.Enabled then
+				local plr = PlayerChanger_Functions.getPlayerFromUsername(fetchCurrentTargetUsername())
+				if plr then
+					local char = PlayerChanger_Functions.getPlayerCharacter(plr)
+					if char then PlayerChanger_Functions.editPlayerCharacterColor(char, Color3.fromHSV(h, s, v))
+					else warn("Error fetching player CHARACTER! Player: "..tostring(targetUser).." Character Result: "..tostring(char)) end
+				else warn("Error fetching player! Player: "..tostring(targetUser)) end
+			end
+		end
+	})
+	table.insert(vapeConnections, game:GetService("Players").PlayerAdded:Connect(function() PlayerChanger_GUI_Elements.PlayersDropdown.UpdateList(getPlayers()) end))
+	table.insert(vapeConnections, game:GetService("Players").PlayerRemoving:Connect(function() PlayerChanger_GUI_Elements.PlayersDropdown.UpdateList(getPlayers()) end))
+end)
+
+run(function()
+	local Blacker = {Enabled = false}
+	local niggerfied_plrs = {}
+	local function niggerfy(plr)
+		warningNotification("Blacker", tostring(plr).." is now a NIGGER!", 1.5)
+		local char = plr.Character
+		if char then
+			for i,v in pairs(char:GetChildren()) do
+				if v.ClassName == "MeshPart" then
+					v.Color = Color3.new(0, 0, 0)
+				end
+			end
+			table.insert(niggerfied_plrs, plr)
+		end
+	end
+	local function un_niggerfy(plr)
+		print(plr)
+		warningNotification("Blacker", tostring(plr).." now has rights :(", 1.5)
+		for i,v in pairs(niggerfied_plrs) do if v == plr then table.remove(niggerfied_plrs, i) end end
+		local char = plr.Character
+		if char then
+			for i,v in pairs(char:GetChildren()) do
+				if v.ClassName == "MeshPart" then
+					v.Color = Color3.new(255, 255, 255)
+				end
+			end
+		end
+	end
+	Blacker = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+		Name = "Blacker",
+		Function = function(call)
+			if call then
+				for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+					if v ~= game:GetService("Players").LocalPlayer then niggerfy(v) end
+				end
+				table.insert(vapeConnections, game:GetService("Players").PlayerAdded:Connect(function(plr)
+					if Blacker.Enabled then niggerfy(plr) end
+				end))
+			else
+				for i,v in pairs(niggerfied_plrs) do un_niggerfy(v) end
+			end
+		end,
+		HoverText = "Niggerfies all players (except u ofc :D)"
+	})
+end)

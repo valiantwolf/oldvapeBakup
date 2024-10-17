@@ -3,6 +3,16 @@ repeat task.wait() until shared.GuiLibrary
 repeat task.wait() until shared.GlobalBedwars
 
 local GuiLibrary = shared.GuiLibrary
+
+local vapeConnections
+if shared.vapeConnections and type(shared.vapeConnections) == "table" then vapeConnections = shared.vapeConnections else vapeConnections = {}; shared.vapeConnections = vapeConnections; end
+GuiLibrary.SelfDestructEvent.Event:Connect(function()
+	for i, v in pairs(vapeConnections) do
+		if v.Disconnect then pcall(function() v:Disconnect() end) continue end
+		if v.disconnect then pcall(function() v:disconnect() end) continue end
+	end
+end)
+
 local lplr = game:GetService("Players").LocalPlayer
 
 local bedwars = shared.GlobalBedwars
@@ -186,11 +196,11 @@ task.spawn(function()
             if not displayName.RichText then displayName.RichText = true end
             displayName.Text = tag..lplr.Name
         end
-        displayName:GetPropertyChangedSignal("Text"):Connect(function()
+        table.insert(vapeConnections, displayName:GetPropertyChangedSignal("Text"):Connect(function()
             if displayName.Text ~= tag..lplr.Name then
                 displayName.Text = tag..lplr.Name
             end
-        end)
+        end))
     end)
 end)
 
@@ -894,4 +904,39 @@ run(function()
 	for _, element in ipairs(GUI_Elements) do
 		createGUIElement(ReportDetector, element)
 	end
+end)
+
+run(function()
+	local PlayerChanger = {Enabled = false}
+	if GuiLibrary.ObjectsThatCanBeSaved["PlayerChangerOptionsButton"] then
+		PlayerChanger = GuiLibrary.ObjectsThatCanBeSaved["PlayerChangerOptionsButton"]
+		local API = PlayerChanger.Api
+		local PlayerChanger_Functions = shared.PlayerChanger_Functions
+		local PlayerName = {Value = "Nigger"}
+		PlayerName = API.CreateTextBox({
+			Name = "Player Name",
+			TempText = "Type here a name",
+			Function = function(val)
+				if GuiLibrary.ObjectsThatCanBeSaved["PlayerChangerOptionsButton"].Api.Enabled then
+					local targetUser = shared.PlayerChanger_GUI_Elements_PlayersDropdown_Value
+					local plr = PlayerChanger_Functions.getPlayerFromUsername(targetUser)
+					if plr then
+						local char = PlayerChanger_Functions.getPlayerCharacter(plr)
+						if char then
+                            local displayName = char:WaitForChild("Head"):WaitForChild("Nametag"):WaitForChild("DisplayNameContainer"):WaitForChild("DisplayName")
+                            if displayName.ClassName == "TextLabel" then
+                                if not displayName.RichText then displayName.RichText = true end
+                                displayName.Text = val
+                            end
+                            table.insert(vapeConnections, displayName:GetPropertyChangedSignal("Text"):Connect(function()
+                                if displayName.Text ~= val and targetUser == shared.PlayerChanger_GUI_Elements_PlayersDropdown_Value then
+                                    displayName.Text = val
+                                end
+                            end))
+						else warn("Error fetching player CHARACTER! Player: "..tostring(targetUser).." Character Result: "..tostring(char)) end
+					else warn("Error fetching player! Player: "..tostring(targetUser)) end
+				end
+			end
+		})
+	else warn("PlayerChangerOptionsButton NOT found!") end
 end)
