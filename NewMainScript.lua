@@ -338,12 +338,8 @@ end
 
 local function vapeGithubRequest(scripturl, isImportant)
     if isfile('vape/'..scripturl) then
-        if (not shared.VoidDev) then
-            if (not shared.CustomDevMode) then
-                pcall(function() delfile('vape/'..scripturl) end)
-            else
-                if string.find(string.lower(scripturl), "voidware") then pcall(function() delfile('vape/'..scripturl) end) else return readfile('vape/'..scripturl) end
-            end
+        if not shared.VoidDev then
+            pcall(function() delfile('vape/'..scripturl) end)
         else
             return readfile('vape/'..scripturl) 
         end
@@ -357,7 +353,6 @@ local function vapeGithubRequest(scripturl, isImportant)
         error(res)
     end
     if scripturl:find(".lua") then res = "--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.\n"..res end
-    if shared.CustomDevMode and (not string.find(string.lower(scripturl), "voidware")) then writefile('vape/'..scripturl, res) end
     return res
 end
 local function pload(fileName, isImportant)
