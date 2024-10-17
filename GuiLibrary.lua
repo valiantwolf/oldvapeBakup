@@ -6640,6 +6640,7 @@ if shared.VapeExecuted then
 				textGuiLibrary["Object"] = frame
 				textGuiLibrary["Value"] = ""
 				textGuiLibrary["SetValue"] = function(val, entered)
+					if argstable["Function"] then pcall(function() argstable["Function"](val, entered) end) end
 					textGuiLibrary["Value"] = val
 					textbox.Text = val
 					if argstable["FocusLost"] and (not entered) then
