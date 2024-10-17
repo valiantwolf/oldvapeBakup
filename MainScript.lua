@@ -2466,7 +2466,9 @@ local function loadVape()
 			end
 		end
 		pload("Universal.lua", true)
-		pload("VoidwareUniversal.lua", true)
+		if (not shared.NoVoidwareModules) then 
+			pload("VoidwareUniversal.lua", true)
+		end
 		if isfile("vape/CustomModules/"..game.PlaceId..".lua") and (shared.VapeDeveloper or shared.VoidDev2) then
 			loadstring(readfile("vape/CustomModules/"..game.PlaceId..".lua"))()
 		else
@@ -2480,7 +2482,7 @@ local function loadVape()
 				end
 			end
 		end
-		if not shared.Test then 
+		if (not shared.NoVoidwareModules) then 
 			if isfile("vape/CustomModules/Voidware"..game.PlaceId..".lua") and (shared.VapeDeveloper or shared.VoidDev2) then
 				loadstring(readfile("vape/CustomModules/Voidware"..game.PlaceId..".lua"))()
 			else
