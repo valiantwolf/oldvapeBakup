@@ -9600,7 +9600,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local Disabler = {Enabled = false}
 	Disabler = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 		Name = "FirewallBypass",
@@ -9622,7 +9622,7 @@ run(function()
 		end,
 		HoverText = "Float disabler with scythe"
 	})
-end)
+end)--]]
 
 run(function()
 	store.TPString = shared.vapeoverlay or nil
