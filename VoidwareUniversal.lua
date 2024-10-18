@@ -2084,3 +2084,184 @@ run(function()
 		HoverText = "Niggerfies all players (except u ofc :D)"
 	})
 end)
+
+run(function()
+    local RunLoops = {}
+    RunLoops._loops = {}
+
+    function RunLoops:BindToHeartbeat(loopName, func)
+        if self._loops[loopName] then
+            warn(loopName .. " is already bound!")
+            return
+        end
+        self._loops[loopName] = game:GetService("RunService").Heartbeat:Connect(func)
+    end
+
+    function RunLoops:UnbindFromHeartbeat(loopName)
+        if self._loops[loopName] then
+            self._loops[loopName]:Disconnect()
+            self._loops[loopName] = nil
+        else
+            warn(loopName .. " was not bound!")
+        end
+    end
+
+    local EventSys = {}
+    EventSys._events = {}
+
+    function EventSys:Connect(evtName, func)
+        if not self._events[evtName] then
+            self._events[evtName] = {}
+        end
+        table.insert(self._events[evtName], func)
+    end
+
+    function EventSys:Fire(evtName, ...)
+        if self._events[evtName] then
+            for _, func in ipairs(self._events[evtName]) do
+                func(...)
+            end
+        end
+    end
+
+    function EventSys:Disconnect(evtName)
+        if self._events[evtName] then
+            self._events[evtName] = nil
+        else
+            warn(evtName .. " had no bound events to disconnect!")
+        end
+    end
+
+    local AmongUsMode = {Enabled = false}
+    local AmongUsOthers = {Enabled = false}
+    local TransformedPlrs = {}
+    local Mode = {Value = "Among Us", Ver = "v3.0"}
+
+    local function getTorso(plr)
+        local hum = plr.Character:WaitForChild("Humanoid", 10)
+        if hum then
+            local torsoPart = hum.RigType == Enum.HumanoidRigType.R6 and "Torso" or "UpperTorso"
+            return plr.Character:FindFirstChild(torsoPart)
+        end
+        return nil
+    end
+
+    local function applyAmongUsSkin(plr)
+        local meshId = "http://www.roblox.com/asset/?id=6235963214"
+        local texId = "http://www.roblox.com/asset/?id=6235963270"
+        local torso = getTorso(plr)
+
+        if torso then
+            local amogusPart = Instance.new("Part")
+            local mesh = Instance.new("SpecialMesh")
+            local weld = Instance.new("Weld")
+
+            amogusPart.Name = "AmogusSkin"
+            amogusPart.CanCollide = false
+            amogusPart.Anchored = false
+            amogusPart.Parent = plr.Character
+
+            mesh.MeshId = meshId
+            mesh.TextureId = texId
+            mesh.Offset = Vector3.new(0, -0.3, 0)
+            mesh.Scale = Vector3.new(0.11, 0.11, 0.11)
+            mesh.Parent = amogusPart
+
+            weld.Part0 = amogusPart
+            weld.Part1 = torso
+            weld.Parent = amogusPart
+
+            TransformedPlrs[plr.UserId] = true
+        end
+    end
+
+    local function resetPlr(plr)
+        if plr.Character and TransformedPlrs[plr.UserId] then
+            local amogusSkin = plr.Character:FindFirstChild("AmogusSkin")
+            if amogusSkin then
+                amogusSkin:Destroy()
+            end
+
+            for _, part in ipairs(plr.Character:GetChildren()) do
+                if part:IsA("MeshPart") or part:IsA("Part") then
+                    part.Transparency = 0
+                elseif part:IsA("Accessory") then
+                    part.Handle.Transparency = 0
+                end
+            end
+
+            TransformedPlrs[plr.UserId] = nil
+        end
+    end
+
+    local function hideCharParts(plr)
+        for _, part in ipairs(plr.Character:GetChildren()) do
+            if part:IsA("MeshPart") or (part:IsA("Part") and part.Name ~= "AmogusSkin") then
+                part.Transparency = 1
+            elseif part:IsA("Accessory") and not string.match(part.Name, "sword|block|pickaxe|bow|axe|fireball|cannon|shears") then
+                part.Handle.Transparency = 1
+            end
+        end
+    end
+
+    local function isPlrAlive(plr)
+        return plr.Character and plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0
+    end
+
+    local function resetAllPlrs()
+        for _, plr in ipairs(game.Players:GetPlayers()) do
+            EventSys:Fire("ResetPlr", plr)
+        end
+    end
+
+    EventSys:Connect("TransformPlr", function(plr)
+        if isPlrAlive(plr) and (not TransformedPlrs[plr.UserId]) then
+            applyAmongUsSkin(plr)
+            hideCharParts(plr)
+        end
+    end)
+
+    EventSys:Connect("ResetPlr", function(plr)
+        resetPlr(plr)
+    end)
+
+    AmongUsMode = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+        Name = "AmongusChanger",
+        Function = function(call)
+            if call then
+				EventSys:Connect("TransformPlr", function(plr)
+					if isPlrAlive(plr) and (not TransformedPlrs[plr.UserId]) then
+						applyAmongUsSkin(plr)
+						hideCharParts(plr)
+					end
+				end)
+				EventSys:Connect("ResetPlr", function(plr)
+					resetPlr(plr)
+				end)
+                RunLoops:BindToHeartbeat("AmongUsLoop", function()
+                    for _, plr in pairs(game.Players:GetPlayers()) do
+						if plr ~= game.Players.LocalPlayer then
+							if AmongUsOthers.Enabled then EventSys:Fire("TransformPlr", plr) end
+						else EventSys:Fire("TransformPlr", plr) end
+                    end
+                end)
+            else
+                RunLoops:UnbindFromHeartbeat("AmongUsLoop")
+                resetAllPlrs()
+                EventSys:Disconnect("TransformPlr")
+                EventSys:Disconnect("ResetPlr")
+            end
+        end,
+        HoverText = "Transform yourself into an Among Us character.",
+        ExtraText = function() return Mode.Value .. " - " .. Mode.Ver end
+    })
+
+    AmongUsOthers = AmongUsMode.CreateToggle({
+        Name = "AmongUsOthers",
+        Function = function(call)
+            if AmongUsMode.Enabled then
+                AmongUsMode.Restart()
+            end
+        end
+    })
+end)
