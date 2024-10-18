@@ -2476,7 +2476,7 @@ run(function()
 	pcall(function()
 		Credits = antiDeath.CreateCredits({
 			Name = 'CreditsButtonInstance',
-			Credits = 'Null (the gay)'
+			Credits = 'null.wtf#0'
 		})
 	end)
 end)
@@ -6316,4 +6316,163 @@ run(function()
 			end
 		})
 	else warn("PlayerChangerOptionsButton NOT found!") end
+end)
+
+run(function()
+	local DamageIndicator = {}
+	local DamageIndicatorColorToggle = {}
+	local DamageIndicatorColor = {Hue = 0, Sat = 0, Value = 0}
+	local DamageIndicatorTextToggle = {}
+	local DamageIndicatorText = {ObjectList = {}}
+	local DamageIndicatorFontToggle = {}
+	local DamageIndicatorFont = {Value = 'GothamBlack'}
+	local DamageIndicatorTextObjects = {}
+    local DamageMessages, OrigIndicator, OrgInd = {
+		'Pow!',
+		'Pop!',
+		'Hit!',
+		'Smack!',
+		'Bang!',
+		'Boom!',
+		'Whoop!',
+		'Damage!',
+		'-9e9!',
+		'Whack!',
+		'Crash!',
+		'Slam!',
+		'Zap!',
+		'Snap!',
+		'Thump!'
+	}, nil, OrigIndicator
+	local RGBColors = {
+		Color3.fromRGB(255, 0, 0),
+		Color3.fromRGB(255, 127, 0),
+		Color3.fromRGB(255, 255, 0),
+		Color3.fromRGB(0, 255, 0),
+		Color3.fromRGB(0, 0, 255),
+		Color3.fromRGB(75, 0, 130),
+		Color3.fromRGB(148, 0, 211)
+	}
+	local orgI, mz, vz = 1, 5, 10
+    local DamageIndicatorMode = {Value = 'Rainbow'}
+	local DamageIndicatorMode1 = {Value = 'Multiple'}
+	local DamageIndicatorMode2 = {Value = 'Gradient'}
+	local runService = game:GetService("RunService")
+	DamageIndicator = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+		Name = 'DamageIndicator',
+		Function = function(calling)
+			if calling then
+				task.spawn(function()
+					table.insert(DamageIndicator.Connections, workspace.DescendantAdded:Connect(function(v)
+						pcall(function()
+                            if v.Name ~= 'DamageIndicatorPart' then return end
+							local indicatorobj = v:FindFirstChildWhichIsA('BillboardGui'):FindFirstChildWhichIsA('Frame'):FindFirstChildWhichIsA('TextLabel')
+							if indicatorobj then
+                                if DamageIndicatorColorToggle.Enabled then
+                                    -- indicatorobj.TextColor3 = Color3.fromHSV(DamageIndicatorColor.Hue, DamageIndicatorColor.Sat, DamageIndicatorColor.Value)
+                                    if DamageIndicatorMode.Value == 'Rainbow' then
+                                        if DamageIndicatorMode2.Value == 'Gradient' then
+                                            indicatorobj.TextColor3 = Color3.fromHSV(tick() % mz / mz, orgI, orgI)
+                                        else
+                                            runService.Stepped:Connect(function()
+                                                orgI = (orgI % #RGBColors) + 1
+                                                indicatorobj.TextColor3 = RGBColors[orgI]
+                                            end)
+                                        end
+                                    elseif DamageIndicatorMode.Value == 'Custom' then
+                                        indicatorobj.TextColor3 = Color3.fromHSV(
+                                            DamageIndicatorColor.Hue, 
+                                            DamageIndicatorColor.Sat, 
+                                            DamageIndicatorColor.Value
+                                        )
+                                    else
+                                        indicatorobj.TextColor3 = Color3.fromRGB(127, 0, 255)
+                                    end
+                                end
+                                if DamageIndicatorTextToggle.Enabled then
+                                    if DamageIndicatorMode1.Value == 'Custom' then
+                                        indicatorobj.Text = getrandomvalue(DamageIndicatorText.ObjectList) ~= '' and getrandomvalue(DamageIndicatorText.ObjectList) or indicatorobject.Text
+									elseif DamageIndicatorMode1.Value == 'Multiple' then
+										indicatorobj.Text = DamageMessages[math.random(orgI, #DamageMessages)]
+									else
+										indicatorobj.Text = DamageIndicatorCustom.Value or 'VW on top!'
+									end
+								end
+								indicatorobj.Font = DamageIndicatorFontToggle.Enabled and Enum.Font[DamageIndicatorFont.Value] or indicatorobject.Font
+							end
+						end)
+					end))
+				end)
+			end
+		end
+	})
+    DamageIndicatorMode = DamageIndicator.CreateDropdown({
+		Name = 'Color Mode',
+		List = {
+			'Rainbow',
+			'Custom',
+			'Lunar'
+		},
+		HoverText = 'Mode to color the Damage Indicator',
+		Value = 'Rainbow',
+		Function = function() end
+	})
+	DamageIndicatorMode2 = DamageIndicator.CreateDropdown({
+		Name = 'Rainbow Mode',
+		List = {
+			'Gradient',
+			'Paint'
+		},
+		HoverText = 'Mode to color the Damage Indicator\nwith Rainbow Color Mode',
+		Value = 'Gradient',
+		Function = function() end
+	})
+    DamageIndicatorMode1 = DamageIndicator.CreateDropdown({
+		Name = 'Text Mode',
+		List = {
+            'Custom',
+			'Multiple',
+			'Lunar'
+		},
+		HoverText = 'Mode to change the Damage Indicator Text',
+		Value = 'Custom',
+		Function = function() end
+	})
+	DamageIndicatorColorToggle = DamageIndicator.CreateToggle({
+		Name = 'Custom Color',
+		Function = function(calling) pcall(function() DamageIndicatorColor.Object.Visible = calling end) end
+	})
+	DamageIndicatorColor = DamageIndicator.CreateColorSlider({
+		Name = 'Text Color',
+		Function = function() end
+	})
+	DamageIndicatorTextToggle = DamageIndicator.CreateToggle({
+		Name = 'Custom Text',
+		HoverText = 'random messages for the indicator',
+		Function = function(calling) pcall(function() DamageIndicatorText.Object.Visible = calling end) end
+	})
+	DamageIndicatorText = DamageIndicator.CreateTextList({
+		Name = 'Text',
+		TempText = 'Indicator Text',
+		AddFunction = function() end
+	})
+	DamageIndicatorFontToggle = DamageIndicator.CreateToggle({
+		Name = 'Custom Font',
+		Function = function(calling) pcall(function() DamageIndicatorFont.Object.Visible = calling end) end
+	})
+	DamageIndicatorFont = DamageIndicator.CreateDropdown({
+		Name = 'Font',
+		List = GetEnumItems('Font'),
+		Function = function() end
+	})
+	DamageIndicatorColor.Object.Visible = DamageIndicatorColorToggle.Enabled
+	DamageIndicatorText.Object.Visible = DamageIndicatorTextToggle.Enabled
+	DamageIndicatorFont.Object.Visible = DamageIndicatorFontToggle.Enabled
+	local Credits
+	pcall(function()
+		Credits = DamageIndicator.CreateCredits({
+			Name = 'CreditsButtonInstance',
+			Credits = 'maxlasertech#0'
+		})
+	end)
 end)
