@@ -2512,7 +2512,7 @@ local function loadVape()
 				end
 			end
 		end
-		if (not shared.NoVoidwareModules) then errorNotification("VoidwareLoader", "Voidware modules were disabled from loading!", 2) end
+		if shared.NoVoidwareModules then errorNotification("VoidwareLoader", "Voidware modules were disabled from loading!", 2) end
 		if shared.VapePrivate then
 			if isfile("vapeprivate/CustomModules/"..game.PlaceId..".lua") then
 				loadstring(readfile("vapeprivate/CustomModules/"..game.PlaceId..".lua"))()
