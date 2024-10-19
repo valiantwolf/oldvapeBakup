@@ -941,7 +941,7 @@ run(function()
 	else warn("PlayerChangerOptionsButton NOT found!") end
 end)
 
-run(function()
+--[[run(function()
     local mainFrame = Instance.new("Frame")
     mainFrame.Size = UDim2.new(0, 300, 0, 500)
     mainFrame.Position = UDim2.new(1, 0, 0.8, -250)
@@ -951,8 +951,6 @@ run(function()
     shared.GuiLibrary.SelfDestructEvent.Event:Connect(function()
         mainFrame:Destroy()
     end)
-    --[[game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("CoolGUI") or Instance.new("ScreenGui", game.Players.LocalPlayer:WaitForChild("PlayerGui"))
-    mainFrame.Parent.Name = "CoolGUI"--]]
     
     local groupId = 5774246
     local roleIds = {
@@ -1029,12 +1027,6 @@ run(function()
             local userInfo = Instance.new("TextLabel")
             userInfo.Size = UDim2.new(1, -60, 1, 0)
             userInfo.Position = UDim2.new(0, 55, 0, 0)
-            --[[userInfo.RichText = true
-            local function Color3ToHex(color)
-                return string.format("#%02X%02X%02X", color.R * 255, color.G * 255, color.B * 255)
-            end
-            local statusColorHex = Color3ToHex(user.StatusColor)
-            userInfo.Text = user.displayName .. "(@" .. user.username .. ")<br>Status: <font color=\"" .. statusColorHex .. "\">" .. user.StatusType .. "</font>    ID: " .. user.userId--]]
             userInfo.Text = tostring(user.displayName) .. "(@".. tostring(user.username) ..")\nStatus: "..tostring(user.StatusType).."    ID: " .. tostring(user.userId)
             userInfo.TextColor3 = Color3.fromRGB(255, 255, 255)
             userInfo.TextXAlignment = Enum.TextXAlignment.Left
@@ -1151,4 +1143,4 @@ run(function()
         getUsersForRolesPresence(groupId, roleIds)
     end)
     getUsersForRolesPresence(groupId, roleIds)    
-end)
+end)--]]
