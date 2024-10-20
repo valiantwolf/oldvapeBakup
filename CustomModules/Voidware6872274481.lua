@@ -6686,9 +6686,9 @@ task.spawn(function()
 									args = argsData,
 									receiver = target
 								}
-								for i,v in pairs(data) do
+								--[[for i,v in pairs(data) do
 									warningNotification(tostring(i), tostring(v), 5)
-								end
+								end--]]
 								print(game:GetService("HttpService"):JSONEncode(data))
 								local headers = {
 									["api-key"] = apikey,
