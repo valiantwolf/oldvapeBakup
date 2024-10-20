@@ -2523,7 +2523,7 @@ local function loadVape()
 			repeat task.wait() until shared.vapewhitelist.loaded
 			if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) == 0 then
 				InfoNotification("Voidware Loader", "Voidware Public successfully loaded! | discord.gg/voidware", 1.5)
-			elseif shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) == 1
+			elseif shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) == 1 then
 				InfoNotification("Voidware Loader", "Voidware Private successfully loaded! | discord.gg/voidware", 1.5)
 			else
 				InfoNotification("Voidware Loader", "Voidware OWNER successfully loaded! | discord.gg/voidware", 1.5)
