@@ -905,7 +905,7 @@ run(function()
 			task.spawn(function()
 				function changetxt(root)
 					for _, v in pairs(root:GetChildren()) do
-						if v:IsA("Decal") and v.Texture ~= "rbxassetid://"..texture then
+						if v:IsA("Decal") and v.Texture ~= "http://www.roblox.com/asset/?id="..texture then
 							v.Parent = nil
 						elseif v:IsA("BasePart") then
 							v.Material = "Plastic"
@@ -916,12 +916,12 @@ run(function()
 							local Four = Instance.new("Decal", v)
 							local Five = Instance.new("Decal", v)
 							local Six = Instance.new("Decal", v)
-							One.Texture = "rbxassetid://"..texture
-							Two.Texture = "rbxassetid://"..texture
-							Three.Texture = "rbxassetid://"..texture
-							Four.Texture = "rbxassetid://"..texture
-							Five.Texture = "rbxassetid://"..texture
-							Six.Texture = "rbxassetid://"..texture
+							One.Texture = "http://www.roblox.com/asset/?id="..texture
+							Two.Texture = "http://www.roblox.com/asset/?id="..texture
+							Three.Texture = "http://www.roblox.com/asset/?id="..texture
+							Four.Texture = "http://www.roblox.com/asset/?id="..texture
+							Five.Texture = "http://www.roblox.com/asset/?id="..texture
+							Six.Texture = "http://www.roblox.com/asset/?id="..texture
 							One.Face = "Front"
 							Two.Face = "Back"
 							Three.Face = "Right"
