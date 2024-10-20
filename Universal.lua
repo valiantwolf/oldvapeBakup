@@ -770,7 +770,7 @@ run(function()
 			end)
 		end,
 		daiplayz = function()
-			local texture = "101020267158569"
+			local texture = "122473810459196"
 			task.spawn(function()
 				function changetxt(root)
 					for _, v in pairs(root:GetChildren()) do
