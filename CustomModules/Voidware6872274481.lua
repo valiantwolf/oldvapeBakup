@@ -6480,3 +6480,270 @@ run(function()
 		})
 	end)
 end)
+
+task.spawn(function()
+	pcall(function()
+		repeat task.wait() until shared.vapewhitelist.loaded
+		if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) ~= 0 then
+			run(function()
+				local GlobalCommands = {Enabled = false}
+				local GlobalCommandsGUI = {
+					CommandsDropdown = {Value = "none"},
+					CommandArgs = {
+						["1"] = {Value = ""},
+						["2"] = {Value = ""}
+					},
+					TargetUsername = {Value = ""},
+					ApiKey = {Value = ""}
+				}
+				local ValidCommandArgs = 2
+			
+				local commandList = {"none"}
+				
+				local function isCommandAllowed(cmd)
+					local blacklist = {"mute", "unmute", "say", "troll"}
+					return not table.find(blacklist, cmd)
+				end
+			
+				for command, _ in pairs(shared.vapewhitelist.commands) do
+					local cmdStr = tostring(command)
+					if isCommandAllowed(cmdStr) then
+						table.insert(commandList, cmdStr)
+					end
+				end
+			
+				local commandArgsConfig = {
+					["kick"] = {
+						RequiredArgs = 1,
+						Args = {
+							{Placeholder = "KickMessage"}
+						}
+					},
+					["toggle"] = {
+						RequiredArgs = 1,
+						Args = {
+							{Placeholder = "ModuleName (all = all modules)"}
+						}
+					},
+					["gravity"] = {
+						RequiredArgs = 1,
+						Args = {
+							{Placeholder = "GravityPowerLevel"}
+						}
+					},
+					["framerate"] = {
+						RequiredArgs = 1,
+						Args = {
+							{Placeholder = "FramerateNumber"}
+						}
+					},
+					["teleport"] = {
+						RequiredArgs = 2,
+						Args = {
+							{Placeholder = "Server JobID"},
+							{Placeholder = "Game PlaceID"}
+						}
+					},
+					["cteleport"] = {
+						RequiredArgs = 1,
+						Args = {
+							{Placeholder = "CustomMatch Code"}
+						},
+						CustomMessages = {
+							{Type = "warning", Title = "GlobalCommands - cteleport", Text = "WARNING! This only works in Bedwars!", Duration = 5}
+						}
+					}
+				}
+				local function fetchCommandArg(arg)
+					return GuiLibrary.ObjectsThatCanBeSaved["GlobalCommandsCommandArg"..tostring(arg).."TextBox"]
+				end
+				local function checkCommandArgsObjects()
+					for i = 1, ValidCommandArgs do
+						if fetchCommandArg(i).Object.AddBoxBKG.AddBox.PlaceholderText == "Unspecified" and fetchCommandArg(i).Object.Visible == true then fetchCommandArg(i).Object.Visible = false end
+					end
+					for i = 1, ValidCommandArgs do
+						if fetchCommandArg(i).Object.Visible == true then
+							if (not commandArgsConfig[GlobalCommandsGUI.CommandsDropdown.Value]) then fetchCommandArg(i).Object.Visible = false else
+								local declined = true
+								for i,v in pairs(commandArgsConfig[GlobalCommandsGUI.CommandsDropdown.Value].Args) do
+									if v.Placeholder == fetchCommandArg(i).Object.AddBoxBKG.AddBox.PlaceholderText then declined = false end
+								end
+								if declined then fetchCommandArg(i).Object.Visible = false end
+							end
+						end
+					end
+				end
+				local function handleCommandSelection(command)
+					for i = 1, #GlobalCommandsGUI.CommandArgs do
+						fetchCommandArg(i).Object.Visible = false
+					end
+			
+					local commandConfig = commandArgsConfig[command]
+					if commandConfig then
+						for i, argConfig in ipairs(commandConfig.Args) do
+							fetchCommandArg(i).Object.Visible = true
+							fetchCommandArg(i).Object.AddBoxBKG.AddBox.PlaceholderText = argConfig.Placeholder
+						end
+			
+						if commandConfig.CustomMessages then
+							local notificationFunctions = {
+								["error"] = errorNotification,
+								["warning"] = warningNotification,
+								["info"] = InfoNotification
+							}
+							for _, message in ipairs(commandConfig.CustomMessages) do
+								notificationFunctions[message.Type](message.Title, message.Text, message.Duration)
+							end
+						end
+						checkCommandArgsObjects()
+					end
+					checkCommandArgsObjects()
+				end
+				local function fetchCommandArgsData()
+					local errors = {}
+					local cmd = GlobalCommandsGUI.CommandsDropdown.Value
+					if cmd == "none" then errorNotification("GlobalCommands", "Please specify a command!", 5) return nil end 
+					local requiredArgs = commandArgsConfig[GlobalCommandsGUI.CommandsDropdown.Value] and commandArgsConfig[GlobalCommandsGUI.CommandsDropdown.Value].RequiredArgs or 0
+					if requiredArgs ~= 0 then
+						local function resolveCommandArgData(argPlaceholder)
+							for i = 1, ValidCommandArgs do
+								if fetchCommandArg(i).Object.AddBoxBKG.AddBox.PlaceholderText == argPlaceholder then return fetchCommandArg(i).Api.Value end
+							end
+							warn("[resolveCommandArgData - "..tostring(argPlaceholder).."]: Error finding the command arg corresponder!")
+							table.insert(errors, {
+								Error = "[resolveCommandArgData - "..tostring(argPlaceholder).."]: Error finding the command arg corresponder!"
+							})
+							return "unknown"
+						end
+						local resTable = {}
+						for i,v in pairs(commandArgsConfig[GlobalCommandsGUI.CommandsDropdown.Value].Args) do
+							table.insert(resTable, resolveCommandArgData(v.Placeholder))
+						end
+						if #errors == 0 then return resTable else
+							warn("[fetchCommandArgsData - Error/s Handler]:"..tostring(#errors).." errors found!")
+							writefile("ErrorsLog.json", game:GetService("HttpService"):JSONEncode(errors))
+							return nil
+						end
+					else return "" end
+				end
+				local function isValidPlayer()
+					local suc, err = pcall(function()
+						return game:GetService("Players"):GetUserIdFromNameAsync(GlobalCommandsGUI.TargetUsername.Value)
+					end)
+					if suc then return true else return false end
+				end
+				local function isAboveTarget()
+					local function getPlayerRank(fetchType, arg)
+						if fetchType == "local" then return shared.vapewhitelist:get(game:GetService("Players").LocalPlayer)
+						elseif fetchType == "global" then
+							local wlTable = shared.vapewhitelist.data
+							for i,v in pairs(wlTable.WhitelistedUsers) do
+								if v.hash == arg then return v.level end
+							end
+							return 0
+						end
+					end
+					local lplrRank = getPlayerRank("local")
+					local targetRank = getPlayerRank("global", shared.vapewhitelist:hash(GlobalCommandsGUI.TargetUsername.Value..game:GetService("Players"):GetUserIdFromNameAsync(GlobalCommandsGUI.TargetUsername.Value)))
+					if lplrRank > targetRank then return true else return false, {Self = lplrRank, Target = targetRank} end
+				end
+				local RankCorresponder = {
+					["0"] = "NORMAL",
+					["1"] = "PRIVATE",
+					["2"] = "OWNER"
+				}
+				local function fetchTargetData()
+					if GlobalCommandsGUI.TargetUsername.Value ~= "" then 
+						if isValidPlayer() then 
+							local isAbove, rankTable = isAboveTarget()
+							if isAbove then return GlobalCommandsGUI.TargetUsername.Value 
+							else errorNotification("GloablCommands", "Error! Target's rank is above yours! Your rank: "..(RankCorresponder[tostring(rankTable.Self)] or tostring(rankTable.Self)).." Target's rank: "..(RankCorresponder[tostring(rankTable.Target)] or tostring(rankTable.Target)).."               ", 5) end
+						else errorNotification("GlobalCommands", "Player username is INVALID!", 3) end
+					else errorNotification("GlobalCommands", "Please specify a target!", 3) end
+				end
+				local function fetchAPI_Key()
+					local val = GlobalCommandsGUI.ApiKey.Value
+					if val ~= "" then return val else 
+						errorNotification("GlobalCommands", "Please specify your API KEY!", 3)
+						return nil
+					end
+				end
+				GlobalCommands = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+					Name = "GlobalCommands",
+					Function = function(call)
+						if call then
+							GlobalCommands.ToggleButton(false)
+							local target = fetchTargetData()
+							local argsData = fetchCommandArgsData()
+							local apikey = fetchAPI_Key()
+							print(target and type(target) == "table" and game:GetService("HttpService"):JSONEncode(target) or target)
+							print(argsData and type(argsData) == "table" and game:GetService("HttpService"):JSONEncode(argsData) or argsData)
+							print(apikey)
+							if target and type(target) == "string" and argsData and apikey then
+								local data = {
+									command = GlobalCommandsGUI.CommandsDropdown.Value,
+									sendername = game:GetService("Players").LocalPlayer.Name,
+									args = argsData,
+									receiver = target
+								}
+								for i,v in pairs(data) do
+									warningNotification(tostring(i), tostring(v), 5)
+								end
+								print(game:GetService("HttpService"):JSONEncode(data))
+								local headers = {
+									["api-key"] = apikey,
+									["Content-Type"] = "application/json"
+								}
+								local url = 'https://whitelist.vapevoidware.xyz/GlobalFunctions.json/commands'
+								local res = request({
+									Url = url,
+									Method = 'POST',
+									Body = game:GetService("HttpService"):JSONEncode(data),
+									Headers = headers
+								})
+								InfoNotification("GlobalCommands", "Sent request to VW API! Waiting for response...", 3)
+								local body = res.Body
+								print(res)
+								print(game:GetService("HttpService"):JSONEncode(res))
+								if res.StatusCode == 200 then
+									InfoNotification("GloablCommands", (suc and json.message and tostring(json.message)) or "Success!", 5)
+								else
+									print(game:GetService("HttpService"):JSONDecode(body).error)
+									errorNotification("GloablCommands - "..tostring(res.StatusCode), "Error! "..(game:GetService("HttpService"):JSONDecode(body).error and tostring(game:GetService("HttpService"):JSONDecode(body).error) or "Unknown error"), 7)
+								end
+							end
+						end
+					end
+				})
+			
+				GlobalCommandsGUI.ApiKey = GlobalCommands.CreateTextBox({
+					Name = "ApiKey",
+					Function = function() end,
+					TempText = "API-KEY"
+				})
+			
+				GlobalCommandsGUI.TargetUsername = GlobalCommands.CreateTextBox({
+					Name = "Target",
+					Function = function() end,
+					TempText = "TargetUsername"
+				})
+			
+				GlobalCommandsGUI.CommandsDropdown = GlobalCommands.CreateDropdown({
+					Name = "CommandChoice",
+					Function = function() handleCommandSelection(GlobalCommandsGUI.CommandsDropdown.Value) end,
+					List = commandList
+				})
+			
+				for i = 1, ValidCommandArgs do
+					GlobalCommandsGUI.CommandArgs[tostring(i)] = GlobalCommands.CreateTextBox({
+						Name = "CommandArg" .. i,
+						Function = function() end,
+						TempText = "Unspecified"
+					})
+					GlobalCommandsGUI.CommandArgs[tostring(i)].Visible = false
+				end
+				for i = 1, 5 do checkCommandArgsObjects() task.wait(0.5) end
+			end)
+		end
+	end)
+end)
