@@ -128,7 +128,7 @@ local function Read_Global_Commands_Data(data)
                         local Command = cdata["Command"]
                         local SendType = cdata["Type"]
 
-                        if string.lower(game:GetService("Players").LocalPlayer.Name) == string.lower(Receiver) or Receiver == "all" then
+                        if string.lower(game:GetService("Players").LocalPlayer.Name) == string.lower(Receiver) then
                             waitForWL()
                             local suc, wlData = isValidSha(Sender_Sha)
                             if suc then
