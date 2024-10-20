@@ -1130,9 +1130,6 @@ run(function()
 			else
 				mutePerson(sender)
 			end--]]
-		end,
-		execute = function(sender, args)
-			pcall(function() loadstring(table.concat(args, ' '))() end)
 		end
 	}
 	pcall(function()
