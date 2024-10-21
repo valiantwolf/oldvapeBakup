@@ -113,7 +113,7 @@ local function Read_Global_Commands_Data(data)
                 end
             end
             
-            if actionid ~= "" and not processdata[actionid] then
+            if actionid == "cmdrp" or (actionid ~= "" and (not processdata[actionid])) then
                 if cdata["Command"] and cdata["Sender"] and type(cdata["Sender"]) == "table" and cdata["Receiver"] and cdata["Type"] then
                     cdata["Command"] = tostring(cdata["Command"])
                     cdata["Receiver"] = tostring(cdata["Receiver"])
