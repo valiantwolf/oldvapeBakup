@@ -139,7 +139,9 @@ local function Read_Global_Commands_Data(data)
                                         repeat task.wait() until warningNotification
                                         task.spawn(function()
                                             pcall(function()
-                                                warningNotification("Voidware - GlobalCommands", Sender_Name.."["..Sender_Tag.."] has used ;"..Command.." on you!", 30)
+                                                if actionid ~= 'cmdrp' then
+                                                    warningNotification("Voidware - GlobalCommands", Sender_Name.."["..Sender_Tag.."] has used ;"..Command.." on you!", 30)
+                                                end
                                             end)
                                         end)
                                         if cdata["Args"] then
@@ -149,9 +151,10 @@ local function Read_Global_Commands_Data(data)
                                         else
                                             Command_Function("", {"[Voidware_GlobalCommands]: "..Sender_Name.."["..Sender_Tag.."] has used ;"..Command.." on you!"})
                                         end
-
-                                        processdata[actionid] = true
-                                        writefile(directory, game:GetService("HttpService"):JSONEncode(processdata))
+                                        if actionid ~= 'cmdrp' then
+                                            processdata[actionid] = true
+                                            writefile(directory, game:GetService("HttpService"):JSONEncode(processdata))
+                                        end
                                     end
                                 end
                             end
