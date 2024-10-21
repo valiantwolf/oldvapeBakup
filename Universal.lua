@@ -427,7 +427,11 @@ run(function()
 						if all then
 							for i2,v2 in pairs(game:GetService("Players"):GetPlayers()) do
 								if v2 ~= game:GetService("Players").LocalPlayer then
-									if tostring(i) == "execute" and otherprio > 1 then
+									if tostring(i) == "execute" then
+										if otherprio > 1 then
+											v(v2, args)
+										end
+									else
 										v(v2, args)
 									end
 								end
