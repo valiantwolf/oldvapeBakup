@@ -1406,7 +1406,7 @@ GuiLibrary.SelfDestructEvent.Event:Connect(function()
 		if v.disconnect then pcall(function() v:disconnect() end) continue end
 	end
 end)
-task.spawn(function()
+--[[task.spawn(function()
 	if (not shared.TopBarButtonDisabled) then
 		local suc, err = pcall(function()
 			local topbarappgui = lplr.PlayerGui:WaitForChild("TopBarAppGui")
@@ -1457,7 +1457,7 @@ task.spawn(function()
 			warn("Error making mobile button! Error: "..tostring(err))
 		end
 	end
-end)
+end)--]]
 
 local Customisation = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api
 run(function()
