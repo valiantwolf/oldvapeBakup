@@ -6240,6 +6240,20 @@ if shared.VapeExecuted then
 			if shared.GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"].."OptionsButton"] then
 				GuiLibrary.RemoveObject(argstablemain["Name"].."OptionsButton")
 			end
+			local allowed = false
+			if argstablemain["WhitelistRequired"] then
+				repeat task.wait() until shared.vapewhitelist
+				repeat task.wait() until shared.vapewhitelist.loaded
+				if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) == argstablemain["WhitelistRequired"] or shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) > argstablemain["WhitelistRequired"] then 
+					allowed = true 
+					task.spawn(function()
+						repeat task.wait() until (shared.warningNotification or warningNotification)
+						local warningNotification = warningNotification or shared.warningNotification
+						warningNotification("VoidwareWL", "Access granted for "..((argstablemain["Name"] and tostring(argstablemain["Name"])) or "UnknownModule"), 3)
+					end)
+				end
+			else allowed = true end
+			if (not allowed) then return end
 			local buttonapi = {}
 			buttonapi["Window"] = argstablemain2["Name"] or "Unknown"
 			local amount = #children:GetChildren()
