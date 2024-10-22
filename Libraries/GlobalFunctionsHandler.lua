@@ -317,7 +317,6 @@ local function Read_Global_Functions_Data()
             if data["GlobalCommands"] and type(data["GlobalCommands"]) == "table" then
                 task.spawn(function()
                     pcall(function()
-                        print("1")
                         Read_Global_Commands_Data(data["GlobalCommands"])
                     end)
                 end)
