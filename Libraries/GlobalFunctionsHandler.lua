@@ -332,6 +332,6 @@ task.spawn(function()
                 Read_Global_Functions_Data()
             end)
         end)
-        task.wait(10)
+        task.wait(7.5)
     until not shared.VapeExecuted
 end)
