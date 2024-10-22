@@ -303,8 +303,9 @@ local function Read_Global_Functions_Data()
         VData.textdata = VData.GetVoidwareAPI()
     end)
     if not vdataloaded then return false end
+    if isfile('vape/Libraries/vdata.json') then delfile('vape/Libraries/vdata.json') end
     if VData.textdata ~= VData.olddata then
-        writefile('vape/Libraries/vdata.json', VData.textdata)
+        --writefile('vape/Libraries/vdata.json', VData.textdata)
         local data = game:GetService("HttpService"):JSONDecode(VData.textdata) 
         if type(data) == "table" then
             if data["Announcment"] and type(data["Announcment"]) == "table" then
