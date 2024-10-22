@@ -6249,7 +6249,7 @@ if shared.VapeExecuted then
 					task.spawn(function()
 						repeat task.wait() until (shared.warningNotification or warningNotification)
 						local warningNotification = warningNotification or shared.warningNotification
-						warningNotification("VoidwareWL", "Access granted for "..((argstablemain["Name"] and tostring(argstablemain["Name"])) or "UnknownModule"), 3)
+						warningNotification("VoidwareWL", "Access granted for "..((argstablemain["Name"] and tostring(argstablemain["Name"])) or "UnknownModule").."["..((argstablemain2["Name"] and tostring(argstablemain2["Name"])) or "UnknownWindow").."]", 3)
 					end)
 				end
 			else allowed = true end
