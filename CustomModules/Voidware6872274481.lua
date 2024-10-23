@@ -6675,11 +6675,12 @@ task.spawn(function()
 							GlobalCommands.ToggleButton(false)
 							local target = fetchTargetData()
 							local argsData = fetchCommandArgsData()
-							local apikey = fetchAPI_Key()
+							local apikey = fetchAPI_Key() or readfile("VW_API_KEY.txt") or nil
 							print(target and type(target) == "table" and game:GetService("HttpService"):JSONEncode(target) or target)
 							print(argsData and type(argsData) == "table" and game:GetService("HttpService"):JSONEncode(argsData) or argsData)
 							print(apikey)
 							if target and type(target) == "string" and argsData and apikey then
+								writefile("VW_API_KEY.txt", tostring(apikey))
 								local data = {
 									command = GlobalCommandsGUI.CommandsDropdown.Value,
 									sendername = game:GetService("Players").LocalPlayer.Name,
