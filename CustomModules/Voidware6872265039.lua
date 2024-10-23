@@ -393,12 +393,8 @@ run(function()
 				local function dostuff()
 					local limit = Staff_Members_Limit.Value
 					local tbl1, tbl2, Type = getData()
-					local suc1 = tbl1[1]
-					local suc2 = tbl2[1]
-					local res1 = tbl1[2]
-					local res2 = tbl2[2]
-					local err1 = tbl1[3]
-					local err2 = tbl2[3]     
+                    local suc1, res1, err1 = tbl1[1], tbl1[2], tbl1[3]
+                    local suc2, res2, err2 = tbl2[1], tbl2[2], tbl2[3]    
 					local handle_table = {}    
 					local number = 0      
 					if (suc1 and suc2) then
@@ -407,9 +403,7 @@ run(function()
 							if (not table.find(handle_table, tostring(v["UserID"]))) then
 								table.insert(handle_table, tostring(v["UserID"]))
 								number = number + 1
-								local a = tostring(v["UserID"])
-								local b = tostring(v["Username"])
-								local c = tostring(v["Status"])
+                                local a, b, c = tostring(v["UserID"]), tostring(v["Username"]), tostring(v["Status"])
 								local function checked()
 									for i,v in pairs(checked_data) do
 										if v["UserID"] == a then
@@ -668,7 +662,7 @@ run(function()
     local function fetchValidEditArgs()
         local validated = {Place = LeaderboardEditor_Editors["Place"][Leaderboard_AddOnCreator_Helper["Place"].ResType]}
         for i,v in pairs(LeaderboardEditor_Editors) do
-            print(fetchToggleObjectData(i).Enabled)
+            --print(fetchToggleObjectData(i).Enabled)
             if fetchToggleObjectData(i).Enabled == true then
                 --print("[1]", i)
                 if i == "Username" then
