@@ -1325,7 +1325,7 @@ run(function()
 								if response["StatusCode"] == 200 then
 									InfoNotification("EditWL-Response_Handler", "Successfully edited your WL Data!", 3)
 								else
-									errorNotification("EditWL-Reponse_Handler", "Error! Error data has been sent in the console \n type /console in the roblox chat", 5)
+									errorNotification("EditWL-Reponse_Handler", "Error! Error data has been sent in the console \n type /console in the roblox chat.\nStatusCode: " ..tostring(response["StatusCode"]).."\nBody: ".. tostring(game:GetService("HttpService"):JSONDecode(response["Body"])), 7)
 									local function printError(text)
 										print("[EditWL-Response_Handler Error]: "..text)
 									end
