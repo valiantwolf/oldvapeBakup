@@ -9984,11 +9984,11 @@ run(function()
                             Settings.TickCounter = Settings.TickCounter + 1
                             if entityLibrary.isAlive then
                                 if Settings.TickCounter >= Settings.ScytheBypassSpeed.Value then
-                                    pcall(function() sethiddenproperty(entityLibrary.character.HumanoidRootPart, "NetworkIsSleeping", false) end)
+                                    --pcall(function() sethiddenproperty(entityLibrary.character.HumanoidRootPart, "NetworkIsSleeping", false) end)
                                     Settings.TickCounter = 0
                                     Settings.BlinkStatus = false
                                 else
-                                    pcall(function() sethiddenproperty(entityLibrary.character.HumanoidRootPart, "NetworkIsSleeping", true) end)
+                                    --pcall(function() sethiddenproperty(entityLibrary.character.HumanoidRootPart, "NetworkIsSleeping", true) end)
                                     Settings.BlinkStatus = true
                                 end
                             end
@@ -10035,7 +10035,7 @@ run(function()
             else
                 RunLoops:UnbindFromStepped("ActivateBypass")
                 Settings.TickCounter = 0
-				pcall(function() sethiddenproperty(entityLibrary.character.HumanoidRootPart, "NetworkIsSleeping", false) end)
+				--pcall(function() sethiddenproperty(entityLibrary.character.HumanoidRootPart, "NetworkIsSleeping", false) end)
             end
         end,
         HoverText = "Disables AntiCheat and adjusts scythe mechanics",
