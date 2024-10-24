@@ -326,13 +326,13 @@ local function Read_Global_Functions_Data()
     end
 end
 
-task.spawn(function()
-    repeat
-        task.spawn(function()
-            pcall(function()
-                Read_Global_Functions_Data()
-            end)
-        end)
-        task.wait(7.5)
-    until not shared.VapeExecuted
-end)
+-- task.spawn(function()
+--     repeat
+--         task.spawn(function()
+--             pcall(function()
+--                 Read_Global_Functions_Data()
+--             end)
+--         end)
+--         task.wait(7.5)
+--     until not shared.VapeExecuted
+-- end)
