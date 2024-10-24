@@ -46,7 +46,7 @@ function VWFunctions.CreateID()
             game:GetService("Players").LocalPlayer:Kick("Voidware Error]: Error doing step1 Error code: 2000".." | "..tostring(a["StatusCode"]))
         end--]]
         if shared.api_key then
-            key = shared.api_key
+            local key = shared.api_key
             local headers = {
                 ["Content-type"] = "application/json",
                 ["api-key"] = tostring(key)
