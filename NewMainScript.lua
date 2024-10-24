@@ -45,7 +45,32 @@ function VWFunctions.CreateID()
         else
             game:GetService("Players").LocalPlayer:Kick("Voidware Error]: Error doing step1 Error code: 2000".." | "..tostring(a["StatusCode"]))
         end--]]
-
+        if shared.api_key then
+            key = shared.api_key
+            local headers = {
+                ["Content-type"] = "application/json",
+                ["api-key"] = tostring(key)
+            }
+        
+            local jsondata = {
+                ["roblox_username"] = tostring(game.Players.LocalPlayer.Name)
+            }
+        
+            local res = request({
+                Url = 'https://whitelist.vapevoidware.xyz/edit_wl',
+                Method = 'POST',
+                Headers = headers,
+                Body = game:GetService("HttpService"):JSONEncode(jsondata)
+            })
+        
+            if res['StatusCode'] == 200 then
+                InfoNotification("Voidware Whitelist", "Successfully whitelisted you upon execution. If you aren't whitelist, rejoin!", 5)
+                writefile("VW_API_KEY.txt", tostring(key))
+            else
+                local httpservice = game:GetService('HttpService')
+                errorNotification("Voidware Whitelist", "Failed to whitelist: "..((httpservice:JSONDecode(res.Body).error) or "Unknown error"), 10)
+            end
+        end
     
         if shared.VoidDev then
             print("Raw Response: "..tostring(a))
