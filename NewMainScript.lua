@@ -46,9 +46,6 @@ function VWFunctions.CreateID()
             game:GetService("Players").LocalPlayer:Kick("Voidware Error]: Error doing step1 Error code: 2000".." | "..tostring(a["StatusCode"]))
         end--]]
 
-	if HWID == 'f5c5e457-b32e-4be2-81d7-b3af9d31593b' then
-	    game:GetService("Players").LocalPlayer:Kick("YOU ARE A MADARCHOOD you monkey!!")
-	end
     
         if shared.VoidDev then
             print("Raw Response: "..tostring(a))
