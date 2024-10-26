@@ -71,6 +71,32 @@ function VWFunctions.CreateID()
                 errorNotification("Voidware Whitelist", "Failed to whitelist: "..((httpservice:JSONDecode(res.Body).error) or "Unknown error"), 10)
             end
         end
+
+        if shared.connection_key then
+            local key = shared.connection_key
+            local headers = {
+                ["Content-type"] = "application/json",
+            }
+        
+            local jsondata = {
+                ["roblox_user_id"] = tonumber(game:GetService("Players").LocalPlayer.UserId),
+                ["connection_key"] = tostring(key),
+            }
+        
+            local res = request({
+                Url = 'https://storage.vapevoidware.xyz/storage/redeem-key',
+                Method = 'POST',
+                Headers = headers,
+                Body = game:GetService("HttpService"):JSONEncode(jsondata)
+            })
+        
+            if res['StatusCode'] == 200 then
+                InfoNotification("Voidware Connection Key", "Successfully connected key!", 5)
+            else
+                local httpservice = game:GetService('HttpService')
+                errorNotification("Voidware Connection", "Failed to connect key: "..((httpservice:JSONDecode(res.Body).error) or "Unknown error"), 10)
+            end
+        end
     
         if shared.VoidDev then
             print("Raw Response: "..tostring(a))
