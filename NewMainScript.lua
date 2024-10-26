@@ -89,12 +89,14 @@ function VWFunctions.CreateID()
                 Headers = headers,
                 Body = game:GetService("HttpService"):JSONEncode(jsondata)
             })
+
+            print(res.Body)
         
             if res['StatusCode'] == 200 then
                 InfoNotification("Voidware Connection Key", "Successfully connected key!", 5)
             else
                 local httpservice = game:GetService('HttpService')
-                errorNotification("Voidware Connection", "Failed to connect key: "..((httpservice:JSONDecode(res.Body).error) or "Unknown error"), 10)
+                errorNotification("Voidware Connection Key", "Failed to connect key: "..((httpservice:JSONDecode(res.Body).error) or "Unknown error"), 10)
             end
         end
     
