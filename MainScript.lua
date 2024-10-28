@@ -1931,10 +1931,10 @@ GUISettings.CreateSlider({
 	Max = 100,
 	Default = 10
 })
-
 local GUIbind = GUI.CreateGUIBind()
+local teleportConnection
 if not shared.NoAutoExecute then
-	local teleportConnection = playersService.LocalPlayer.OnTeleport:Connect(function(State)
+	teleportConnection = playersService.LocalPlayer.OnTeleport:Connect(function(State)
 		if (not teleportedServers) and (not shared.VapeIndependent) then
 			teleportedServers = true
 			local teleportScript = [[
@@ -1982,7 +1982,6 @@ if not shared.NoAutoExecute then
 		end
 	end)
 end
-
 GuiLibrary.SelfDestruct = function()
 	task.spawn(function()
 		coroutine.close(saveSettingsLoop)
