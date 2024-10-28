@@ -1,6 +1,5 @@
 repeat task.wait() until game:IsLoaded()
 repeat task.wait() until shared.GuiLibrary
-repeat task.wait() until shared.VapeUniversalLoaded
 
 local GuiLibrary = shared.GuiLibrary
 local entityLibrary = shared.vapeentity
@@ -14,6 +13,12 @@ local function vapeGithubRequest(scripturl)
 		writefile("vape/"..scripturl, res)
 	end
 	return readfile("vape/"..scripturl)
+end
+local function run(func)
+	local suc, err = pcall(function()
+		func()
+	end)
+	if err then warn("[VWUniversal.lua Module Error]: "..tostring(debug.traceback(err))) end
 end
 local vapeConnections = {}
 GuiLibrary.SelfDestructEvent.Event:Connect(function()
@@ -49,20 +54,16 @@ local colors = {
     SkyBlue = Color3.fromRGB(135, 206, 235),
     Violet = Color3.fromRGB(238, 130, 238)
 }
-getgenv().ColorTable = colors
+VoidwareFunctions.GlobaliseObject("ColorTable", colors)
+VoidwareFunctions.LoadFunctions("Universal")
+VWFunctions.LoadServices()
 
 local lplr = game:GetService("Players").LocalPlayer
 local lightingService = game:GetService("Lighting")
 local core
 pcall(function() core = game:GetService('CoreGui') end)
-warn(tostring(core))
 
-task.spawn(function()
-	pcall(function()
-		repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.GUISwitcherWindow 
-		if not shared.GuiLibrary.ObjectsThatCanBeSaved.GUISwitcherWindow.Object.Visible then shared.GuiLibrary.ObjectsThatCanBeSaved.GUISwitcherWindow.Object.Visible = true end
-	end)
-end)
+--task.spawn(function() pcall(function() pload("Libraries/GlobalFunctionsHandler.lua", false) end) end)
 
 local function warningNotification(title, text, delay)
 	local suc, res = pcall(function()
@@ -73,6 +74,7 @@ local function warningNotification(title, text, delay)
     warn(title..": "..text)
 	return (suc and res)
 end
+VoidwareFunctions.GlobaliseObject("warningNotification", warningNotification)
 
 local function InfoNotification(title, text, delay)
 	local suc, res = pcall(function()
@@ -82,6 +84,8 @@ local function InfoNotification(title, text, delay)
     warn(title..": "..text)
 	return (suc and res)
 end
+VoidwareFunctions.GlobaliseObject("InfoNotification", InfoNotification)
+VoidwareFunctions.GlobaliseObject("infoNotification", InfoNotification)
 
 local function errorNotification(title, text, delay)
     local suc, res = pcall(function()
@@ -92,14 +96,9 @@ local function errorNotification(title, text, delay)
     warn(title..": "..text)
     return (suc and res)
 end
+VoidwareFunctions.GlobaliseObject("errorNotification", errorNotification)
 
 local newcolor = function() return {Hue = 0, Sat = 0, Value = 0} end
-
-task.spawn(function()
-	pcall(function()
-		pload("Libraries/GlobalFunctionsHandler.lua", false)
-	end)
-end)
 
 local textlabel = Instance.new("TextLabel")
 textlabel.Size = UDim2.new(1, 0, 0, 36)

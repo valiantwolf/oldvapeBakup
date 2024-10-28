@@ -146,9 +146,13 @@ do
 	end
 end
 
-local function runcode(func)
-	func()
+local function run(func)
+	local suc, err = pcall(function()
+		func()
+	end)
+	if err then warn("[6872265039.lua Module Error]: "..tostring(debug.traceback(err))) end
 end
+local runcode = run
 
 local function betterfind(tab, obj)
 	for i,v in pairs(tab) do
