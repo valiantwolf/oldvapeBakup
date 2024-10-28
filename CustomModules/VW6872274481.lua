@@ -4173,7 +4173,7 @@ run(function()
 	})
 end)
 
-local StaffDetector = {Enabled = false}
+--[[local StaffDetector = {Enabled = false}
 run(function()
 	local StaffDetector_Functions = {}
 	local StaffDetector_Table = {
@@ -4479,7 +4479,7 @@ task.spawn(function()
 			StaffDetector.ToggleButton(false)
 		end
 	end)
-end)
+end)--]]
 
 --[[local isEnabled = function() return false end
 local function isEnabled(module)
