@@ -3530,10 +3530,12 @@ run(function()
 							bedtween.Completed:Wait()
 							task.spawn(function()
 							task.wait(1.5)
-							local magnitude = GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, bed)
-							if magnitude >= 50 and FindTeamBed() and Autowin.Enabled then
-								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+							if lplr.Character:FindFirstChild("HumanoidRootPart") then
+								local magnitude = GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, bed)
+								if magnitude >= 50 and FindTeamBed() and Autowin.Enabled then
+									lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+									lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+								end
 							end
 							end)
 							if AutowinNotification.Enabled then
