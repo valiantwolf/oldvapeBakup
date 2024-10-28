@@ -1,12 +1,9 @@
 repeat task.wait() until game:IsLoaded()
 repeat task.wait() until shared.GuiLibrary
+repeat task.wait() until shared.GUI
+repeat task.wait() until shared.run
 
-local function run(func)
-	local suc, err = pcall(function()
-		func()
-	end)
-	if err then warn("[VW687224481.lua Module Error]: "..tostring(debug.traceback(err))) end
-end
+local run = shared.run
 local GuiLibrary = shared.GuiLibrary
 local store = shared.GlobalStore
 local bedwars = shared.GlobalBedwars
@@ -16,9 +13,6 @@ local VoidwareStore = {
 	bedtable = {},
 	Tweening = false
 }
-
-VWFunctions.GlobaliseObject("lplr", game:GetService("Players").LocalPlayer)
-VWFunctions.LoadFunctions("Bedwars")
 
 local function BedwarsInfoNotification(mes)
     local bedwars = shared.GlobalBedwars
@@ -6696,7 +6690,7 @@ task.spawn(function()
 								--[[for i,v in pairs(data) do
 									warningNotification(tostring(i), tostring(v), 5)
 								end--]]
-								warn(debug.traceback(game:GetService("HttpService"):JSONEncode(data)))
+								print(game:GetService("HttpService"):JSONEncode(data))
 								local headers = {
 									["api-key"] = apikey,
 									["Content-Type"] = "application/json"
@@ -6754,185 +6748,3 @@ task.spawn(function()
 		end
 	end)
 end)
-
---[[run(function() -- someday this will come back up :(
-	local ProjectileAura = {}
-	local ProjectileAuraSort = {Value = 'Distance'}
-	local ProjectileAuraMobs = {}
-	local ProjectileAuraRangeSlider = {Value = 50}
-	local ProjectileAuraRange = {}
-	local ProjectileAuraBlacklist = {ObjectList = {}}
-	local ProjectileMobIgnore = {'spear'}
-	local ProjectileAuraDelay = {Value = 0}
-	local ProjectileAuraSwitchDelay = {Value = 0}
-	local crackerdelay = tick()
-	local specialprojectiles = {
-		rainbow_bow = 'rainbow_arrow',
-		orions_belt_bow = 'star',
-		fireball = 'fireball',
-		frosted_snowball = 'frosted_snowball',
-		snowball = 'snowball',
-		spear = 'spear',
-		carrot_cannon = 'carrot_rocket',
-		light_sword = 'sword_wave1',
-		firecrackers = 'firecrackers'
-	}
-	local biggestTargets = {
-		spirit_assassin = 1,
-		hannah = 2,
-		melody = 3,
-		kaliyah = 4
-	}
-	local kitpriolist = {
-		hannah = 5,
-		spirit_assassin = 4,
-		dasher = 3,
-		jade = 2,
-		regent = 1
-	}
-
-	local sortfunctions = {
-		Distance = function(a, b)
-			return (a.RootPart.Position - entityLibrary.character.HumanoidRootPart.Position).Magnitude < (b.RootPart.Position - entityLibrary.character.HumanoidRootPart.Position).Magnitude
-		end,
-		Health = function(a, b)
-			return a.Humanoid.Health < b.Humanoid.Health
-		end,
-		Threat = function(a, b)
-			return getStrength(a) > getStrength(b)
-		end,
-		Kit = function(a, b)
-			return (kitpriolist[a.Player:GetAttribute("PlayingAsKit")] or 0) > (kitpriolist[b.Player:GetAttribute("PlayingAsKit")] or 0)
-		end
-	}
-	local httpService = game:GetService("HttpService")
-	local function betterswitch(item)
-		if tostring(item) == 'firecrackers' then 
-			if crackerdelay > tick() then 
-				return 
-			else 
-				crackerdelay = tick() + 3.5 
-			end 
-		end
-		if tick() > store.switchdelay then 
-			switchItem(item) 
-		end
-		local oldval = ProjectileAuraSwitchDelay.Value
-		local valdelay = (tick() + ProjectileAuraSwitchDelay.Value)
-		repeat task.wait() until (tick() > valdelay or ProjectileAuraSwitchDelay.Value ~= oldval)
-	end
-	local function getarrow()
-		for i,v in next, store.localInventory.inventory.items do  
-			if v.itemType:find('arrow') then 
-				return v 
-			end
-		end
-	end
-	local function getammo(item)
-		if (item.itemType:find('bow') or item.itemType:find('headhunter')) and specialprojectiles[item.itemType] == nil then 
-			return getarrow() or {} 
-		end
-		if item.itemType:find('ninja_chakram') then 
-			return getItem(item.itemType) 
-		end
-		if item.itemType == 'light_sword' then 
-			return {tool = 'sword_wave1'} 
-		end
-		local special = specialprojectiles[item.itemType]
-		for i,v in next, ProjectileAuraBlacklist.ObjectList do 
-			if item.itemType:find(v:lower()) then 
-				return {} 
-			end 
-		end 
-		if special then 
-			return getItem(special) or {} 
-		end
-		return {}
-	end
-	local function tweenInProgress() return false end
-	ProjectileAura = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
-		Name = 'ProjectileAura',
-		HoverText = 'Automatically shoots hostile projectiles\nwithout aiming.',
-		Function = function(calling)
-			if calling then 
-				task.spawn(function()
-					repeat 
-						local range = (ProjectileAuraRange.Enabled and ProjectileAuraRangeSlider.Value or 9e9)
-						local target = AllNearPosition(range, 1, sortfunctions[ProjectileAuraSort.Value])
-						if target.RootPart and target.RootPart.Parent:FindFirstChildWhichIsA('ForceField') == nil then 
-							for i,v in next, store.localInventory.inventory.items do 
-								local ammo = getammo(v)
-								if target.Human == nil and table.find(ProjectileMobIgnore, v.itemType) or tweenInProgress() then 
-									continue 
-								end 
-								if store.matchState ~= 0 and store.equippedKit == 'dragon_sword' then 
-									bedwars.Client:Get('DragonSwordFire'):SendToServer({target = target.RootPart.Parent}) 
-								end
-								if ammo.tool then 
-									betterswitch(v.tool)
-									bedwars.Client:Get(bedwars.ProjectileRemote):CallServerAsync(v.tool, tostring(ammo.tool), tostring(ammo.tool) == 'star' and 'star_projectile' or tostring(ammo.tool) == 'mage_spell_base' and target.RootPart.Position + Vector3.new(0, 3, 0) or tostring(ammo.tool), target.RootPart.Position + Vector3.new(0, 3, 0), target.RootPart.Position + Vector3.new(0, 3, 0), Vector3.new(0, -1, 0), httpService:GenerateGUID(), {drawDurationSeconds = 1}, workspace:GetServerTimeNow(), target)
-								end
-							end
-						end
-						store.switchdelay += (ProjectileAuraDelay.Value * 0.2)
-						if tonumber(math.floor(tonumber(game:GetService("Stats"):FindFirstChild("PerformanceStats").Ping:GetValue()))) > 1000 then 
-							store.switchdelay += (store.switchdelay + 8)
-						end
-						task.wait(getItem('star') and 0 or killauraNearPlayer and 0.25 or ProjectileAuraDelay.Value + 0.15)
-					until not ProjectileAura.Enabled
-				end)
-			end
-		end
-	})
-	ProjectileAuraBlacklist = ProjectileAura.CreateTextList({
-		Name = 'Blacklisted Projectiles',
-		TempText = 'blacklisted items',
-		AddFunction = function() end
-	})
-	ProjectileAuraSort = ProjectileAura.CreateDropdown({
-		Name = 'Sort',
-		List = dumptable(sortfunctions, 1),
-		Function = function(method)
-			pcall(function() ProjectileAuraRange.Object.Visible = (method == 'Distance') end) 
-			pcall(function() ProjectileAuraRangeSlider.Object.Visible = (method == 'Distance' and ProjectileAuraRange.Enabled) end) 
-			pcall(function() ProjectileAuraMobs.Object.Visible = (method ~= 'Kit') end)
-		end
-	})
-	ProjectileAuraDelay = ProjectileAura.CreateSlider({
-		Name = 'Target Delay',
-		Min = 0,
-		Max = 60,
-		Function = function() 
-			store.switchdelay = tick() 
-		end
-	})
-	ProjectileAuraSwitchDelay = ProjectileAura.CreateSlider({
-		Name = 'Switch Delay',
-		Min = 0,
-		Max = 60,
-		Function = function() 
-			store.switchdelay = tick() 
-		end
-	})
-	ProjectileAuraRange = ProjectileAura.CreateToggle({
-		Name = 'Range Check',
-		Function = function(calling) 
-			pcall(function() ProjectileAuraRangeSlider.Object.Visible = calling end)
-		end 
-	}) 
-	ProjectileAuraRangeSlider = ProjectileAura.CreateSlider({
-		Name = 'Range',
-		Min = 5,
-		Max = 80,
-		Default = 75,
-		Function = function() end
-	})
-	ProjectileAuraMobs = ProjectileAura.CreateToggle({
-		Name = 'NPC',
-		HoverText = 'Targets NPCs too.',
-		Function = function() end 
-	})
-	ProjectileAuraRange.Object.Visible = false
-	ProjectileAuraRangeSlider.Object.Visible = false
-	ProjectileAuraMobs.Object.Visible = false
-end)--]]

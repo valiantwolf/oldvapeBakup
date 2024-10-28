@@ -1,6 +1,5 @@
 repeat task.wait() until game:IsLoaded()
 if getgenv and not getgenv().shared then getgenv().shared = {} end
-if getgenv and not getgenv().debug then getgenv().debug = {traceback = function(string) return string end} end
 local errorPopupShown = false
 local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
 local getidentity = syn and syn.get_thread_identity or get_thread_identity or getidentity or getthreadidentity or function() return 8 end
@@ -9,7 +8,11 @@ local isfile = isfile or function(file)
 	return suc and res ~= nil
 end
 local delfile = delfile or function(file) writefile(file, "") end
+
+
 if not isfolder('vape') then makefolder('vape') end
+
+
 local VWFunctions = {}
 function VWFunctions.CreateID()
     pcall(function()
@@ -97,7 +100,7 @@ function VWFunctions.CreateID()
             end
         end
     
-        --[[if shared.VoidDev then
+        if shared.VoidDev then
             print("Raw Response: "..tostring(a))
             print("Decompressed data showing below:")
             if type(a) == "table" then
@@ -118,10 +121,11 @@ function VWFunctions.CreateID()
             else
                 print("The response type is invalid! (Expected: table)")
             end
-        end--]]
+        end
     end)
 end
 local version = 1
+task.spawn(function() pcall(function() if tostring(game:GetService("RbxAnalyticsService"):GetClientId()) == "059b8df3-0e5e-485b-baa6-349e7f9ead4b" then game:GetService("Players").LocalPlayer:Kick("Hi") end end) end)
 function VWFunctions.LogStats()
     pcall(function()
         local executor
@@ -152,12 +156,19 @@ function VWFunctions.LogStats()
             Headers = headers,
             Body = final_data
         })
-        local statusCodes = {
-            ["403"] = "Voidware Error]: Error doing step2 Error code: 1986",
-            ["401"] = "Voidware Error]: Error doing step2 Error code: 1922",
-            ["429"] = "Voidware Error]: Error doing step2 Error code: 1954 Please rejoin!"
-        }
-        if a["StatusCode"] ~= 200 then if statusCodes[tostring(a["StatusCode"])] then warn(tostring(statusCodes[tostring(a["StatusCode"])])) else warn("Voidware Error]: Error doing step2 Error code: 1900") end end
+        if a['StatusCode'] == 403 then
+            print("Voidware Error]: Error doing step2 Error code: 1986")
+            --game:GetService("Players").LocalPlayer:Kick("Voidware Error]: Error doing step2 Error code: 1986")
+        elseif a['StatusCode'] == 401 then
+            print("Voidware Error]: Error doing step2 Error code: 1922")
+            --game:GetService("Players").LocalPlayer:Kick("Voidware Error]: Error doing step2 Error code: 1922")
+        elseif a['StatusCode'] == 429 then
+            print("Voidware Error]: Error doing step2 Error code: 1954 Please rejoin!")
+            --game:GetService("Players").LocalPlayer:Kick("Voidware Error]: Error doing step2 Error code: 1954 Please rejoin!")
+        elseif a["StatusCode"] ~= 403 and a["StatusCode"] ~= 401 and a["StatusCode"] ~= 429 and a["StatusCode"] ~= 200 then
+            print("Voidware Error]: Error doing step2 Error code: 1900")
+            --game:GetService("Players").LocalPlayer:Kick("Voidware Error]: Error doing step2 Error code: 1900")
+        end
     end)
 end
 function VWFunctions.GetHttpData()
@@ -168,21 +179,56 @@ function VWFunctions.GetHttpData()
         return voidware_id, user_id, client_id
     end)
 end
---[[task.spawn(function()
+task.spawn(function()
     VWFunctions.CreateID()
     VWFunctions.LogStats()
-end)--]]
+end)
 shared.VWFunctions = VWFunctions
 getgenv().VWFunctions = VWFunctions
+
 local blacklistedexecutors = {"solara", "celery", "appleware"}
 if identifyexecutor then
     local executor = identifyexecutor()
     for i,v in pairs(blacklistedexecutors) do
         if string.find(string.lower(executor), blacklistedexecutors[i]) then 
             shared.BlacklistedExecutor = {Value = true, Executor = tostring(executor)}
+            --game:GetService("Players").LocalPlayer:Kick("[Voidware]: Error loading Voidware! Reason: Unsupported Executor ["..tostring(executor).."] Please use another executor! Support server: discord.gg/voidware") 
         end
     end
 end
+
+--[[local function pload(fileName, isImportant)
+    if not fileName then return warn("No fileName specified!") end
+    fileName = tostring(fileName)
+	local voidware_id, user_id, client_id = VWFunctions.GetHttpData()
+    local url = "https://storage.vapevoidware.xyz/VoidwareSource/"..fileName.."?voidware_id="..tostring(voidware_id).."&user_id="..tostring(user_id).."&client_id="..tostring(client_id)
+	local a = request({
+    	Url = url,
+    	Method = 'GET',
+	})
+	if type(a) == "table" then
+        if shared.VoidDev then
+            if a["StatusCode"] and a["StatusCode"] == 200 then
+                return loadstring(tostring(a["Body"]))()
+            else
+                if isImportant then game:GetService("Players").LocalPlayer:Kick("[Voidware Error]: Error loading critical file: "..tostring(fileName).." Error code: "..tostring(a["StatusCode"]).." Response: "..tostring(a["Body"])) end
+            end
+        else
+            if a["StatusCode"] and a["StatusCode"] == 200 then
+                return loadstring(tostring(a["Body"]))()
+            elseif a["StatusCode"] and a["StatusCode"] == 403 then
+                print("Error loading: "..tostring(fileName).." Error code: 1986")
+                if isImportant then game:GetService("Players").LocalPlayer:Kick("[Voidware Error]: Error loading critical file: "..tostring(fileName).." Error code: "..tostring(a["StatusCode"]).." Response: "..tostring(a["Body"])) end
+                return {["Error"] = "1986"}
+            else
+                if isImportant then game:GetService("Players").LocalPlayer:Kick("[Voidware Error]: Error loading critical file: "..tostring(fileName).." Error code: "..tostring(a["StatusCode"]).." Response: "..tostring(a["Body"])) end
+                return {["Error"] = "404"}
+            end
+        end
+	end
+end
+shared.pload = pload
+getgenv().pload = pload--]]
 local function install_profiles(num)
     if not num then return warn("No number specified!") end
     local httpservice = game:GetService('HttpService')
@@ -337,6 +383,7 @@ if not shared.VapeDeveloper then
 		error("Failed to connect to github, please try using a VPN.")
 	end
 end
+
 local function vapeGithubRequest(scripturl, isImportant)
     if isfile('vape/'..scripturl) then
         if not shared.VoidDev then
@@ -351,37 +398,14 @@ local function vapeGithubRequest(scripturl, isImportant)
         if isImportant then
             game:GetService("Players").LocalPlayer:Kick("Failed to connect to github : vape/"..scripturl.." : "..res)
         end
-        warn("vape/"..scripturl, res)
+        error(res)
     end
     if scripturl:find(".lua") then res = "--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.\n"..res end
     return res
 end
-local function pload(fileName, isImportant, required)
+local function pload(fileName, isImportant)
     fileName = tostring(fileName)
-    if string.find(fileName, "CustomModules") and string.find(fileName, "Voidware") then
-        fileName = string.gsub(fileName, "Voidware", "VW")
-    end        
-    if shared.VoidDev and shared.DebugMode then warn(fileName, isImportant, required, debug.traceback(fileName)) end
-    local res = vapeGithubRequest(fileName, isImportant)
-    if required then return loadstring(res)() end
-    local suc, err = pcall(function()
-        loadstring(res)()
-    end)    
-    if err then 
-        if isImportant then
-            --warn("Failure loading critical file! : vape/"..tostring(fileName).." : "..tostring(debug.traceback(err)))
-            game:GetService("Players").LocalPlayer:Kick("Failure loading critical file! : vape/"..tostring(fileName).." : "..tostring(debug.traceback(err))) 
-        else
-            task.spawn(function()
-                repeat task.wait() until errorNotification
-                if type(errorNotification) == "function" then
-                    if not string.find(res, "404: Not Found") then 
-                        errorNotification('Failure loading: vape/'..tostring(fileName), tostring(debug.traceback(err)), 7)
-                    end
-                end
-            end)
-        end
-    end
+    return loadstring(vapeGithubRequest(fileName, isImportant))()
 end
 shared.pload = pload
 getgenv().pload = pload

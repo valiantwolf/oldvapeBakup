@@ -13,13 +13,6 @@ GuiLibrary.SelfDestructEvent.Event:Connect(function()
 	end
 end)
 
-local function run(func)
-	local suc, err = pcall(function()
-		func()
-	end)
-	if err then warn("[VW6872265039.lua Module Error]: "..tostring(debug.traceback(err))) end
-end
-
 local lplr = game:GetService("Players").LocalPlayer
 
 local bedwars = shared.GlobalBedwars
@@ -32,7 +25,7 @@ local function BedwarsInfoNotification(mes)
 		image = "rbxassetid://18518244636"
 	});
 end
-VoidwareFunctions.GlobaliseObject("BedwarsInfoNotification", BedwarsInfoNotification)
+getgenv().BedwarsInfoNotification = BedwarsInfoNotification
 local function BedwarsErrorNotification(mes)
     local bedwars = shared.GlobalBedwars
 	local NotificationController = bedwars.NotificationController
@@ -41,7 +34,7 @@ local function BedwarsErrorNotification(mes)
 		image = "rbxassetid://18518244636"
 	});
 end
-VoidwareFunctions.GlobaliseObject("BedwarsErrorNotification", BedwarsErrorNotification)
+getgenv().BedwarsErrorNotification = BedwarsErrorNotification
 
 local function queue()
 	local args = {
@@ -532,11 +525,11 @@ run(function()
 	}) 
 end)
 
---[[run(function()
+run(function()
     local LeaderboardEditor = {Enabled = false}
     local RankIconTable = {["Emerald"] = "rbxassetid://12599231807",["Nightmare"] = "rbxassetid://7904292926",["Voidware"] = "rbxassetid://18518244636"}
     local AllowedMethods = {["Place"] = true,["Username"] = true,["RP"] = true}
-    local AllowedEditMethods = {["Place"] = true,["Username"] = true,["RP"] = true, ["CrownIconColor"] = true, ["RankIcon"] = true, ["RankName"] = true}
+    local AllowedEditMethods = {["Place"] = true,["Username"] = true,["RP"] = true, ["CrownIconColor"] = true, ["RankIcon"] = true, --[[["ProfileImage"] = true,--]] ["RankName"] = true}
     local ExtraFunctions = {extractUsername = function(richText) return richText:match("@</font></b>(.+)") end, extractNumberBeforeRP = function(text) return tonumber(text:match("<b>(%d+)%sRP</b>")) end, extractBoldText = function(text) return text:match("<b>(.-)</b>") end, resolvePlayerUserID = function(username) return game:GetService("Players"):GetUserIdFromNameAsync(username) end, resolveProfileImage = function(userid) return "rbxthumb://type=AvatarHeadShot&id="..tostring(userid).."&w=60&h=60" end, resolveUsername = function(username) return string.format('<b><font color="rgb(185, 188, 255)">@</font></b>%s', username) end, resolveNumberBeforeRP = function(number) return string.format('<b>%d RP</b>', number) end, resolveBoldText = function(text) return string.format('<b>%s</b>', text) end, resolveIconID = function(iconName) return RankIconTable[iconName] end, fetchDefaultTable = function() return {Place = nil, CrownIcon = nil, User = {Name = nil, Profile = nil}, Rank = {Name = nil, Icon = nil, RP = nil}} end}
     local function getBoard()
         --assert(game.workspace:findFirstChild("Lobby") and game.workspace:findFirstChild("Lobby").ClassName == "Folder", "Error finding Lobby folder in workspace!")
@@ -683,6 +676,18 @@ end)
             --else
               --  print("[2]", i)
             end
+            --[[if LeaderboardEditor_Types[i] or i == "Place" then
+                if ((not LeaderboardEditor_Types[i]) and i == "Place") or (LeaderboardEditor_Types[i] and LeaderboardEditor_Types[i].Enabled) then
+                    if i == "Username" then
+                        validated[i] = v[Leaderboard_AddOnCreator_Helper[i].ResType]
+                        validated["ProfileImage"] = v[Leaderboard_AddOnCreator_Helper[i].ResType]
+                    elseif i == "CrownIconColor" then
+                        validated[i] = Color3.new(v.Hue, v.Sat, v.Value)
+                    else
+                        validated[i] = v[Leaderboard_AddOnCreator_Helper[i].ResType]
+                    end
+                end
+            end--]] -- old check v1
         end
         --print(game:GetService("HttpService"):JSONEncode(validated))
         return validated
@@ -732,7 +737,7 @@ end)
     for i,v in pairs(LeaderboardEditor_Types) do if i ~= "Place" then v = LeaderboardEditor.CreateToggle({Name = i, Function = function(call) fetchObjectData(i).Object.Visible = call end}) end end
 
     checkAddOns()
-end)--]]
+end)
 
 local ReportDetector_Cooldown = 0
 run(function()
