@@ -7684,7 +7684,7 @@ run(function()
 				task.spawn(function()
 					repeat task.wait() until store.equippedKit ~= ""
 					if AutoKit.Enabled then
-						if AutoKit_Functions[store.equippedKit] then task.spawn(AutoKit_Functions[store.equippedKit]()) end
+						if AutoKit_Functions[store.equippedKit] then task.spawn(AutoKit_Functions[store.equippedKit]) end
 					end
 				end)
 			else
