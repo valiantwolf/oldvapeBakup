@@ -86,7 +86,7 @@ local function downloadVapeAsset(path)
 			textlabel.TextColor3 = Color3.new(1, 1, 1)
 			textlabel.Position = UDim2.new(0, 0, 0, -36)
 			textlabel.Parent = GuiLibrary.MainGui
-			repeat task.wait() until isfile(path)
+			task.wait(0.1)
 			textlabel:Destroy()
 		end)
 		local suc, req = pcall(function() return vapeGithubRequest(path:gsub("vape/assets", "assets")) end)
@@ -114,19 +114,19 @@ local function removeTags(str)
 	return (str:gsub("<[^<>]->", ""))
 end
 
-local function run(func) 
-	task.spawn(function()
-		local suc, err = pcall(function()
-			func()
-		end)
-		if err then
-			warn("Error loading a module! Error: "..tostring(err))
-		end
+local function run(func)
+	local suc, err = pcall(function()
+		func()
 	end)
+	if err then warn("[Universal.lua Module Error]: "..tostring(debug.traceback(err))) end
 end
 
-shared.run = run
-getgenv().run = run
+shared.run = function(func)
+	local suc, err = pcall(function()
+		func()
+	end)
+	if err then warn("[Unknown.lua Module Error]: "..tostring(debug.traceback(err))) end
+end
 
 local function isFriend(plr, recolor)
 	if GuiLibrary.ObjectsThatCanBeSaved["Use FriendsToggle"].Api.Enabled then
@@ -1201,6 +1201,15 @@ shared.vapewhitelist = whitelist
 	until (not shared.VapeExecuted)
 end)--]]
 
+GuiLibrary.SelfDestructEvent.Event:Connect(function()
+	vapeInjected = false
+	pcall(function() entityLibrary.selfDestruct() end)
+	for i, v in pairs(vapeConnections) do
+		if v.Disconnect then pcall(function() v:Disconnect() end) continue end
+		if v.disconnect then pcall(function() v:disconnect() end) continue end
+	end
+end)
+
 local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
 do
 	function RunLoops:BindToRenderStep(name, func)
@@ -1242,15 +1251,7 @@ do
 		end
 	end
 end
-
-GuiLibrary.SelfDestructEvent.Event:Connect(function()
-	vapeInjected = false
-	pcall(function() entityLibrary.selfDestruct() end)
-	for i, v in pairs(vapeConnections) do
-		if v.Disconnect then pcall(function() v:Disconnect() end) continue end
-		if v.disconnect then pcall(function() v:disconnect() end) continue end
-	end
-end)
+VoidwareFunctions.GlobaliseObject("RunLoops", RunLoops)
 
 run(function()
 	local radargameCamera = Instance.new("Camera")
@@ -1308,7 +1309,7 @@ run(function()
 	table.insert(vapeConnections, Radar.GetCustomChildren().Parent:GetPropertyChangedSignal("Size"):Connect(function()
 		RadarFrame.Position = UDim2.new(0, 0, 0, (Radar.GetCustomChildren().Parent.Size.Y.Offset == 0 and 45 or 0))
 	end))
-	GuiLibrary.ObjectsThatCanBeSaved.GUIWindow.Api.CreateToggle({
+	GuiLibrary.ObjectsThatCanBeSaved.GUIWindow.Api.CreateCustomToggle({
 		Name = "Radar",
 		Icon = "vape/assets/RadarIcon2.png",
 		Function = function(callback)
@@ -1364,7 +1365,7 @@ run(function()
 			end
 		end,
 		Priority = 1
-	}, true)
+	})
 end)
 
 run(function()
