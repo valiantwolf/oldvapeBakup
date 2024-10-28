@@ -1,3 +1,4 @@
+
 repeat task.wait() until game:IsLoaded()
 repeat task.wait() until shared.GuiLibrary
 
@@ -56,7 +57,7 @@ local colors = {
 }
 VoidwareFunctions.GlobaliseObject("ColorTable", colors)
 VoidwareFunctions.LoadFunctions("Universal")
-VWFunctions.LoadServices()
+VoidwareFunctions.LoadServices()
 
 local lplr = game:GetService("Players").LocalPlayer
 local lightingService = game:GetService("Lighting")
