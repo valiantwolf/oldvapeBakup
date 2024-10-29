@@ -8815,6 +8815,7 @@ end)
 run(function()
 	local Nuker = {Enabled = false}
 	local nukerrange = {Value = 1}
+	local nukerslowmode = {Value = 0.2}
 	local nukereffects = {Enabled = false}
 	local nukeranimation = {Enabled = false}
 	local nukernofly = {Enabled = false}
@@ -8863,6 +8864,7 @@ run(function()
 												local res2, amount2 = getBestBreakSide(obj.Position + Vector3.new(0, 0, 3))
 												broke = true
 												bedwars.breakBlock((amount < amount2 and obj.Position or obj.Position + Vector3.new(0, 0, 3)), nukereffects.Enabled, (amount < amount2 and res or res2), false, nukeranimation.Enabled)
+												task.wait(nukerslowmode.Value)
 												break
 											end
 										end
@@ -8892,6 +8894,17 @@ run(function()
 			end
 		end,
 		HoverText = "Automatically destroys beds & luckyblocks around you."
+	})
+	local NukerSlowmode = Nuker.CreateTextLabel({
+		Name = "BreakSlowmode",
+		Text = "BreakSlowmode: "..tostring(nukerslowmode.Value)
+	})
+	nukerslowmode = Nuker.CreateSlider({
+		Name = "Break Slowmode",
+		Min = 0,
+		Max = 1,
+		Function = function(val) NukerSlowmode.EditText("BreakSlowmode: "..tostring(val)) end,
+		Default = 0.2
 	})
 	nukerrange = Nuker.CreateSlider({
 		Name = "Break range",
