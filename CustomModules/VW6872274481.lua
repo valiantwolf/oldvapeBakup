@@ -12,6 +12,8 @@ local store = shared.GlobalStore
 local bedwars = shared.GlobalBedwars
 if (not shared.GlobalBedwars) or (shared.GlobalBedwars and type(shared.GlobalBedwars) ~= "table") or (not shared.GlobalStore) or (shared.GlobalStore and type(shared.GlobalStore) ~= "table") then
 	errorNotification("VW-BEDWARS", "Critical! Important connection is missing! Please report this buy to erchodev#0", 10)
+	local delfile = delfile or function(file) writefile(file, "") end
+	if isfile('vape/CustomModules/6872274481.lua') then delfile('vape/CustomModules/6872274481.lua') end
 end
 local entityLibrary = shared.vapeentity
 local RunLoops = shared.RunLoops
