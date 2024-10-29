@@ -1977,6 +1977,9 @@ if (not shared.NoAutoExecute) and (not shared.TestingMode) then
 			if shared.VapeCustomProfile then
 				teleportScript = "shared.VapeCustomProfile = '"..shared.VapeCustomProfile.."'\n"..teleportScript
 			end
+			if shared.TestingMode then
+				teleportScript = 'shared.TestingMode = true\n'..teleportScript
+			end
 			--GuiLibrary.SaveSettings()
 			queueonteleport(teleportScript)
 		end
@@ -2024,6 +2027,9 @@ if shared.TestingMode then
 			end
 			if shared.VapeCustomProfile then
 				teleportScript = "shared.VapeCustomProfile = '"..shared.VapeCustomProfile.."'\n"..teleportScript
+			end
+			if shared.TestingMode then
+				teleportScript = 'shared.TestingMode = true\n'..teleportScript
 			end
 			--GuiLibrary.SaveSettings()
 			queueonteleport(teleportScript)
