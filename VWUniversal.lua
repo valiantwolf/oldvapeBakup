@@ -1212,7 +1212,7 @@ end)
 	end)
 end)--]]
 
-local cooldown = 0
+--[[local cooldown = 0
 run(function() 
 	local function setCooldown()
 		cooldown = 5
@@ -1396,7 +1396,7 @@ run(function()
 			end
 		end
 	})
-end)
+end)--]]
 
 local vapeConnections
 if shared.vapeConnections and type(shared.vapeConnections) == "table" then vapeConnections = shared.vapeConnections else vapeConnections = {}; shared.vapeConnections = vapeConnections; end
