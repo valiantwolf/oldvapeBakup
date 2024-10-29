@@ -369,8 +369,14 @@ local function pload(fileName, isImportant, required)
     end)    
     if err then 
         if isImportant then
+            if (not string.find(string.lower(err), "vape already injected")) then
+                task.spawn(function()
+                    repeat task.wait() until errorNotification
+                    errorNotification("Failure loading critical file! : vape/"..tostring(fileName), " : "..tostring(debug.traceback(err)), 10) 
+                end)
+            end
             --warn("Failure loading critical file! : vape/"..tostring(fileName).." : "..tostring(debug.traceback(err)))
-            if (not string.find(string.lower(err), "vape already injected")) then game:GetService("Players").LocalPlayer:Kick("Failure loading critical file! : vape/"..tostring(fileName).." : "..tostring(debug.traceback(err))) end
+            --if (not string.find(string.lower(err), "vape already injected")) then game:GetService("Players").LocalPlayer:Kick("Failure loading critical file! : vape/"..tostring(fileName).." : "..tostring(debug.traceback(err))) end
         else
             task.spawn(function()
                 repeat task.wait() until errorNotification
