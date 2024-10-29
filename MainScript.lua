@@ -1933,7 +1933,7 @@ GUISettings.CreateSlider({
 })
 local GUIbind = GUI.CreateGUIBind()
 local teleportConnection
-if not shared.NoAutoExecute then
+if (not shared.NoAutoExecute) and (not shared.TestingMode) then
 	teleportConnection = playersService.LocalPlayer.OnTeleport:Connect(function(State)
 		if (not teleportedServers) and (not shared.VapeIndependent) then
 			teleportedServers = true
@@ -1980,6 +1980,54 @@ if not shared.NoAutoExecute then
 			--GuiLibrary.SaveSettings()
 			queueonteleport(teleportScript)
 		end
+	end)
+end
+if shared.TestingMode then
+	task.spawn(function()
+		pcall(function()
+			local teleportScript = [[
+				repeat task.wait() until game:IsLoaded()
+				shared.VapeSwitchServers = true
+				if shared.VapeDeveloper or shared.VoidDev then
+					if isfile('vape/NewMainScript.lua') then
+						loadstring(readfile("vape/NewMainScript.lua"))()
+					else
+						loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/main/NewMainScript.lua", true))()
+					end
+				else
+					loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/main/NewMainScript.lua", true))()
+				end
+			]]
+			if shared.VapeDeveloper then
+				teleportScript = 'shared.VapeDeveloper = true\n'..teleportScript
+			end
+			if shared.VoidDev then
+				teleportScript = 'shared.VoidDev = true\n'..teleportScript
+			end
+			if shared.ClosetCheatMode then
+				teleportScript = 'shared.ClosetCheatMode = true\n'..teleportScript
+			end
+			if shared.VapePrivate then
+				teleportScript = 'shared.VapePrivate = true\n'..teleportScript
+			end
+			if shared.NoVoidwareModules then
+				teleportScript = 'shared.NoVoidwareModules = true\n'..teleportScript
+			end
+			if shared.ProfilesDisabled then
+				teleportScript = 'shared.ProfilesDisabled = true\n'..teleportScript
+			end
+			if shared.NoAutoExecute then
+				teleportScript = 'shared.NoAutoExecute = true\n'..teleportScript
+			end
+			if shared.TeleportExploitAutowinEnabled then
+				teleportScript = 'shared.TeleportExploitAutowinEnabled = true\n'..teleportScript
+			end
+			if shared.VapeCustomProfile then
+				teleportScript = "shared.VapeCustomProfile = '"..shared.VapeCustomProfile.."'\n"..teleportScript
+			end
+			--GuiLibrary.SaveSettings()
+			queueonteleport(teleportScript)
+		end)
 	end)
 end
 GuiLibrary.SelfDestruct = function()
