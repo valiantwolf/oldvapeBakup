@@ -1990,15 +1990,18 @@ if shared.TestingMode then
 		pcall(function()
 			local teleportScript = [[
 				repeat task.wait() until game:IsLoaded()
-				shared.VapeSwitchServers = true
-				if shared.VapeDeveloper or shared.VoidDev then
-					if isfile('vape/NewMainScript.lua') then
-						loadstring(readfile("vape/NewMainScript.lua"))()
+				if (not shared.VWEXECUTED) then
+					shared.VapeSwitchServers = true
+					shared.VWEXECUTED = true
+					if shared.VapeDeveloper or shared.VoidDev then
+						if isfile('vape/NewMainScript.lua') then
+							loadstring(readfile("vape/NewMainScript.lua"))()
+						else
+							loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/main/NewMainScript.lua", true))()
+						end
 					else
 						loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/main/NewMainScript.lua", true))()
 					end
-				else
-					loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/main/NewMainScript.lua", true))()
 				end
 			]]
 			if shared.VapeDeveloper then
