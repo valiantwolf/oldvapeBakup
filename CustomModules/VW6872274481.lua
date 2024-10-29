@@ -22,8 +22,8 @@ local VoidwareStore = {
 	Tweening = false
 }
 
-VWFunctions.GlobaliseObject("lplr", game:GetService("Players").LocalPlayer)
-VWFunctions.LoadFunctions("Bedwars")
+VoidwareFunctions.GlobaliseObject("lplr", game:GetService("Players").LocalPlayer)
+VoidwareFunctions.LoadFunctions("Bedwars")
 
 local function BedwarsInfoNotification(mes)
     local bedwars = shared.GlobalBedwars
