@@ -9774,9 +9774,13 @@ run(function()
     })
 end)
 
-shared.GlobalStore = store
-shared.GlobalBedwars = bedwars
-shared.VapeBWLoaded = true
+VoidwareFunctions.GlobaliseObject("store", store)
+VoidwareFunctions.GlobaliseObject("GlobalStore", store)
+
+VoidwareFunctions.GlobaliseObject("bedwars", bedwars)
+VoidwareFunctions.GlobaliseObject("GlobalBedwars", bedwars)
+
+VoidwareFunctions.GlobaliseObject("VapeBWLoaded", true)
 local function createMonitoredTable(originalTable, onChange)
     local proxy = {}
     local mt = {
@@ -9794,11 +9798,13 @@ local function createMonitoredTable(originalTable, onChange)
 end
 local function onChange(key, oldValue, newValue)
    --print("Changed key:", key, "from", oldValue, "to", newValue)
-    shared.GlobalStore = store
+   	VoidwareFunctions.GlobaliseObject("store", store)
+	VoidwareFunctions.GlobaliseObject("GlobalStore", store)
 end
 local function onChange2(key, oldValue, newValue)
 	--print("Changed key:", key, "from", oldValue, "to", newValue)
-	 shared.GlobalBedwars = bedwars
+	VoidwareFunctions.GlobaliseObject("bedwars", bedwars)
+	VoidwareFunctions.GlobaliseObject("GlobalBedwars", bedwars)
  end
 
 store = createMonitoredTable(store, onChange)
