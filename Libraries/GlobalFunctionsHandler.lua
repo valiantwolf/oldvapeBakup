@@ -1,12 +1,5 @@
 local VData = {}
 
-assert(not shared.GlobalFunctionsExecuted, "GlobalFunctionsHandler Already Injected")
-shared.GlobalFunctionsExecuted = true
-
-VoidwareFunctions.SelfDestructEvent.Event:Connect(function()
-    shared.GlobalFunctionsExecuted = nil
-end)   
-
 local Api_Url = "https://whitelist.vapevoidware.xyz/GlobalFunctions.json"
 
 function VData.GetUserSha(plr)
