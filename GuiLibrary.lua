@@ -154,34 +154,34 @@ if shared.VapeExecuted then
 	end
 
 	local function downloadVapeAsset(path)
-		if customassetcheck then
-			if not isfile(path) then
-				task.spawn(function()
-					local textlabel = Instance.new("TextLabel")
-					textlabel.Size = UDim2.new(1, 0, 0, 36)
-					textlabel.Text = "Downloading "..path
-					textlabel.BackgroundTransparency = 1
-					textlabel.TextStrokeTransparency = 0
-					textlabel.TextSize = 30
-					textlabel.Font = Enum.Font.SourceSans
-					textlabel.TextColor3 = Color3.new(1, 1, 1)
-					textlabel.Position = UDim2.new(0, 0, 0, -36)
-					textlabel.Parent = GuiLibrary.MainGui
-					task.wait(0.1)
-					textlabel:Destroy()
-				end)
-				local suc, req = pcall(function() return vapeGithubRequest(path:gsub("vape/assets", "assets")) end)
-				if suc and req then
-					writefile(path, req)
-				else
-					return ""
+		if shared.TestingMode then 
+			return vapeAssetTable[path] or ""
+		else
+			if customassetcheck then
+				if not isfile(path) then
+					task.spawn(function()
+						local textlabel = Instance.new("TextLabel")
+						textlabel.Size = UDim2.new(1, 0, 0, 36)
+						textlabel.Text = "Downloading "..path
+						textlabel.BackgroundTransparency = 1
+						textlabel.TextStrokeTransparency = 0
+						textlabel.TextSize = 30
+						textlabel.Font = Enum.Font.SourceSans
+						textlabel.TextColor3 = Color3.new(1, 1, 1)
+						textlabel.Position = UDim2.new(0, 0, 0, -36)
+						textlabel.Parent = GuiLibrary.MainGui
+						task.wait(0.1)
+						textlabel:Destroy()
+					end)
+					local suc, req = pcall(function() return vapeGithubRequest(path:gsub("vape/assets", "assets")) end)
+					if suc and req then
+						writefile(path, req)
+					else
+						return ""
+					end
 				end
 			end
-		end
-		if not vapeCachedAssets[path] then vapeCachedAssets[path] = getcustomasset(path) end
-		if shared.TestingMode then 
-			return vapeAssetTable[path] 
-		else
+			if not vapeCachedAssets[path] then vapeCachedAssets[path] = getcustomasset(path) end
 			return vapeCachedAssets[path]
 		end
 	end
