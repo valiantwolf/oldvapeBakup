@@ -179,7 +179,11 @@ if shared.VapeExecuted then
 			end
 		end
 		if not vapeCachedAssets[path] then vapeCachedAssets[path] = getcustomasset(path) end
-		return vapeCachedAssets[path]
+		if shared.TestingMode then 
+			return vapeAssetTable[path] 
+		else
+			return vapeCachedAssets[path]
+		end
 	end
 
 	GuiLibrary["UpdateHudEvent"] = Instance.new("BindableEvent")
