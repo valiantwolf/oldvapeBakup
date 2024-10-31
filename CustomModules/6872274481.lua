@@ -823,7 +823,7 @@ local function AllNearPosition(distance, amount, sortfunction, prediction, npcIn
 			end
 		end
 		for i, v in pairs(entityLibrary.entityList) do
-			if not v.Targetable then end
+			if not v.Targetable then continue end
 			if isVulnerable(v) then
 				local playerPosition = v.RootPart.Position
 				local mag = (entityLibrary.character.HumanoidRootPart.Position - playerPosition).magnitude
