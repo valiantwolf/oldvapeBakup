@@ -804,6 +804,7 @@ if shared.VapeExecuted then
 				end
 			end
 			for i,v in pairs(result) do
+				if shared.TestingMode then task.wait(shared.LoadSlowmode or 0.05) end
 				local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
 				if obj then
 					if v.Type == "OptionsButton" then
