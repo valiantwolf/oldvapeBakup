@@ -3427,7 +3427,7 @@ run(function()
 						if shared.TestingMode then
 							plrs = {EntityNearPosition(killaurarange.Value, false)}
 						else
-							AllNearPosition(killaurarange.Value, 10, killaurasortmethods[killaurasortmethod.Value], true)
+							plrs = AllNearPosition(killaurarange.Value, 10, killaurasortmethods[killaurasortmethod.Value], true)
 						end
 					local firstPlayerNear
 					if #plrs > 0 then
