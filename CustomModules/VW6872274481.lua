@@ -4480,122 +4480,124 @@ run(function()
 end)
 --]]
 
-local StaffDetector = {Enabled = false}
-run(function()
-	local TPService = game:GetService('TeleportService')
-	local HTTPService = game:GetService("HttpService")
-	local StaffDetector_Connections = {}
-	local StaffDetector_Functions = {}
-	local StaffDetector_Action = {
-		DropdownValue = {Value = "Uninject"},
-		FunctionsTable = {
-			["Uninject"] = function()
-				GuiLibrary.SelfDestruct()
-			end, 
-			["Panic"] = function() 
-				task.spawn(function()
-					coroutine.close(shared.saveSettingsLoop)
-				end)
-				GuiLibrary.SaveSettings()
-				function GuiLibrary.SaveSettings()
-					return warningNotification("StaffDetector", "Saving Settings has been prevented from staff detector!", 1.5)
+pcall(function()
+	local StaffDetector = {Enabled = false}
+	run(function()
+		local TPService = game:GetService('TeleportService')
+		local HTTPService = game:GetService("HttpService")
+		local StaffDetector_Connections = {}
+		local StaffDetector_Functions = {}
+		local StaffDetector_Action = {
+			DropdownValue = {Value = "Uninject"},
+			FunctionsTable = {
+				["Uninject"] = function()
+					GuiLibrary.SelfDestruct()
+				end, 
+				["Panic"] = function() 
+					task.spawn(function()
+						coroutine.close(shared.saveSettingsLoop)
+					end)
+					GuiLibrary.SaveSettings()
+					function GuiLibrary.SaveSettings()
+						return warningNotification("StaffDetector", "Saving Settings has been prevented from staff detector!", 1.5)
+					end
+					warningNotification("StaffDetector", "Saving settings has been disabled!", 1.5)
+					task.spawn(function()
+						repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton
+						shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton.Api.ToggleButton(false)
+					end)
+				end,
+				["Lobby"] = function() 
+					TPService:Teleport(6872265039)
 				end
-				warningNotification("StaffDetector", "Saving settings has been disabled!", 1.5)
-				task.spawn(function()
-					repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton
-					shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton.Api.ToggleButton(false)
-				end)
-			end,
-			["Lobby"] = function() 
-				TPService:Teleport(6872265039)
-			end
-		},
-	}
-	function StaffDetector_Functions.SaveStaffData(staff, detection_type)
-		local suc, err = pcall(function()
-			return HTTPService:JSONDecode(readfile('vape/Libraries/StaffData.json'))
-		end)
-		local json = {}
-		if suc then
-			json = err
-		end
-		table.insert(json,{
-			StaffName = staff.DisplayName.."(@"..staff.Name..")",
-			Time = os.time(),
-			DetectionType = detection_type
-		})
-		if (not isfolder('vape/Libraries')) then makefolder('vape/Libraries') end
-		writefile('vape/Libraries/StaffData.json', HTTPService:JSONEncode(json))
-	end
-	function StaffDetector_Functions.Notify(text)
-		game:GetService('StarterGui'):SetCore(
-			'ChatMakeSystemMessage', 
-			{
-				Text = text, 
-				Color = Color3.fromRGB(255, 0, 0), 
-				Font = Enum.Font.GothamBold,
-				FontSize = Enum.FontSize.Size24
-			}
-		)
-	end
-	function StaffDetector_Functions.Trigger(plr, det_type, addInfo)
-		StaffDetector_Functions.SaveStaffData(plr, det_type)
-		local text = plr.DisplayName.."(@"..plr.Name..") has been detected as staff via "..det_type.." detection type! "..StaffDetector_Action.DropdownValue.." action type will be used shortly."
-		if addInfo then text = text.." Additonal Info: "..addInfo end
-		StaffDetector_Functions.Notify(text)
-		StaffDetector_Action.FunctionsTable[StaffDetector_Action.DropdownValue]()
-	end
-	local function checkPlr(plr)
-		local KnitGotten, KnitClient
-		repeat
-			KnitGotten, KnitClient = pcall(function()
-				return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6)
+			},
+		}
+		function StaffDetector_Functions.SaveStaffData(staff, detection_type)
+			local suc, err = pcall(function()
+				return HTTPService:JSONDecode(readfile('vape/Libraries/StaffData.json'))
 			end)
-			if KnitGotten then break end
-			task.wait()
-		until KnitGotten
-		repeat task.wait() until debug.getupvalue(KnitClient.Start, 1)
-		local PermissionController = KnitClient.Controllers.PermissionController
-		local isStaff = KnitClient.Controllers.PermissionController:isStaffMember(plr)
-		if isStaff then StaffDetector_Functions.Trigger(plr, "PermissionController") end
-	end
-	StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-		Name = "StaffDetector [NEW]",
-		Function = function(call)
-			if call then
-				for i,v in pairs(game:GetService("Players"):GetPlayers()) do
-					if v ~= game:GetService("Players").LocalPlayer then
-						checkPlr(v)
+			local json = {}
+			if suc then
+				json = err
+			end
+			table.insert(json,{
+				StaffName = staff.DisplayName.."(@"..staff.Name..")",
+				Time = os.time(),
+				DetectionType = detection_type
+			})
+			if (not isfolder('vape/Libraries')) then makefolder('vape/Libraries') end
+			writefile('vape/Libraries/StaffData.json', HTTPService:JSONEncode(json))
+		end
+		function StaffDetector_Functions.Notify(text)
+			game:GetService('StarterGui'):SetCore(
+				'ChatMakeSystemMessage', 
+				{
+					Text = text, 
+					Color = Color3.fromRGB(255, 0, 0), 
+					Font = Enum.Font.GothamBold,
+					FontSize = Enum.FontSize.Size24
+				}
+			)
+		end
+		function StaffDetector_Functions.Trigger(plr, det_type, addInfo)
+			StaffDetector_Functions.SaveStaffData(plr, det_type)
+			local text = plr.DisplayName.."(@"..plr.Name..") has been detected as staff via "..det_type.." detection type! "..StaffDetector_Action.DropdownValue.." action type will be used shortly."
+			if addInfo then text = text.." Additonal Info: "..addInfo end
+			StaffDetector_Functions.Notify(text)
+			StaffDetector_Action.FunctionsTable[StaffDetector_Action.DropdownValue]()
+		end
+		local function checkPlr(plr)
+			local KnitGotten, KnitClient
+			repeat
+				KnitGotten, KnitClient = pcall(function()
+					return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6)
+				end)
+				if KnitGotten then break end
+				task.wait()
+			until KnitGotten
+			repeat task.wait() until debug.getupvalue(KnitClient.Start, 1)
+			local PermissionController = KnitClient.Controllers.PermissionController
+			local isStaff = KnitClient.Controllers.PermissionController:isStaffMember(plr)
+			if isStaff then StaffDetector_Functions.Trigger(plr, "PermissionController") end
+		end
+		StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+			Name = "StaffDetector [NEW]",
+			Function = function(call)
+				if call then
+					for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+						if v ~= game:GetService("Players").LocalPlayer then
+							checkPlr(v)
+						end
+					end
+					local con = game:GetService("Players").PlayerAdded:Connect(function(plr)
+						if StaffDetector.Enabled then checkPlr(plr) end
+					end)
+					table.insert(StaffDetector_Connections, con)
+				else
+					for i, v in pairs(StaffDetector_Connections) do
+						if v.Disconnect then pcall(function() v:Disconnect() end) continue end
+						if v.disconnect then pcall(function() v:disconnect() end) continue end
 					end
 				end
-				local con = game:GetService("Players").PlayerAdded:Connect(function(plr)
-					if StaffDetector.Enabled then checkPlr(plr) end
-				end)
-				table.insert(StaffDetector_Connections, con)
-			else
-				for i, v in pairs(StaffDetector_Connections) do
-                    if v.Disconnect then pcall(function() v:Disconnect() end) continue end
-                    if v.disconnect then pcall(function() v:disconnect() end) continue end
-                end
 			end
-		end
-	})
-	for i,v in pairs(StaffDetector_Action.FunctionsTable) do table.insert(list, i) end
-	StaffDetector_Action.DropdownValue = StaffDetector.CreateDropdown({
-        Name = 'Action',
-        List = list,
-        Function = function() end
-    })
-end)
-
-task.spawn(function()
-	pcall(function()
-		repeat task.wait() until shared.VapeFullyLoaded
-		if (not StaffDetector.Enabled) then
-			StaffDetector.ToggleButton(false)
-		end
+		})
+		for i,v in pairs(StaffDetector_Action.FunctionsTable) do table.insert(list, i) end
+		StaffDetector_Action.DropdownValue = StaffDetector.CreateDropdown({
+			Name = 'Action',
+			List = list,
+			Function = function() end
+		})
 	end)
-end)
+	
+	task.spawn(function()
+		pcall(function()
+			repeat task.wait() until shared.VapeFullyLoaded
+			if (not StaffDetector.Enabled) then
+				StaffDetector.ToggleButton(false)
+			end
+		end)
+	end)
+end)	
 
 --[[local isEnabled = function() return false end
 local function isEnabled(module)
