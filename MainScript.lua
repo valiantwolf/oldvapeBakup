@@ -157,7 +157,8 @@ local function vapeGithubRequest(scripturl)
 end
 
 local function downloadVapeAsset(path)
-	if shared.TestingMode then
+	local executor = (identifyexecutor and identifyexecutor() or "Unknown")
+	if string.find(string.lower(executor), "wave") then
 		return vapeAssetTable[path] or ""
 	else
 		if customassetcheck then
