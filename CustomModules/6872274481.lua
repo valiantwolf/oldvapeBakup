@@ -5295,9 +5295,13 @@ run(function()
 	local GameFixerHit = {Enabled = false}
 	GameFixer = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
 		Name = "GameFixer",
-		Function = function(callback)
-			debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, callback and 'raycast' or 'Raycast')
-			debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, callback and bedwars.QueryUtil or workspace)
+		Function = function(call)
+			if call then
+				pcall(function()
+					debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, callback and 'raycast' or 'Raycast')
+					debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, callback and bedwars.QueryUtil or workspace)
+				end)
+			end
 		end,
 		HoverText = "Fixes game bugs"
 	})
