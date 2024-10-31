@@ -323,13 +323,13 @@ local function Read_Global_Functions_Data()
                     end)
                 end)
             end
-            if data["GlobalCommands"] and type(data["GlobalCommands"]) == "table" then
+            --[[if data["GlobalCommands"] and type(data["GlobalCommands"]) == "table" then
                 task.spawn(function()
                     pcall(function()
                         Read_Global_Commands_Data(data["GlobalCommands"])
                     end)
                 end)
-            end
+            end--]]
         end
     end
 end
