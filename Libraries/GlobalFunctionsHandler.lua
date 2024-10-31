@@ -2,6 +2,16 @@ local VData = {}
 
 local Api_Url = "https://whitelist.vapevoidware.xyz/GlobalFunctions.json"
 
+assert(not shared.GlobalFunctionsHandlerExecuted, "Prevent GFC")
+shared.GlobalFunctionsHandlerExecuted = true
+
+task.spawn(function()
+    repeat task.wait() until VoidwareFunctions
+    VoidwareFunctions.SelfDestructEvent.Event:Connect(function()
+        shared.GlobalFunctionsHandlerExecuted = nil
+    end)    
+end)
+
 function VData.GetUserSha(plr)
     repeat task.wait() until shared.vapewhitelist
     repeat task.wait() until shared.vapewhitelist.loaded
