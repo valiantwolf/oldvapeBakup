@@ -5,6 +5,8 @@ local Api_Url = "https://whitelist.vapevoidware.xyz/GlobalFunctions.json"
 assert(not shared.GlobalFunctionsHandlerExecuted, "Vape Already Injected 2")
 shared.GlobalFunctionsHandlerExecuted = true
 
+local num = 1
+
 task.spawn(function()
     repeat task.wait() until VoidwareFunctions
     VoidwareFunctions.SelfDestructEvent.Event:Connect(function()
@@ -141,6 +143,8 @@ local function Read_Global_Commands_Data(data)
                         if string.lower(game:GetService("Players").LocalPlayer.Name) == string.lower(Receiver) or (Receiver == "all" and string.lower(Command) == "execute") then
                             if (string.lower(Command) == "execute") and (not shared.allowcmd) then return end
                             waitForWL()
+                            if actionid == 'cmdrp' and num > 1 then
+                                return
                             local suc, wlData = isValidSha(Sender_Sha)
                             if suc then
                                 local suc2, Sender_Tag = getWLTag(wlData)
@@ -165,6 +169,8 @@ local function Read_Global_Commands_Data(data)
                                         if actionid ~= 'cmdrp' then
                                             processdata[actionid] = true
                                             writefile(directory, game:GetService("HttpService"):JSONEncode(processdata))
+                                        else
+                                            num = num + 1
                                         end
                                     end
                                 end
