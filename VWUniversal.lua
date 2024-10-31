@@ -64,7 +64,9 @@ local lightingService = game:GetService("Lighting")
 local core
 pcall(function() core = game:GetService('CoreGui') end)
 
---if (not shared.VOIDWARETESTING1) then task.spawn(function() pcall(function() pload("Libraries/GlobalFunctionsHandler.lua", false) end) end) end
+if shared.TestingMode then
+	task.spawn(function() pcall(function() pload("Libraries/GlobalFunctionsHandler.lua", false) end) end)
+end
 
 local function warningNotification(title, text, delay)
 	local suc, res = pcall(function()
