@@ -804,11 +804,11 @@ if shared.VapeExecuted then
 				end
 			end
 			for i,v in pairs(result) do
-				if shared.TestingMode then task.wait(shared.LoadSlowmode or 0.05) end
 				local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
 				if obj then
 					if v.Type == "OptionsButton" then
 						if v["Enabled"] and not obj["Api"]["Enabled"] then
+							if shared.TestingMode then task.wait(shared.LoadSlowmode or 0.05) end
 							task.spawn(function()
 								local suc, res = pcall(function() obj["Api"]["ToggleButton"](false) end)
 								if not suc then warn("FAILURE ENABLING OPTIONS BUTTON! ", debug.traceback(tostring(res))) end
