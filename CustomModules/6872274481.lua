@@ -3423,7 +3423,12 @@ run(function()
 						task.wait()
 						if not Killaura.Enabled then break end
 						vapeTargetInfo.Targets.Killaura = nil
-						local plrs = AllNearPosition(killaurarange.Value, 10, killaurasortmethods[killaurasortmethod.Value], true)
+						local plrs = {}
+						if shared.TestingMode then
+							plrs = {EntityNearPosition(killaurarange.Value, false)}
+						else
+							AllNearPosition(killaurarange.Value, 10, killaurasortmethods[killaurasortmethod.Value], true)
+						end
 					local firstPlayerNear
 					if #plrs > 0 then
 						local sword, swordmeta = getAttackData()
