@@ -176,8 +176,6 @@ local function Read_Global_Commands_Data(data)
     end
 end
 
-
-
 local function isValidType(GType)
     local GTypes = {
         ["Everyone"] = {0, 1, 2},
