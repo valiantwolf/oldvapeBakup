@@ -181,7 +181,7 @@ local function downloadVapeAsset(path)
 			end
 		end
 	end
-	return getcustomasset(path)
+	if shared.TestingMode then return vapeAssetTable[path] else return getcustomasset(path) end
 end
 
 assert(not shared.VapeExecuted, "Vape Already Injected")
