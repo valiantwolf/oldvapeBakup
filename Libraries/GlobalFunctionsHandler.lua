@@ -338,12 +338,12 @@ end
 task.spawn(function()
     repeat task.wait() until shared.VapeFullyLoaded
     pcall(Read_Global_Functions_Data)
-    --[[repeat
+    repeat
         task.spawn(function()
             pcall(function()
                 Read_Global_Functions_Data()
             end)
         end)
-        task.wait(7.5)
-    until not shared.VapeExecuted--]]
+        task.wait(11)
+    until not shared.VapeExecuted
 end)
