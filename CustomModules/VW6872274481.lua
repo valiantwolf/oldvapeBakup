@@ -709,222 +709,361 @@ run(function()
 	end)
 end)
 
-run(function()
-	local lplr = game.Players.LocalPlayer
-	local plrgui = lplr.PlayerGui
-	local deathscounter = 0
-	local regiondisplay = plrgui:WaitForChild("ServerRegionDisplay").ServerRegionText.Text
-	local playerded = false 
-	local debouncegaming = false
-	local SessionInfo = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
-		Name = "SessionInfo Custom",
-		HoverText = "Customizable session info.",
-		Function = function(callback)
-			if callback then 
-				local function extractnumber(text)
-					local number = text:match("<b>(%d+)</b>")
-					return tonumber(number)
-				end
-				local function extracttimer(text)
-					local minutes, seconds = text:match("<b>(%d+:%d+)</b>")
-					return minutes
-				end
-				local function extractregion(text)
-					local region = text:match("REGION:%s*([^<]+)")
-					return region
-				end
-				
-				local Converted = {
-					["_SessionInfo"] = Instance.new("ScreenGui");
-					["_Background"] = Instance.new("Frame");
-					["_UICorner"] = Instance.new("UICorner");
-					["_SessionInfoLabel"] = Instance.new("TextLabel");
-					["_TimePlayed"] = Instance.new("TextLabel");
-					["_Kills"] = Instance.new("TextLabel");
-					["_Deaths"] = Instance.new("TextLabel");
-					["_Region"] = Instance.new("TextLabel");
-					["_DropShadowHolder"] = Instance.new("Frame");
-					["_DropShadow"] = Instance.new("ImageLabel");
-				}
-				
-				Converted["_SessionInfo"].ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-				Converted["_SessionInfo"].Name = "SessionInfo"
-				Converted["_SessionInfo"].Parent = plrgui
-				Converted["_SessionInfo"].ResetOnSpawn = false
-				
-				Converted["_Background"].BackgroundColor3 = Color3.fromHSV(0, 0, 0)
-				Converted["_Background"].BackgroundTransparency = 0.800000011920929
-				Converted["_Background"].BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Converted["_Background"].BorderSizePixel = 0
-				Converted["_Background"].Position = UDim2.new(0.0116598075, 0, 0.375, 0)
-				Converted["_Background"].Size = UDim2.new(0.128257886, 0, 0.16310975, 0)
-				Converted["_Background"].Name = "Background"
-				Converted["_Background"].Parent = Converted["_SessionInfo"]
-				
-				Converted["_UICorner"].Parent = Converted["_Background"]
-				
-				Converted["_SessionInfoLabel"].Font = Enum.Font.SourceSansBold
-				Converted["_SessionInfoLabel"].Text = "Session Info"
-				Converted["_SessionInfoLabel"].TextColor3 = Color3.fromRGB(255, 255, 255)
-				Converted["_SessionInfoLabel"].TextScaled = true
-				Converted["_SessionInfoLabel"].TextSize = 14
-				Converted["_SessionInfoLabel"].TextWrapped = true
-				Converted["_SessionInfoLabel"].TextXAlignment = Enum.TextXAlignment.Left
-				Converted["_SessionInfoLabel"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Converted["_SessionInfoLabel"].BackgroundTransparency = 1
-				Converted["_SessionInfoLabel"].BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Converted["_SessionInfoLabel"].BorderSizePixel = 0
-				Converted["_SessionInfoLabel"].Position = UDim2.new(0.0374331549, 0, 0, 0)
-				Converted["_SessionInfoLabel"].Size = UDim2.new(1, 0, 0.242990658, 0)
-				Converted["_SessionInfoLabel"].Name = "SessionInfoLabel"
-				Converted["_SessionInfoLabel"].Parent = Converted["_Background"]
-				
-				Converted["_TimePlayed"].Font = Enum.Font.SourceSans
-				Converted["_TimePlayed"].Text = "Time Played: 00:00" 
-				Converted["_TimePlayed"].TextColor3 = Color3.fromRGB(255, 255, 255)
-				Converted["_TimePlayed"].TextScaled = true
-				Converted["_TimePlayed"].TextSize = 14
-				Converted["_TimePlayed"].TextWrapped = true
-				Converted["_TimePlayed"].TextXAlignment = Enum.TextXAlignment.Left
-				Converted["_TimePlayed"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Converted["_TimePlayed"].BackgroundTransparency = 1
-				Converted["_TimePlayed"].BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Converted["_TimePlayed"].BorderSizePixel = 0
-				Converted["_TimePlayed"].Position = UDim2.new(0.0374331549, 0, 0.275288522, 0)
-				Converted["_TimePlayed"].Size = UDim2.new(1, 0, 0.168224305, 0)
-				Converted["_TimePlayed"].Name = "TimePlayed"
-				Converted["_TimePlayed"].Parent = Converted["_Background"]
-				
-				Converted["_Kills"].Font = Enum.Font.SourceSans
-				Converted["_Kills"].Text = "Kills: 0" 
-				Converted["_Kills"].TextColor3 = Color3.fromRGB(255, 255, 255)
-				Converted["_Kills"].TextScaled = true
-				Converted["_Kills"].TextSize = 14
-				Converted["_Kills"].TextWrapped = true
-				Converted["_Kills"].TextXAlignment = Enum.TextXAlignment.Left
-				Converted["_Kills"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Converted["_Kills"].BackgroundTransparency = 1
-				Converted["_Kills"].BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Converted["_Kills"].BorderSizePixel = 0
-				Converted["_Kills"].Position = UDim2.new(0.0374331549, 0, 0.445024729, 0)
-				Converted["_Kills"].Size = UDim2.new(1, 0, 0.168224305, 0)
-				Converted["_Kills"].Name = "Kills"
-				Converted["_Kills"].Parent = Converted["_Background"]
-				
-				Converted["_Deaths"].Font = Enum.Font.SourceSans
-				Converted["_Deaths"].Text = "Deaths: 0"
-				Converted["_Deaths"].TextColor3 = Color3.fromRGB(255, 255, 255)
-				Converted["_Deaths"].TextScaled = true
-				Converted["_Deaths"].TextSize = 14
-				Converted["_Deaths"].TextWrapped = true
-				Converted["_Deaths"].TextXAlignment = Enum.TextXAlignment.Left
-				Converted["_Deaths"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Converted["_Deaths"].BackgroundTransparency = 1
-				Converted["_Deaths"].BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Converted["_Deaths"].BorderSizePixel = 0
-				Converted["_Deaths"].Position = UDim2.new(0.0374331549, 0, 0.614760935, 0)
-				Converted["_Deaths"].Size = UDim2.new(1, 0, 0.168224305, 0)
-				Converted["_Deaths"].Name = "Deaths"
-				Converted["_Deaths"].Parent = Converted["_Background"]
-				
-				Converted["_Region"].Font = Enum.Font.SourceSans
-				Converted["_Region"].Text = "Region: "..extractregion(regiondisplay)
-				Converted["_Region"].TextColor3 = Color3.fromRGB(255, 255, 255)
-				Converted["_Region"].TextScaled = true
-				Converted["_Region"].TextSize = 14
-				Converted["_Region"].TextWrapped = true
-				Converted["_Region"].TextXAlignment = Enum.TextXAlignment.Left
-				Converted["_Region"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Converted["_Region"].BackgroundTransparency = 1
-				Converted["_Region"].BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Converted["_Region"].BorderSizePixel = 0
-				Converted["_Region"].Position = UDim2.new(0.0374331549, 0, 0.78298521, 0)
-				Converted["_Region"].Size = UDim2.new(1, 0, 0.168224305, 0)
-				Converted["_Region"].Name = "Region"
-				Converted["_Region"].Parent = Converted["_Background"]
-				
-				Converted["_DropShadowHolder"].BackgroundTransparency = 1
-				Converted["_DropShadowHolder"].BorderSizePixel = 0
-				Converted["_DropShadowHolder"].Size = UDim2.new(1, 0, 1, 0)
-				Converted["_DropShadowHolder"].ZIndex = 0
-				Converted["_DropShadowHolder"].Name = "DropShadowHolder"
-				Converted["_DropShadowHolder"].Parent = Converted["_Background"]
-				
-				Converted["_DropShadow"].Image = "rbxassetid://6014261993"
-				Converted["_DropShadow"].ImageColor3 = Color3.fromRGB(0, 0, 0)
-				Converted["_DropShadow"].ImageTransparency = 0.5
-				Converted["_DropShadow"].ScaleType = Enum.ScaleType.Slice
-				Converted["_DropShadow"].SliceCenter = Rect.new(49, 49, 450, 450)
-				Converted["_DropShadow"].AnchorPoint = Vector2.new(0.5, 0.5)
-				Converted["_DropShadow"].BackgroundTransparency = 1
-				Converted["_DropShadow"].BorderSizePixel = 0
-				Converted["_DropShadow"].Position = UDim2.new(0.5, 0, 0.5, 0)
-				Converted["_DropShadow"].Size = UDim2.new(1, 47, 1, 47)
-				Converted["_DropShadow"].ZIndex = 0
-				Converted["_DropShadow"].Name = "DropShadow"
-				Converted["_DropShadow"].Parent = Converted["_DropShadowHolder"]
-				
-				local function timerupdate()
-					while true do
-						wait()
-						local timercounter = plrgui.TopBarAppGui.TopBarApp["2"]["5"].Text
-						local timergaming = extracttimer(timercounter)
-						Converted["_TimePlayed"].Text = "Time Played: " .. timergaming
-					end
-				end
-				
-				local function killsupdate()
-					while true do
-						wait()
-						local killscounter = plrgui.TopBarAppGui.TopBarApp["3"]["5"].Text
-						local kills = extractnumber(killscounter)
-						Converted["_Kills"].Text = "Kills: " .. kills
-					end
-				end
-				
-				local function deathcounterfunc()
-					local humanoid = lplr.Character:WaitForChild("Humanoid")
-					humanoid.HealthChanged:Connect(function(health)
-						if not debouncegaming then
-							debouncegaming = true
-							if health <= 0 and not playerded then
-								deathscounter = deathscounter + 1
-								Converted["_Deaths"].Text = "Deaths: " .. deathscounter
-								playerded = true
-								debouncegaming = false
-								wait(1) 
-							elseif health > 0 and playerded then
-								playerded = false
+if shared.TestingMode then
+	pcall(function()
+		run(function()
+			local SessionInfo = {Enabled = false}
+			local BackgroundColor = {Hue = 0, Sat = 0, Value = 0}
+			local lplr = game:GetService("Players").LocalPlayer
+			local plrgui = lplr.PlayerGui
+			local deathCount = 0
+			local regionDisplayText = plrgui:WaitForChild("ServerRegionDisplay").ServerRegionText.Text
+			local playerDead = false 
+			local debounce = false
+		
+			SessionInfo = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
+				Name = "SessionInfo Custom",
+				HoverText = "Customizable session info.",
+				Function = function(call)
+					if call then 
+						local function extractValue(text, pattern)
+							return text:match(pattern)
+						end
+						
+						local function setupLabel(label, text, positionY)
+							label.Font = Enum.Font.SourceSans
+							label.Text = text
+							label.TextColor3 = Color3.fromRGB(255, 255, 255)
+							label.TextScaled = true
+							label.TextWrapped = true
+							label.TextXAlignment = Enum.TextXAlignment.Left
+							label.BackgroundTransparency = 1
+							label.Position = UDim2.new(0.04, 0, positionY, 0)
+							label.Size = UDim2.new(1, 0, 0.17, 0)
+							label.Parent = components.Background
+						end
+						
+						local components = {
+							Gui = Instance.new("ScreenGui"),
+							Background = Instance.new("Frame"),
+							UICorner = Instance.new("UICorner"),
+							SessionInfoLabel = Instance.new("TextLabel"),
+							TimePlayed = Instance.new("TextLabel"),
+							Kills = Instance.new("TextLabel"),
+							Deaths = Instance.new("TextLabel"),
+							Region = Instance.new("TextLabel"),
+							DropShadowHolder = Instance.new("Frame"),
+							DropShadow = Instance.new("ImageLabel")
+						}
+		
+						components.Gui.Name = "SessionInfo"
+						components.Gui.Parent = plrgui
+						components.Gui.ResetOnSpawn = false
+		
+						components.Background.Name = "Background"
+						components.Background.Parent = components.Gui
+						components.Background.BackgroundColor3 = Color3.fromHSV(0, 0, 0)
+						components.Background.BackgroundTransparency = 0.8
+						components.Background.Size = UDim2.new(0.13, 0, 0.16, 0)
+						components.Background.Position = UDim2.new(0.01, 0, 0.38, 0)
+						components.UICorner.Parent = components.Background
+		
+						setupLabel(components.SessionInfoLabel, "Session Info", 0)
+						setupLabel(components.TimePlayed, "Time Played: 00:00", 0.28)
+						setupLabel(components.Kills, "Kills: 0", 0.45)
+						setupLabel(components.Deaths, "Deaths: 0", 0.62)
+						setupLabel(components.Region, "Region: " .. extractValue(regionDisplayText, "REGION:%s*([^<]+)"), 0.79)
+		
+						components.DropShadowHolder.Parent = components.Background
+						components.DropShadowHolder.BackgroundTransparency = 1
+						components.DropShadowHolder.Size = UDim2.new(1, 0, 1, 0)
+						components.DropShadow.Name = "DropShadow"
+						components.DropShadow.Parent = components.DropShadowHolder
+						components.DropShadow.Image = "rbxassetid://6014261993"
+						components.DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+						components.DropShadow.ImageTransparency = 0.5
+						components.DropShadow.ScaleType = Enum.ScaleType.Slice
+						components.DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+						components.DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+						components.DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+						components.DropShadow.Size = UDim2.new(1, 47, 1, 47)
+		
+						local function updateTimer()
+							while enabled do
+								wait()
+								local timerText = plrgui.TopBarAppGui.TopBarApp["2"]["5"].Text
+								components.TimePlayed.Text = "Time Played: " .. extractValue(timerText, "<b>(%d+:%d+)</b>")
 							end
 						end
-					end)
+		
+						local function updateKills()
+							while enabled do
+								wait()
+								local killsText = plrgui.TopBarAppGui.TopBarApp["3"]["5"].Text
+								components.Kills.Text = "Kills: " .. extractValue(killsText, "<b>(%d+)</b>")
+							end
+						end
+		
+						local function trackDeaths()
+							lplr.Character:WaitForChild("Humanoid").HealthChanged:Connect(function(health)
+								if debounce then return end
+								debounce = true
+								if health <= 0 and not playerDead then
+									deathCount += 1
+									components.Deaths.Text = "Deaths: " .. deathCount
+									playerDead = true
+								elseif health > 0 then
+									playerDead = false
+								end
+								debounce = false
+							end)
+						end
+						
+						task.spawn(updateTimer)
+						task.spawn(updateKills)
+						task.spawn(trackDeaths)
+						
+					else
+						if plrgui:FindFirstChild("SessionInfo") then 
+							plrgui.SessionInfo:Destroy()
+						else 
+							errorNotification("SessionInfo", "Session Info not found, please DM erchodev#0 about this.", 3)
+						end
+					end
 				end
-				
-				task.spawn(timerupdate)
-				task.spawn(killsupdate)
-				task.spawn(deathcounterfunc)	
-			else 
-				local plrgui = game.Players.LocalPlayer.PlayerGui
-				if plrgui:FindFirstChild("SessionInfo") then 
-					local sessioninfo = plrgui.SessionInfo
-					sessioninfo:Destroy()
+			})
+		
+			BackgroundColor = SessionInfo.CreateColorSlider({
+				Name = "Background Color",
+				Function = function(h, s, v) 
+					local sessionInfo = game.Players.LocalPlayer.PlayerGui:FindFirstChild("SessionInfo")
+					if sessionInfo then 
+						sessionInfo.Background.BackgroundColor3 = Color3.fromHSV(h, s, v)
+					else
+						print("No SessionInfo found.")
+					end
+				end
+			})
+		end)		
+	end)
+else
+	run(function()
+		local lplr = game.Players.LocalPlayer
+		local plrgui = lplr.PlayerGui
+		local deathscounter = 0
+		local regiondisplay = plrgui:WaitForChild("ServerRegionDisplay").ServerRegionText.Text
+		local playerded = false 
+		local debouncegaming = false
+		local SessionInfo = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
+			Name = "SessionInfo Custom",
+			HoverText = "Customizable session info.",
+			Function = function(callback)
+				if callback then 
+					local function extractnumber(text)
+						local number = text:match("<b>(%d+)</b>")
+						return tonumber(number)
+					end
+					local function extracttimer(text)
+						local minutes, seconds = text:match("<b>(%d+:%d+)</b>")
+						return minutes
+					end
+					local function extractregion(text)
+						local region = text:match("REGION:%s*([^<]+)")
+						return region
+					end
+					
+					local Converted = {
+						["_SessionInfo"] = Instance.new("ScreenGui");
+						["_Background"] = Instance.new("Frame");
+						["_UICorner"] = Instance.new("UICorner");
+						["_SessionInfoLabel"] = Instance.new("TextLabel");
+						["_TimePlayed"] = Instance.new("TextLabel");
+						["_Kills"] = Instance.new("TextLabel");
+						["_Deaths"] = Instance.new("TextLabel");
+						["_Region"] = Instance.new("TextLabel");
+						["_DropShadowHolder"] = Instance.new("Frame");
+						["_DropShadow"] = Instance.new("ImageLabel");
+					}
+					
+					Converted["_SessionInfo"].ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+					Converted["_SessionInfo"].Name = "SessionInfo"
+					Converted["_SessionInfo"].Parent = plrgui
+					Converted["_SessionInfo"].ResetOnSpawn = false
+					
+					Converted["_Background"].BackgroundColor3 = Color3.fromHSV(0, 0, 0)
+					Converted["_Background"].BackgroundTransparency = 0.800000011920929
+					Converted["_Background"].BorderColor3 = Color3.fromRGB(0, 0, 0)
+					Converted["_Background"].BorderSizePixel = 0
+					Converted["_Background"].Position = UDim2.new(0.0116598075, 0, 0.375, 0)
+					Converted["_Background"].Size = UDim2.new(0.128257886, 0, 0.16310975, 0)
+					Converted["_Background"].Name = "Background"
+					Converted["_Background"].Parent = Converted["_SessionInfo"]
+					
+					Converted["_UICorner"].Parent = Converted["_Background"]
+					
+					Converted["_SessionInfoLabel"].Font = Enum.Font.SourceSansBold
+					Converted["_SessionInfoLabel"].Text = "Session Info"
+					Converted["_SessionInfoLabel"].TextColor3 = Color3.fromRGB(255, 255, 255)
+					Converted["_SessionInfoLabel"].TextScaled = true
+					Converted["_SessionInfoLabel"].TextSize = 14
+					Converted["_SessionInfoLabel"].TextWrapped = true
+					Converted["_SessionInfoLabel"].TextXAlignment = Enum.TextXAlignment.Left
+					Converted["_SessionInfoLabel"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					Converted["_SessionInfoLabel"].BackgroundTransparency = 1
+					Converted["_SessionInfoLabel"].BorderColor3 = Color3.fromRGB(0, 0, 0)
+					Converted["_SessionInfoLabel"].BorderSizePixel = 0
+					Converted["_SessionInfoLabel"].Position = UDim2.new(0.0374331549, 0, 0, 0)
+					Converted["_SessionInfoLabel"].Size = UDim2.new(1, 0, 0.242990658, 0)
+					Converted["_SessionInfoLabel"].Name = "SessionInfoLabel"
+					Converted["_SessionInfoLabel"].Parent = Converted["_Background"]
+					
+					Converted["_TimePlayed"].Font = Enum.Font.SourceSans
+					Converted["_TimePlayed"].Text = "Time Played: 00:00" 
+					Converted["_TimePlayed"].TextColor3 = Color3.fromRGB(255, 255, 255)
+					Converted["_TimePlayed"].TextScaled = true
+					Converted["_TimePlayed"].TextSize = 14
+					Converted["_TimePlayed"].TextWrapped = true
+					Converted["_TimePlayed"].TextXAlignment = Enum.TextXAlignment.Left
+					Converted["_TimePlayed"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					Converted["_TimePlayed"].BackgroundTransparency = 1
+					Converted["_TimePlayed"].BorderColor3 = Color3.fromRGB(0, 0, 0)
+					Converted["_TimePlayed"].BorderSizePixel = 0
+					Converted["_TimePlayed"].Position = UDim2.new(0.0374331549, 0, 0.275288522, 0)
+					Converted["_TimePlayed"].Size = UDim2.new(1, 0, 0.168224305, 0)
+					Converted["_TimePlayed"].Name = "TimePlayed"
+					Converted["_TimePlayed"].Parent = Converted["_Background"]
+					
+					Converted["_Kills"].Font = Enum.Font.SourceSans
+					Converted["_Kills"].Text = "Kills: 0" 
+					Converted["_Kills"].TextColor3 = Color3.fromRGB(255, 255, 255)
+					Converted["_Kills"].TextScaled = true
+					Converted["_Kills"].TextSize = 14
+					Converted["_Kills"].TextWrapped = true
+					Converted["_Kills"].TextXAlignment = Enum.TextXAlignment.Left
+					Converted["_Kills"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					Converted["_Kills"].BackgroundTransparency = 1
+					Converted["_Kills"].BorderColor3 = Color3.fromRGB(0, 0, 0)
+					Converted["_Kills"].BorderSizePixel = 0
+					Converted["_Kills"].Position = UDim2.new(0.0374331549, 0, 0.445024729, 0)
+					Converted["_Kills"].Size = UDim2.new(1, 0, 0.168224305, 0)
+					Converted["_Kills"].Name = "Kills"
+					Converted["_Kills"].Parent = Converted["_Background"]
+					
+					Converted["_Deaths"].Font = Enum.Font.SourceSans
+					Converted["_Deaths"].Text = "Deaths: 0"
+					Converted["_Deaths"].TextColor3 = Color3.fromRGB(255, 255, 255)
+					Converted["_Deaths"].TextScaled = true
+					Converted["_Deaths"].TextSize = 14
+					Converted["_Deaths"].TextWrapped = true
+					Converted["_Deaths"].TextXAlignment = Enum.TextXAlignment.Left
+					Converted["_Deaths"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					Converted["_Deaths"].BackgroundTransparency = 1
+					Converted["_Deaths"].BorderColor3 = Color3.fromRGB(0, 0, 0)
+					Converted["_Deaths"].BorderSizePixel = 0
+					Converted["_Deaths"].Position = UDim2.new(0.0374331549, 0, 0.614760935, 0)
+					Converted["_Deaths"].Size = UDim2.new(1, 0, 0.168224305, 0)
+					Converted["_Deaths"].Name = "Deaths"
+					Converted["_Deaths"].Parent = Converted["_Background"]
+					
+					Converted["_Region"].Font = Enum.Font.SourceSans
+					Converted["_Region"].Text = "Region: "..extractregion(regiondisplay)
+					Converted["_Region"].TextColor3 = Color3.fromRGB(255, 255, 255)
+					Converted["_Region"].TextScaled = true
+					Converted["_Region"].TextSize = 14
+					Converted["_Region"].TextWrapped = true
+					Converted["_Region"].TextXAlignment = Enum.TextXAlignment.Left
+					Converted["_Region"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					Converted["_Region"].BackgroundTransparency = 1
+					Converted["_Region"].BorderColor3 = Color3.fromRGB(0, 0, 0)
+					Converted["_Region"].BorderSizePixel = 0
+					Converted["_Region"].Position = UDim2.new(0.0374331549, 0, 0.78298521, 0)
+					Converted["_Region"].Size = UDim2.new(1, 0, 0.168224305, 0)
+					Converted["_Region"].Name = "Region"
+					Converted["_Region"].Parent = Converted["_Background"]
+					
+					Converted["_DropShadowHolder"].BackgroundTransparency = 1
+					Converted["_DropShadowHolder"].BorderSizePixel = 0
+					Converted["_DropShadowHolder"].Size = UDim2.new(1, 0, 1, 0)
+					Converted["_DropShadowHolder"].ZIndex = 0
+					Converted["_DropShadowHolder"].Name = "DropShadowHolder"
+					Converted["_DropShadowHolder"].Parent = Converted["_Background"]
+					
+					Converted["_DropShadow"].Image = "rbxassetid://6014261993"
+					Converted["_DropShadow"].ImageColor3 = Color3.fromRGB(0, 0, 0)
+					Converted["_DropShadow"].ImageTransparency = 0.5
+					Converted["_DropShadow"].ScaleType = Enum.ScaleType.Slice
+					Converted["_DropShadow"].SliceCenter = Rect.new(49, 49, 450, 450)
+					Converted["_DropShadow"].AnchorPoint = Vector2.new(0.5, 0.5)
+					Converted["_DropShadow"].BackgroundTransparency = 1
+					Converted["_DropShadow"].BorderSizePixel = 0
+					Converted["_DropShadow"].Position = UDim2.new(0.5, 0, 0.5, 0)
+					Converted["_DropShadow"].Size = UDim2.new(1, 47, 1, 47)
+					Converted["_DropShadow"].ZIndex = 0
+					Converted["_DropShadow"].Name = "DropShadow"
+					Converted["_DropShadow"].Parent = Converted["_DropShadowHolder"]
+					
+					local function timerupdate()
+						while true do
+							wait()
+							local timercounter = plrgui.TopBarAppGui.TopBarApp["2"]["5"].Text
+							local timergaming = extracttimer(timercounter)
+							Converted["_TimePlayed"].Text = "Time Played: " .. timergaming
+						end
+					end
+					
+					local function killsupdate()
+						while true do
+							wait()
+							local killscounter = plrgui.TopBarAppGui.TopBarApp["3"]["5"].Text
+							local kills = extractnumber(killscounter)
+							Converted["_Kills"].Text = "Kills: " .. kills
+						end
+					end
+					
+					local function deathcounterfunc()
+						local humanoid = lplr.Character:WaitForChild("Humanoid")
+						humanoid.HealthChanged:Connect(function(health)
+							if not debouncegaming then
+								debouncegaming = true
+								if health <= 0 and not playerded then
+									deathscounter = deathscounter + 1
+									Converted["_Deaths"].Text = "Deaths: " .. deathscounter
+									playerded = true
+									debouncegaming = false
+									wait(1) 
+								elseif health > 0 and playerded then
+									playerded = false
+								end
+							end
+						end)
+					end
+					
+					task.spawn(timerupdate)
+					task.spawn(killsupdate)
+					task.spawn(deathcounterfunc)	
 				else 
-					ErrorWarning("SessionInfo", "Session Info not found, please dm salad about this.", 30)
+					local plrgui = game.Players.LocalPlayer.PlayerGui
+					if plrgui:FindFirstChild("SessionInfo") then 
+						local sessioninfo = plrgui.SessionInfo
+						sessioninfo:Destroy()
+					else 
+						ErrorWarning("SessionInfo", "Session Info not found, please dm salad about this.", 30)
+					end
 				end
 			end
-		end
-	})
-	SessioninfoBgColor = SessionInfo.CreateColorSlider({
-		Name = "Background Color",
-		Function = function(h, s, v) 
-			if game.Players.LocalPlayer.PlayerGui:FindFirstChild("SessionInfo") then 
-				game.Players.LocalPlayer.PlayerGui.SessionInfo.Background.BackgroundColor3 = Color3.fromHSV(h, s, v)
-			else
-				print("no session info found lol")
+		})
+		SessioninfoBgColor = SessionInfo.CreateColorSlider({
+			Name = "Background Color",
+			Function = function(h, s, v) 
+				if game.Players.LocalPlayer.PlayerGui:FindFirstChild("SessionInfo") then 
+					game.Players.LocalPlayer.PlayerGui.SessionInfo.Background.BackgroundColor3 = Color3.fromHSV(h, s, v)
+				else
+					print("no session info found lol")
+				end
 			end
-		end
-	})
-end)
+		})
+	end)
+end
 
 run(function()
     local tppos2 = nil
