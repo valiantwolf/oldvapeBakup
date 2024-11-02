@@ -4720,7 +4720,7 @@ pcall(function()
 				end
 			end
 		})
-		local list
+		local list = {}
 		for i,v in pairs(StaffDetector_Action.FunctionsTable) do table.insert(list, i) end
 		StaffDetector_Action.DropdownValue = StaffDetector.CreateDropdown({
 			Name = 'Action',
