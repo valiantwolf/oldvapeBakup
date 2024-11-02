@@ -3,6 +3,7 @@ repeat task.wait() until game:IsLoaded()
 local GuiLibrary
 local VWFunctions
 local baseDirectory = (shared.VapePrivate and "vapeprivate/" or "vape/")
+local profilesDirectory = (shared.ClosetCheatMode and "ClosetProfiles/" or "Profiles/")
 local vapeInjected = true
 local oldRainbow = false
 local errorPopupShown = false
@@ -291,6 +292,11 @@ local Profiles = GuiLibrary.CreateWindow2({
 	Icon = "vape/assets/ProfilesIcon.png",
 	IconSize = 19
 })
+task.spawn(function()
+	repeat task.wait() until shared.VapeFullyLoaded
+	Profiles.Visible = (not shared.ClosetCheatMode)
+	GuiLibrary.ObjectsThatCanBeSaved["ProfilesButton"].Object.Visible = (not shared.ClosetCheatMode)
+end)
 GUI.CreateDivider()
 GUI.CreateButton({
 	Name = "Combat",
@@ -338,6 +344,7 @@ GUI.CreateButton({
 	Function = function(callback) Profiles.SetVisible(callback) end,
 	Icon = "vape/assets/ProfilesIcon.png"
 })
+GUI.CreateDivider("ClosetCheat")
 
 local FriendsTextListTable = {
 	Name = "FriendsList",
@@ -424,7 +431,7 @@ ProfilesTextList = Profiles.CreateTextList({
 	end,
 	RemoveFunction = function(profileIndex, profileName)
 		if profileName ~= "default" and profileName ~= GuiLibrary.CurrentProfile then
-			pcall(function() delfile(baseDirectory.."Profiles/"..profileName..(shared.CustomSaveVape or game.PlaceId)..".vapeprofile.txt") end)
+			pcall(function() delfile(baseDirectory..profilesDirectory..profileName..(shared.CustomSaveVape or game.PlaceId)..".vapeprofile.txt") end)
 			GuiLibrary.Profiles[profileName] = nil
 		else
 			table.insert(ProfilesTextList.ObjectList, profileName)
@@ -751,7 +758,7 @@ OnlineProfilesButton.MouseButton1Click:Connect(function()
 				profiledownload.BackgroundColor3 = Color3.fromRGB(31, 30, 31)
 			end)
 			profiledownload.MouseButton1Click:Connect(function()
-				writefile(baseDirectory.."Profiles/"..v2.ProfileName..saveplaceid..".vapeprofile.txt", game:HttpGet(profileurl, true))
+				writefile(baseDirectory..profilesDirectory..v2.ProfileName..saveplaceid..".vapeprofile.txt", game:HttpGet(profileurl, true))
 				GuiLibrary.Profiles[v2.ProfileName] = {Keybind = "", Selected = false}
 				local profiles = {}
 				for i,v in pairs(GuiLibrary.Profiles) do
@@ -2058,7 +2065,7 @@ GuiLibrary.SelfDestruct = function()
 	inputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
 
 	for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
-		if (v.Type == "Button" or v.Type == "OptionsButton" or v.Type == "LegitModule") and v.Api.Enabled then
+		if (v.Type == "Button" or v.Type == "OptionsButton" or v.Type == "LegitModule") and v.Api.Enabled and (not v.Restricted) then
 			v.Api.ToggleButton(false)
 		end
 	end
@@ -2103,9 +2110,9 @@ GeneralSettings.CreateButton2({
 		local vapePrivateCheck = shared.VapePrivate
 		GuiLibrary.SelfDestruct()
 		if delfile then
-			delfile(baseDirectory.."Profiles/"..(GuiLibrary.CurrentProfile ~= "default" and GuiLibrary.CurrentProfile or "")..(shared.CustomSaveVape or game.PlaceId)..".vapeprofile.txt")
+			delfile(baseDirectory..profilesDirectory..(GuiLibrary.CurrentProfile ~= "default" and GuiLibrary.CurrentProfile or "")..(shared.CustomSaveVape or game.PlaceId)..".vapeprofile.txt")
 		else
-			writefile(baseDirectory.."Profiles/"..(GuiLibrary.CurrentProfile ~= "default" and GuiLibrary.CurrentProfile or "")..(shared.CustomSaveVape or game.PlaceId)..".vapeprofile.txt", "")
+			writefile(baseDirectory..profilesDirectory..(GuiLibrary.CurrentProfile ~= "default" and GuiLibrary.CurrentProfile or "")..(shared.CustomSaveVape or game.PlaceId)..".vapeprofile.txt", "")
 		end
 		shared.VapeSwitchServers = true
 		shared.VapeOpenGui = true
