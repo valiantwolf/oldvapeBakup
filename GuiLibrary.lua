@@ -814,7 +814,8 @@ if shared.VapeExecuted then
 					end
 				end
 			end
-			repeat task.wait() until game:GetService("Players").LocalPlayer.Character
+			local tbl = {6872274481, 6872265039, 8560631822, 8444591321}
+			if table.find(tbl, game.PlaceId) then repeat task.wait() until game:GetService("Players").LocalPlayer.Character end
 			for i,v in pairs(result) do
 				local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
 				if obj then
