@@ -805,11 +805,22 @@ if shared.VapeExecuted then
 				end
 			end
 			for i,v in pairs(result) do
+				if v.Type == "MobileButtons" then
+					for _, mobileButton in pairs(v.Buttons) do
+						local module = GuiLibrary.ObjectsThatCanBeSaved[mobileButton.Module]
+						if module then
+							createMobileButton(module.Api, Vector2.new(mobileButton.Position[1], mobileButton.Position[2]))
+						end
+					end
+				end
+			end
+			repeat task.wait() until game:GetService("Players").LocalPlayer.Character
+			for i,v in pairs(result) do
 				local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
 				if obj then
 					if v.Type == "OptionsButton" then
 						if v["Enabled"] and not obj["Api"]["Enabled"] then
-							--if shared.TestingMode then task.wait(shared.LoadSlowmode or 0.05) end
+							task.wait(shared.LoadSlowmode or 0.03)
 							task.spawn(function()
 								local suc, res = pcall(function() obj["Api"]["ToggleButton"](false) end)
 								if not suc then warn("FAILURE ENABLING OPTIONS BUTTON! ", debug.traceback(tostring(res))) end
@@ -817,16 +828,6 @@ if shared.VapeExecuted then
 						end
 						if v["Keybind"] ~= "" then
 							obj["Api"]["SetKeybind"](v["Keybind"])
-						end
-					end
-				end
-			end
-			for i,v in pairs(result) do
-				if v.Type == "MobileButtons" then
-					for _, mobileButton in pairs(v.Buttons) do
-						local module = GuiLibrary.ObjectsThatCanBeSaved[mobileButton.Module]
-						if module then
-							createMobileButton(module.Api, Vector2.new(mobileButton.Position[1], mobileButton.Position[2]))
 						end
 					end
 				end
