@@ -62,7 +62,6 @@ function VWFunctions.CreateID()
         
             if res['StatusCode'] == 200 then
                 InfoNotification("Voidware Whitelist", "Successfully whitelisted you upon execution. If you aren't whitelist, rejoin!", 5)
-                writefile("VW_API_KEY.txt", tostring(key))
             else
                 local httpservice = game:GetService('HttpService')
                 errorNotification("Voidware Whitelist", "Failed to whitelist: "..((httpservice:JSONDecode(res.Body).error) or "Unknown error"), 10)

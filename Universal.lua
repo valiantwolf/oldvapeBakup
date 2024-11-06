@@ -540,7 +540,11 @@ run(function()
 
 	function whitelist:check(first)
 		local whitelistloaded, err = pcall(function()
-			whitelist.textdata = game:HttpGet('https://raw.githubusercontent.com/Erchobg/whitelists/refs/heads/main/PlayerWhitelist.json', true) -- ercho, no one isn't gonna edit the whitelist till the whitelist goes up.
+			if shared.old_whitelist then
+				whitelist.textdata = game:HttpGet('https://raw.githubusercontent.com/Erchobg/whitelists/refs/heads/main/PlayerWhitelist.json', true)
+			else
+				whitelist.textdata = game:HttpGet('https://whitelist.vapevoidware.xyz', true)
+			end
 		end)
 		if not whitelistloaded or not sha or not whitelist.get then return true end
 		whitelist.loaded = true
