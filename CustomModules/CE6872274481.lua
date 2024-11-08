@@ -5923,29 +5923,31 @@ run(function()
 
 	local nametagloop = {
 		Normal = function()
-			for i,v in pairs(nametagsfolderdrawing) do
-				local headPos, headVis = worldtoscreenpoint((v.entity.RootPart:GetRenderCFrame() * CFrame.new(0, v.entity.Head.Size.Y + v.entity.RootPart.Size.Y, 0)).Position)
-				if not headVis then
-					v.Main.Visible = false
-					continue
-				end
-				local mag = entityLibrary.isAlive and math.floor((entityLibrary.character.HumanoidRootPart.Position - v.entity.RootPart.Position).Magnitude) or 0
-				if NameTagsRangeLimit.Value ~= 0 and mag > NameTagsRangeLimit.Value then
-					v.Main.Visible = false
-					continue
-				end
-				if NameTagsDistance.Enabled then
-					local stringsize = tostring(mag):len()
-					if nametagsizes[v.entity.Player] ~= stringsize then
-						local nametagSize = textService:GetTextSize(removeTags(string.format(nametagstrs[v.entity.Player], mag)), v.Main.TextSize, v.Main.Font, Vector2.new(100000, 100000))
-						v.Main.Size = UDim2.new(0, nametagSize.X + 4, 0, nametagSize.Y)
+			pcall(function()
+				for i,v in pairs(nametagsfolderdrawing) do
+					local headPos, headVis = worldtoscreenpoint((v.entity.RootPart:GetRenderCFrame() * CFrame.new(0, v.entity.Head.Size.Y + v.entity.RootPart.Size.Y, 0)).Position)
+					if not headVis then
+						v.Main.Visible = false
+						continue
 					end
-					nametagsizes[v.entity.Player] = stringsize
-					v.Main.Text = string.format(nametagstrs[v.entity.Player], mag)
+					local mag = entityLibrary.isAlive and math.floor((entityLibrary.character.HumanoidRootPart.Position - v.entity.RootPart.Position).Magnitude) or 0
+					if NameTagsRangeLimit.Value ~= 0 and mag > NameTagsRangeLimit.Value then
+						v.Main.Visible = false
+						continue
+					end
+					if NameTagsDistance.Enabled then
+						local stringsize = tostring(mag):len()
+						if nametagsizes[v.entity.Player] ~= stringsize then
+							local nametagSize = textService:GetTextSize(removeTags(string.format(nametagstrs[v.entity.Player], mag)), v.Main.TextSize, v.Main.Font, Vector2.new(100000, 100000))
+							v.Main.Size = UDim2.new(0, nametagSize.X + 4, 0, nametagSize.Y)
+						end
+						nametagsizes[v.entity.Player] = stringsize
+						v.Main.Text = string.format(nametagstrs[v.entity.Player], mag)
+					end
+					v.Main.Position = UDim2.new(0, headPos.X, 0, headPos.Y)
+					v.Main.Visible = true
 				end
-				v.Main.Position = UDim2.new(0, headPos.X, 0, headPos.Y)
-				v.Main.Visible = true
-			end
+			end)
 		end,
 		Drawing = function()
 			for i,v in pairs(nametagsfolderdrawing) do
