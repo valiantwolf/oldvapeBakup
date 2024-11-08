@@ -75,7 +75,7 @@ end
 
 local function downloadVapeAsset(path)
 	local executor = (identifyexecutor and identifyexecutor() or "Unknown")
-	if string.find(string.lower(executor), "wave") then
+	if string.find(string.lower(executor), "wave") or shared.CheatEngineMode then
 		return vapeAssetTable[path] or ""
 	else
 		if not isfile(path) then
