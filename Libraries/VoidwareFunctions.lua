@@ -288,6 +288,14 @@ VWFunctions.EditWL = function(argTable)
     end
 end
 
+VWFunctions.fetchCheatEngineSupportFile = function(fileName)
+    local url = "https://raw.githubusercontent.com/VapeVoidware/VWCE/main/CheatEngine/"..tostring(fileName)
+    local suc, res = pcall(function()
+        return game:HttpGet(url)
+    end)
+    return suc and res or ""
+end
+
 task.spawn(function()
     repeat task.wait() until GuiLibrary
     local ClosetCheatMode = {Enabled = false}

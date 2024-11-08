@@ -246,7 +246,8 @@ function bedwars.ClientStoreHandler:dispatch(tbl)
     --- pov u can't reverse engineer this function :skull:
 end
 bedwars.ItemHandler = {}
-bedwars.ItemHandler.ItemMeta = decode(readfile("vape/CheatEngine/ItemMeta.json"))
+bedwars.ItemHandler.ItemMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("ItemMeta.json"))
+--decode(readfile("vape/CheatEngine/ItemMeta.json"))
 bedwars.ItemHandler.getItemMeta = function(item)
     for i,v in pairs(bedwars.ItemHandler.ItemMeta) do
         if i == item then return v end
@@ -254,7 +255,8 @@ bedwars.ItemHandler.getItemMeta = function(item)
     return nil
 end
 bedwars.ItemTable = bedwars.ItemHandler.ItemMeta.items
-bedwars.KitMeta = decode(readfile("vape/CheatEngine/KitMeta.json"))
+bedwars.KitMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("KitMeta.json"))
+--decode(readfile("vape/CheatEngine/KitMeta.json"))
 bedwars.BlockController = {}
 function bedwars.BlockController:isBlockBreakable() return true end
 function bedwars.BlockController:getBlockPosition(block)
@@ -415,12 +417,14 @@ bedwars.AppController = {}
 function bedwars.AppController:isAppOpen(appName)
 	return game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild(appName)
 end
-bedwars.KillEffectMeta = decode(readfile('vape/CheatEngine/KillEffectMeta.json'))
+bedwars.KillEffectMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("KillEffectMeta.json"))
+--decode(readfile('vape/CheatEngine/KillEffectMeta.json'))
 bedwars.BalloonController = {}
 function bedwars.BalloonController:inflateBalloon()
 	bedwars.Client:Get("InflateBalloon"):FireServer()
 end
-bedwars.SoundList = decode(readfile('vape/CheatEngine/SoundListMeta.json'))
+bedwars.SoundList = decode(VoidwareFunctions.fetchCheatEngineSupportFile("SoundListMeta.json"))
+--decode(readfile('vape/CheatEngine/SoundListMeta.json'))
 bedwars.SoundManager = {}
 function bedwars.SoundManager:playSound(soundId)
 	local sound = Instance.new("Sound")
@@ -545,7 +549,8 @@ function bedwars.AbilityController:canUseAbility(ability) return true end -- no 
 function bedwars.AbilityController:useAbility(ability)
 	bedwars.Client:Get("useAbility"):FireServer(ability)
 end
-bedwars.ShopItemsMeta = decode(readfile('vape/CheatEngine/ShopItemsMeta.json'))
+bedwars.ShopItemsMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("ShopItemsMeta.json"))
+--decode(readfile('vape/CheatEngine/ShopItemsMeta.json'))
 bedwars.ShopItems = bedwars.ShopItemsMeta.ShopItems
 local bowConstants = {}
 local function getBowConstants()
@@ -567,7 +572,8 @@ local function getBowConstants()
 end
 bowConstants = getBowConstants()
 bedwars.BowConstantsTable = bowConstants
-bedwars.ProjectileMeta = decode(readfile('vape/CheatEngine/ProjectileMeta.json'))
+bedwars.ProjectileMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("ProjectileMeta.json"))
+--decode(readfile('vape/CheatEngine/ProjectileMeta.json'))
 bedwars.ProjectileUtil = {}
 function bedwars.ProjectileUtil:createProjectile(p15, p16, p17, p18)
 	local l__Projectiles__19, l__ProjectileMeta__5, l__Workspace__3, l__CollectionService__12 = game:GetService("ReplicatedStorage"):WaitForChild("Assets"):WaitForChild("Projectiles"), bedwars.ProjectileMeta, workspace, collectionService
