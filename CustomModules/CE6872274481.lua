@@ -2780,11 +2780,8 @@ run(function()
 						if flyAllowed <= 0 then
 							local newray = getPlacedBlock(entityLibrary.character.HumanoidRootPart.Position + Vector3.new(0, (entityLibrary.character.Humanoid.HipHeight * -2) - 1, 0))
 							onground = newray and true or false
-							print(tostring(newray), tostring(onground))
-							--if lastonground ~= onground then
-								print("check1")
+							if lastonground ~= onground then
 								if (not onground) then
-									print("check2")
 									groundtime = tick() + (2.6 + (entityLibrary.groundTick - tick()))
 									if FlyAnywayProgressBarFrame then
 										FlyAnywayProgressBarFrame.Frame:TweenSize(UDim2.new(0, 0, 0, 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, groundtime - tick(), true)
@@ -2794,7 +2791,7 @@ run(function()
 										FlyAnywayProgressBarFrame.Frame:TweenSize(UDim2.new(1, 0, 0, 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, 0, true)
 									end
 								end
-							--end
+							end
 							if FlyAnywayProgressBarFrame then
 								FlyAnywayProgressBarFrame.TextLabel.Text = math.max(onground and 2.5 or math.floor((groundtime - tick()) * 10) / 10, 0).."s"
 							end
