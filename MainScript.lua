@@ -1951,6 +1951,7 @@ if shared.BACKUPTELEPORTMODE then
 			teleportedServers = true
 			local teleportScript = [[
 				repeat task.wait() until game:IsLoaded()
+				if getgenv and not getgenv().shared then getgenv().shared = {}; end
 				shared.VapeSwitchServers = true
 				if shared.VapeDeveloper or shared.VoidDev then
 					if isfile('vape/NewMainScript.lua') then
