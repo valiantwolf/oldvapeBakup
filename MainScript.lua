@@ -193,7 +193,7 @@ end
 assert(not shared.VapeExecuted, "Vape Already Injected")
 shared.VapeExecuted = true
 
-for i,v in pairs({baseDirectory:gsub("/", ""), "vape", "vape/Libraries", "vape/CustomModules", "vape/Profiles", baseDirectory.."Profiles", "vape/assets"}) do
+for i,v in pairs({baseDirectory:gsub("/", ""), "vape", "vape/Libraries", "vape/CustomModules", "vape/Profiles", baseDirectory.."Profiles", "vape/assets", "vape/CheatEngine"}) do
 	if not isfolder(v) then makefolder(v) end
 end
 task.spawn(function()
@@ -2016,40 +2016,35 @@ else
 						end
 					end
 				]]
-				if shared.VapeDeveloper then
-					teleportScript = 'shared.VapeDeveloper = true\n'..teleportScript
+	
+				local settings = {
+					{variable = "VapeDeveloper", value = true},
+					{variable = "VoidDev", value = true},
+					{variable = "ClosetCheatMode", value = true},
+					{variable = "VapePrivate", value = true},
+					{variable = "NoVoidwareModules", value = true},
+					{variable = "ProfilesDisabled", value = true},
+					{variable = "NoAutoExecute", value = true},
+					{variable = "TeleportExploitAutowinEnabled", value = true},
+					{variable = "VapeCustomProfile", custom = true},
+					{variable = "TestingMode", value = true},
+					{variable = "CheatEngineMode", value = true}
+				}
+		
+				for _, setting in ipairs(settings) do
+					if shared[setting.variable] then
+						if setting.custom then
+							teleportScript = "shared." .. setting.variable .. " = '" .. shared[setting.variable] .. "'\n" .. teleportScript
+						else
+							teleportScript = "shared." .. setting.variable .. " = true\n" .. teleportScript
+						end
+					end
 				end
-				if shared.VoidDev then
-					teleportScript = 'shared.VoidDev = true\n'..teleportScript
-				end
-				if shared.ClosetCheatMode then
-					teleportScript = 'shared.ClosetCheatMode = true\n'..teleportScript
-				end
-				if shared.VapePrivate then
-					teleportScript = 'shared.VapePrivate = true\n'..teleportScript
-				end
-				if shared.NoVoidwareModules then
-					teleportScript = 'shared.NoVoidwareModules = true\n'..teleportScript
-				end
-				if shared.ProfilesDisabled then
-					teleportScript = 'shared.ProfilesDisabled = true\n'..teleportScript
-				end
-				if shared.NoAutoExecute then
-					teleportScript = 'shared.NoAutoExecute = true\n'..teleportScript
-				end
-				if shared.TeleportExploitAutowinEnabled then
-					teleportScript = 'shared.TeleportExploitAutowinEnabled = true\n'..teleportScript
-				end
-				if shared.VapeCustomProfile then
-					teleportScript = "shared.VapeCustomProfile = '"..shared.VapeCustomProfile.."'\n"..teleportScript
-				end
-				if shared.TestingMode then
-					teleportScript = 'shared.TestingMode = true\n'..teleportScript
-				end
-				--GuiLibrary.SaveSettings()
+		
 				queueonteleport(teleportScript)
 			end)
 		end)
+		
 	end
 end
 GuiLibrary.SelfDestruct = function()
@@ -2201,13 +2196,34 @@ local function InfoNotification(title, text, delay)
 	return (suc and res)
 end
 task.spawn(function() repeat task.wait() until shared.VapeFullyLoaded; for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do if v.Type == "Window" then if (not v.Api.Expanded) then v.Api.ExpandToggle(false) end end end end)
+local bedwarsID = {
+	game = {6872274481, 8444591321, 8560631822},
+	lobby = {6872265039}
+}
 local function loadVape()
 	InfoNotification("Voidware", "Loading...this might take 5-10 seconds", 5)
+	--game:GetService("Players").LocalPlayer.GameplayPaused = true
 	if not shared.VapeIndependent then
 		pload("Universal.lua", true)
 		pload("VWUniversal.lua", true)
-		pload("CustomModules/"..game.PlaceId..".lua")
-		pload("CustomModules/VW"..game.PlaceId..".lua")
+		local fileName1 = "CustomModules/"..game.PlaceId..".lua"
+		local fileName2 = "CustomModules/VW"..game.PlaceId..".lua"
+		local isGame = table.find(bedwarsID.game, game.PlaceId) and true or false
+		local isLobby = table.find(bedwarsID.lobby, game.PlaceId) and true or false
+		local CE = shared.CheatEngineMode and shared.TestingMode and "CE" or ""
+		if isGame then
+			if game.PlaceId ~= 6872274481 then shared.CustomSaveVape = 6872274481 end
+			fileName1 = "CustomModules/"..CE.."6872274481.lua"
+			fileName2 = "CustomModules/VW6872274481.lua"
+		end
+		if isLobby then
+			fileName1 = "CustomModules/"..CE.."6872265039.lua"
+			fileName2 = "CustomModules/VW6872265039.lua"
+		end
+		if CE == "CE" then InfoNotification("Voidware", "Cheat engine mode activated!", 3) end 
+		if shared.VoidDev then InfoNotification(fileName1, fileName2, 100) end
+		pload(fileName1, true)
+		pload(fileName2)
 	else
 		repeat task.wait() until shared.VapeManualLoad
 	end
@@ -2242,6 +2258,7 @@ local function loadVape()
 		--game:GetService("RunService"):SetRobloxGuiFocused(GuiLibrary.MainBlur.Size ~= 0)
 		shared.VapeOpenGui = nil
 	end
+	--game:GetService("Players").LocalPlayer.GameplayPaused = false
 	InfoNotification("Voidware", "Successfully loaded Voidware :D", 1.5)
 	coroutine.resume(saveSettingsLoop)
 	shared.VapeFullyLoaded = true

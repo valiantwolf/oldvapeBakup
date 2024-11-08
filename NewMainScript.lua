@@ -1,6 +1,8 @@
 repeat task.wait() until game:IsLoaded()
-if getgenv and not getgenv().shared then getgenv().shared = {} end
-if getgenv and not getgenv().debug then getgenv().debug = {traceback = function(string) return string end} end
+local CheatEngineMode = false
+if getgenv and not getgenv().shared then getgenv().shared = {}; end
+if getgenv and not getgenv().debug then CheatEngineMode = true; getgenv().debug = {traceback = function(string) return string end} end
+shared.CheatEngineMode = shared.CheatEngineMode or CheatEngineMode
 local errorPopupShown = false
 local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
 local getidentity = syn and syn.get_thread_identity or get_thread_identity or getidentity or getthreadidentity or function() return 8 end
