@@ -3406,12 +3406,12 @@ run(function()
 			Disguiseclone.Humanoid:ApplyDescriptionClientServer(DisguiseDescription)
 			for i,v in pairs(char:GetChildren()) do
 				if (v:IsA("Accessory") and v:GetAttribute("InvItem") == nil and v:GetAttribute("ArmorSlot") == nil) or v:IsA("ShirtGraphic") or v:IsA("Shirt") or v:IsA("Pants") or v:IsA("BodyColors") or v:IsA("Folder") or v:IsA("Model") then
-					v.Parent = game
+					v.Parent = game.Workspace
 				end
 			end
 			char.ChildAdded:Connect(function(v)
 				if ((v:IsA("Accessory") and v:GetAttribute("InvItem") == nil and v:GetAttribute("ArmorSlot") == nil) or v:IsA("ShirtGraphic") or v:IsA("Shirt") or v:IsA("Pants") or v:IsA("BodyColors")) and v:GetAttribute("Disguise") == nil then
-					repeat task.wait() v.Parent = game until v.Parent == game
+					repeat task.wait() v.Parent = game.Workspace until v.Parent == game.Workspace
 				end
 			end)
 			for i,v in pairs(Disguiseclone:WaitForChild("Animate"):GetChildren()) do
@@ -3419,7 +3419,7 @@ run(function()
 				if not char:FindFirstChild("Animate") then return end
 				local real = char.Animate:FindFirstChild(v.Name)
 				if v:IsA("StringValue") and real then
-					real.Parent = game
+					real.Parent = game.Workspace
 					v.Parent = char.Animate
 				end
 			end
@@ -3440,7 +3440,7 @@ run(function()
 			end
 			local localface = char:FindFirstChild("face", true)
 			local cloneface = Disguiseclone:FindFirstChild("face", true)
-			if localface and cloneface then localface.Parent = game cloneface.Parent = char.Head end
+			if localface and cloneface then localface.Parent = game.Workspace; cloneface.Parent = char.Head end
 			desc:SetEmotes(DisguiseDescription:GetEmotes())
 			desc:SetEquippedEmotes(DisguiseDescription:GetEquippedEmotes())
 			Disguiseclone:Destroy()
@@ -6408,7 +6408,7 @@ run(function()
 				for i,v in pairs(lightingService:GetChildren()) do
 					if v:IsA("PostEffect") or v:IsA("Sky") then
 						table.insert(oldobjects, v)
-						v.Parent = game
+						v.Parent = game.Workspace
 					end
 				end
 				skyobj = Instance.new("Sky")
