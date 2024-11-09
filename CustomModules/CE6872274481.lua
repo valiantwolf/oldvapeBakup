@@ -43,7 +43,7 @@ local store = {
 	blockPlacer = {},
 	blockPlace = tick(),
 	blockRaycast = RaycastParams.new(),
-	equippedKit = "none",
+	equippedKit = "",
 	forgeMasteryPoints = 0,
 	forgeUpgrades = {},
 	grapple = tick(),
@@ -88,7 +88,11 @@ local bedwars = {
     AttackRemote = "SwordHit",
     GuitarHealRemote = "PlayGuitar",
 	EatRemote = "ConsumeItem",
-	SpawnRavenRemote = "SpawnRaven"
+	SpawnRavenRemote = "SpawnRaven",
+	MageRemote = "LearnElementTome",
+	DragonRemote = "RequestDragonPunch",
+	ConsumeSoulRemote = "ConsumeGrimReaperSoul",
+	TreeRemote = "ConsumeTreeOrb"
 }
 local function extractTime(timeText)
 	local minutes, seconds = string.match(timeText, "(%d+):(%d%d)")
@@ -260,6 +264,7 @@ bedwars.KitMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("KitMeta.
 bedwars.ProdAnimationsMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("ProdAnimationsMeta.json"))
 --decode(readfile('vape/CheatEngine/ProdAnimationsMeta.json'))
 bedwars.AnimationTypeMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("AnimationTypeMeta.json"))
+bedwars.AnimationType = bedwars.AnimationTypeMeta
 --decode(readfile('vape/CheatEngine/AnimationTypeMeta.json'))
 bedwars.AnimationController = {
 	ProdAnimationsMeta = bedwars.ProdAnimationsMeta,
@@ -290,6 +295,14 @@ function bedwars.AnimationUtil:fetchAnimationIndexId(name)
 		if i == name then return v end
 	end
 	return nil
+end
+bedwars.GameAnimationUtil = {}
+bedwars.GameAnimationUtil.playAnimation = function(plr, id)
+	return bedwars.AnimationUtil:playAnimation(plr, bedwars.AnimationController:getAssetId(id))
+end
+bedwars.ViewmodelController = {}
+function bedwars.ViewmodelController:playAnimation(id)
+	return bedwars.AnimationUtil:playAnimation(game:GetService("Players").LocalPlayer, bedwars.AnimationController:getAssetId(id))
 end
 bedwars.BlockController = {}
 function bedwars.BlockController:isBlockBreakable() return true end
@@ -733,6 +746,66 @@ function bedwars.ProjectileController:createLocalProjectile(p29, p30, p31, p32, 
 	v47.projectileSource = p30;
 	v47.drawPercent = v42;
 	return v41;
+end
+bedwars.MageKitUtil = {}
+bedwars.MageKitUtil.MageElementVisualizations = decode(readfile('vape/CheatEngine/MageKitUtileMeta.json')).MageElementMeta
+bedwars.BalanceFile = decode(readfile('vape/CheatEngine/BalanceFireMeta.json'))
+bedwars.MageController = {}
+bedwars.FishermanController = {}
+bedwars.FishermanController.startMinigame = function() end
+bedwars.DragonSlayerController = {}
+function bedwars.DragonSlayerController:playPunchAnimation(animPos)
+	return bedwars.GameAnimationUtil.playAnimation(game:GetService("Players").LocalPlayer, bedwars.AnimationType.DRAGON_SLAYER_PUNCH)
+end
+function bedwars.DragonSlayerController:fetchDragonEmblems()
+	return game.Workspace:FindFirstChild("DragonEmblems") and game.Workspace:FindFirstChild("DragonEmblems").ClassName and game.Workspace:FindFirstChild("DragonEmblems").ClassName == "Folder" and game.Workspace:FindFirstChild("DragonEmblems"):GetChildren() or {}
+end
+bedwars.DragonSlayerController.emblemCache = {}
+function bedwars.DragonSlayerController:fetchDragonEmblemData(emblem)
+    if self.emblemCache[emblem] then
+        return self.emblemCache[emblem] 
+    end
+    local c = emblem and emblem.Parent and emblem.ClassName and emblem.ClassName == "Model" and emblem:GetChildren() or {}
+    local cn = #c
+    local tbl = {
+        stackCount = 0,
+        CFrame = emblem:GetPrimaryPartCFrame()
+    }
+    if cn == 3 then
+        for i, v in pairs(c) do
+            if v.Parent and v.ClassName and v.ClassName == "MeshPart" then
+                if tostring(v.BrickColor) == "Persimmon" then
+                    tbl.stackCount = tbl.stackCount + 1
+                end
+            end
+        end
+    end
+    self.emblemCache[emblem] = tbl
+    return tbl
+end
+function bedwars.DragonSlayerController:deleteEmblem(emblem) 
+	pcall(function() emblem:Destroy() end)
+end
+function bedwars.DragonSlayerController:resolveTarget(emblemCFrame)
+	local target
+	local maxDistance = 5
+	for i, v in pairs(game.Workspace:GetChildren()) do
+		if v and v.Parent and v.ClassName == "Model" and #v:GetChildren() > 0 and v.PrimaryPart then
+			local distance = (v:GetPrimaryPartCFrame().Position - emblemCFrame.Position).Magnitude
+			if distance <= maxDistance then target = v break end
+		end
+	end
+	return target
+end
+bedwars.GrimReaperController = {}
+function bedwars.GrimReaperController:fetchSoulsByPosition()
+	local souls = {}
+	for i,v in pairs(game.Workspace:GetChildren()) do
+		if v and v.Parent and v.ClassName and v.ClassName == "Model" and v.Name == "GrimReaperSoul" and v:FindFirstChild("GrimSoul") then
+			table.insert(souls, v)
+		end
+	end
+	return souls
 end
 bedwars.StoreController = {}
 function bedwars.StoreController:fetchLocalHand()
@@ -7007,7 +7080,7 @@ end)
 	})
 end)--]]
 
---[[run(function()
+run(function()
 	local AutoKit = {Enabled = false}
 	local AutoKitTrinity = {Value = "Void"}
 	local oldfish
@@ -7049,7 +7122,7 @@ end)--]]
 					local itemdrops = collectionService:GetTagged("treeOrb")
 					for i,v in pairs(itemdrops) do
 						if entityLibrary.isAlive and v:FindFirstChild("Spirit") and (entityLibrary.character.HumanoidRootPart.Position - v.Spirit.Position).magnitude <= 20 then
-							if bedwars.Client:Get(bedwars.TreeRemote):CallServer({
+							if bedwars.Client:Get(bedwars.TreeRemote):InvokeServer({
 								treeOrbSecret = v:GetAttribute("TreeOrbSecret")
 							}) then
 								v:Destroy()
@@ -7060,7 +7133,7 @@ end)--]]
 				until (not AutoKit.Enabled)
 			end)
 		end,
-		["metal_detector"] = function()
+		--[[["metal_detector"] = function()
 			task.spawn(function()
 				repeat
 					task.wait()
@@ -7074,8 +7147,8 @@ end)--]]
 					end
 				until (not AutoKit.Enabled)
 			end)
-		end,
-		["battery"] = function()
+		end,--]]
+		--[[["battery"] = function()
 			task.spawn(function()
 				repeat
 					task.wait()
@@ -7089,19 +7162,21 @@ end)--]]
 					end
 				until (not AutoKit.Enabled)
 			end)
-		end,
+		end,--]]
 		["grim_reaper"] = function()
 			task.spawn(function()
 				repeat
 					task.wait()
-					local itemdrops = bedwars.GrimReaperController.soulsByPosition
+					local itemdrops = bedwars.GrimReaperController:fetchSoulsByPosition()
 					for i,v in pairs(itemdrops) do
-						if entityLibrary.isAlive and lplr.Character:GetAttribute("Health") <= (lplr.Character:GetAttribute("MaxHealth") / 4) and v.PrimaryPart and (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude <= 120 and (not lplr.Character:GetAttribute("GrimReaperChannel")) then
-							bedwars.Client:Get(bedwars.ConsumeSoulRemote):CallServer({
+						--if entityLibrary.isAlive and lplr.Character:GetAttribute("Health") <= (lplr.Character:GetAttribute("MaxHealth") / 4) and v.PrimaryPart and (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude <= 120 and (not lplr.Character:GetAttribute("GrimReaperChannel")) then
+						if entityLibrary.isAlive then
+							local res = bedwars.Client:Get(bedwars.ConsumeSoulRemote):InvokeServer({
 								secret = v:GetAttribute("GrimReaperSoulSecret")
 							})
 							v:Destroy()
 						end
+						--end
 					end
 				until (not AutoKit.Enabled)
 			end)
@@ -7113,42 +7188,37 @@ end)--]]
 					local itemdrops = collectionService:GetTagged("HarvestableCrop")
 					for i,v in pairs(itemdrops) do
 						if entityLibrary.isAlive and (entityLibrary.character.HumanoidRootPart.Position - v.Position).magnitude <= 10 then
-							bedwars.Client:Get("CropHarvest"):CallServerAsync({
-								position = bedwars.BlockController:getBlockPosition(v.Position)
+							bedwars.Client:Get("CropHarvest"):InvokeServer({
+								position = bedwars.BlockController:getBlockPosition(v)
 							})
 						end
 					end
 				until (not AutoKit.Enabled)
 			end)
 		end,
-		["pinata"] = function()
-			task.spawn(function()
-				repeat
-					task.wait()
-					local itemdrops = collectionService:GetTagged(lplr.Name..':pinata')
-					for i,v in pairs(itemdrops) do
-						if entityLibrary.isAlive and getItem('candy') then
-							bedwars.Client:Get(bedwars.PinataRemote):CallServer(v)
-						end
-					end
-				until (not AutoKit.Enabled)
-			end)
-		end,
 		["dragon_slayer"] = function()
+			local lastFired
 			task.spawn(function()
 				repeat
 					task.wait(0.1)
 					if entityLibrary.isAlive then
-						for i,v in pairs(bedwars.DragonSlayerController.dragonEmblems) do
-							if v.stackCount >= 3 then
-								bedwars.DragonSlayerController:deleteEmblem(i)
-								local localPos = lplr.Character:GetPrimaryPartCFrame().Position
-								local punchCFrame = CFrame.new(localPos, (i:GetPrimaryPartCFrame().Position * Vector3.new(1, 0, 1)) + Vector3.new(0, localPos.Y, 0))
-								lplr.Character:SetPrimaryPartCFrame(punchCFrame)
-								bedwars.DragonSlayerController:playPunchAnimation(punchCFrame - punchCFrame.Position)
-								bedwars.Client:Get(bedwars.DragonRemote):SendToServer({
-									target = i
-								})
+						for i,v in pairs(bedwars.DragonSlayerController:fetchDragonEmblems()) do
+							local data = bedwars.DragonSlayerController:fetchDragonEmblemData(v)
+							print("1", encode(data))
+							if data.stackCount >= 3 then
+								--local localPos = lplr.Character:GetPrimaryPartCFrame().Position
+								--local punchCFrame = CFrame.new(localPos, (v:GetPrimaryPartCFrame().Position * Vector3.new(1, 0, 1)) + Vector3.new(0, localPos.Y, 0))
+								--lplr.Character:SetPrimaryPartCFrame(punchCFrame)
+								--bedwars.DragonSlayerController:playPunchAnimation(punchCFrame - punchCFrame.Position)
+								local ctarget = bedwars.DragonSlayerController:resolveTarget(v:GetPrimaryPartCFrame())
+								bedwars.DragonSlayerController:deleteEmblem(v)
+								if ctarget then 
+									task.spawn(function()
+										bedwars.Client:Get(bedwars.DragonRemote):FireServer({
+											target = ctarget
+										})
+									end)
+								end
 							end
 						end
 					end
@@ -7163,24 +7233,26 @@ end)--]]
 						for i, v in pairs(collectionService:GetTagged("TomeGuidingBeam")) do
 							local obj = v.Parent and v.Parent.Parent and v.Parent.Parent.Parent
 							if obj and (entityLibrary.character.HumanoidRootPart.Position - obj.PrimaryPart.Position).Magnitude < 5 and obj:GetAttribute("TomeSecret") then
-								local res = bedwars.Client:Get(bedwars.MageRemote):CallServer({
+								local res = bedwars.Client:Get(bedwars.MageRemote):InvokeServer({
 									secret = obj:GetAttribute("TomeSecret")
 								})
 								if res.success and res.element then
 									bedwars.GameAnimationUtil.playAnimation(lplr, bedwars.AnimationType.PUNCH)
 									bedwars.ViewmodelController:playAnimation(bedwars.AnimationType.FP_USE_ITEM)
-									bedwars.MageController:destroyTomeGuidingBeam()
-									bedwars.MageController:playLearnLightBeamEffect(lplr, obj)
+									--bedwars.MageController:destroyTomeGuidingBeam()
+									--bedwars.MageController:playLearnLightBeamEffect(lplr, obj)
 									local sound = bedwars.MageKitUtil.MageElementVisualizations[res.element].learnSound
 									if sound and sound ~= "" then
-										bedwars.SoundManager:playSound(sound)
+										local activeSound = bedwars.SoundManager:playSound(sound)
+										if activeSound then task.wait(0.3) pcall(function() activeSound:Stop(); activeSound:Destroy() end) end
 									end
-									task.delay(bedwars.BalanceFile.LEARN_TOME_DURATION, function()
-										bedwars.MageController:fadeOutTome(obj)
+									pcall(function() obj:Destroy() end)
+									--[[task.delay(bedwars.BalanceFile.LEARN_TOME_DURATION, function()
+										--bedwars.MageController:fadeOutTome(obj)
 										if lplr.Character and res.element then
-											bedwars.MageKitUtil.changeMageKitAppearance(lplr, lplr.Character, res.element)
+											--bedwars.MageKitUtil.changeMageKitAppearance(lplr, lplr.Character, res.element)
 										end
-									end)
+									end)--]]
 								end
 							end
 						end
@@ -7188,7 +7260,7 @@ end)--]]
 				until (not AutoKit.Enabled)
 			end)
 		end,
-		["angel"] = function()
+		--[[["angel"] = function()
 			warningNotification("AutoKit", "Trinity kit detected! A dropdown has been created. Please tap the 3 dots \n next to the module to choose type.", 4)
 			table.insert(AutoKit.Connections, vapeEvents.AngelProgress.Event:Connect(function(angelTable)
 				task.wait(0.5)
@@ -7199,7 +7271,7 @@ end)--]]
 					})
 				end
 			end))
-		end,
+		end,--]]
 		["miner"] = function()
 			task.spawn(function()
 				repeat 
@@ -7209,12 +7281,9 @@ end)--]]
 							local a = game.Workspace:GetChildren()[i]
 							if a.ClassName == "Model" and #a:GetChildren() > 1 then
 								if a:GetAttribute("PetrifyId") then
-									local args = {
-										[1] = {
-											["petrifyId"] = a:GetAttribute("PetrifyId")
-										}
-									}
-									local b = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("DestroyPetrifiedPlayer"):FireServer(unpack(args))
+									bedwars.Client:Get("DestroyPetrifiedPlayer"):FireServer({
+										["petrifyId"] = a:GetAttribute("PetrifyId")
+									})
 								end
 							end
 						end
@@ -7251,13 +7320,10 @@ end)--]]
 										local partPosition = a.PrimaryPart.Position
 										local distance = (playerPosition - partPosition).Magnitude
 										if distance <= thresholdDistance then
-											local args = {
-												[1] = {
-													["id"] = a:GetAttribute("Id"),
-													["collectableName"] = "AlchemyCrystal"
-												}
-											}
-											game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
+											bedwars.Client:Get("CollectCollectableEntity"):FireServer({
+												["id"] = a:GetAttribute("Id"),
+												["collectableName"] = "AlchemyCrystal"
+											})
 										end
 									end
 								end
@@ -7272,10 +7338,7 @@ end)--]]
 				repeat 
 					task.wait(0.5)
 					if entityLibrary.isAlive then
-						local args = {
-							[1] = "enable_life_force_attack"
-						}
-						game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"):WaitForChild("useAbility"):FireServer(unpack(args))
+						bedwars.AbilityController:useAbility("enable_life_force_attack")
 						local function shouldUse()
 							local lplr = game:GetService("Players").LocalPlayer
 							if not (lplr.Character:FindFirstChild("Humanoid")) then
@@ -7292,12 +7355,9 @@ end)--]]
 							end
 						end
 						local val, extra = shouldUse()
-						if extra then print("Using backup method: "..tostring(extra)) end
+						if extra then if shared.VoidDev then print("Using backup method: "..tostring(extra)) end end
 						if val then
-							local args = {
-								[1] = "consume_life_foce"
-							}
-							game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"):WaitForChild("useAbility"):FireServer(unpack(args))
+							bedwars.AbilityController:useAbility("consume_life_foce")
 						end
 					end
 				until (not AutoKit.Enabled)
@@ -7316,18 +7376,15 @@ end)--]]
 				for i,v in pairs(required_args) do
 					if (not v) then return warn("[AutoKit - necromancer.activateGrave]: A required arg is missing! ArgName: "..tostring(i).." ObjectName: "..tostring(obj.Name)) end
 				end
-				local args = {
-					[1] = {
-						["skeletonData"] = {
-							["armorType"] = armorType,
-							["weaponType"] = weaponType,
-							["associatedPlayerUserId"] = associatedPlayerUserId
-						},
-						["secret"] = secret,
-						["position"] = position
-					}
-				}
-				return game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("ActivateGravestone"):InvokeServer(unpack(args))								
+				bedwars.Client:Get("ActivateGravestone"):InvokeServer({
+					["skeletonData"] = {
+						["armorType"] = armorType,
+						["weaponType"] = weaponType,
+						["associatedPlayerUserId"] = associatedPlayerUserId
+					},
+					["secret"] = secret,
+					["position"] = position
+				})
 			end
 			local function verifyAttributes(obj)
 				if (not obj) then return warn("[AutoKit - necromancer.verifyAttributes]: No object specified!") end
@@ -7357,13 +7414,10 @@ end)--]]
 		end,
 		["jailor"] = function()
 			local function activateSoul(obj)
-				local args = {
-					[1] = {
-						["id"] = obj:GetAttribute("Id"),
-						["collectableName"] = "JailorSoul"
-					}
-				}
-				game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CollectCollectableEntity"):FireServer(unpack(args))
+				bedwars.Client:Get("CollectCollectableEntity"):FireServer({
+					["id"] = obj:GetAttribute("Id"),
+					["collectableName"] = "JailorSoul"
+				})
 			end
 			local function verifyAttributes(obj)
 				if obj:GetAttribute("Id") then return true else return false end
@@ -7417,6 +7471,10 @@ end)--]]
 		Name = "SupportedKit",
 		Text = "Kit: "..tostring(resolveKitName(store.equippedKit)).." ["..isSupportedKit(store.equippedKit).."]"
 	})
+	task.spawn(function()
+		repeat task.wait() until shared.VapeFullyLoaded
+		SupportedKit.EditText("Kit: "..tostring(resolveKitName(bedwars.getKit(game:GetService("Players").LocalPlayer))).." ["..isSupportedKit(bedwars.getKit(game:GetService("Players").LocalPlayer)).."]")
+	end)
 	AutoKitTrinity = AutoKit.CreateDropdown({
 		Name = "Angel",
 		List = {"Void", "Light"},
@@ -7424,7 +7482,7 @@ end)--]]
 	})
 	AutoKitTrinity.Object.Visible = false
 	if store.equippedKit == "angel" then AutoKitTrinity.Object.Visible = true end
-end)--]]
+end)
 
 run(function()
 	local alreadyreportedlist = {}

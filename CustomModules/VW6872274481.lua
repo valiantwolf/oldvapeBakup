@@ -4110,9 +4110,6 @@ run(function()
 					if (plr:GetAttribute('LastTeleported') - lastbwteleport) ~= 0 and magnitude >= ((distances[plr:GetAttribute('PlayingAsKit') or ''] or 25) + (playerRaycasted(plr, Vector3.new(0, -15, 0)) and 0 or 40)) then 
 						InfoNotification('HackerDetector', plr.DisplayName..' is using speed!', 60)
 						whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-						--[[if RenderFunctions.playerTags[plr] == nil then 
-							RenderFunctions:CreatePlayerTag(plr, 'SCRIPT KIDDIE', 'FF0000') 
-						end--]]
 					end
 					oldpos = plr.Character.HumanoidRootPart.Position
 					task.wait(2.5)
@@ -4121,67 +4118,63 @@ run(function()
 			until not task.wait() or table.find(detectedusers.Speed, plr) or (not HackerDetector.Enabled or not HackerDetectorSpeed.Enabled)
 		end,
 		InfiniteFly = function(plr) 
-			repeat 
-				if isAlive(plr, true) then 
-
-					local magnitude = (lplr.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
-					if magnitude >= 10000 and playerRaycast(plr) == nil and playerRaycast({Character = {PrimaryPart = {Position = lplr.Character.HumanoidRootPart.Position}}}) then 
-						InfoNotification('HackerDetector', plr.DisplayName..' is using InfiniteFly!', 60) 
-						cachedetection(plr, 'InfiniteFly')
-						table.insert(detectedusers.InfiniteFly, plr)
-						whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-						--[[if RenderFunctions.playerTags[plr] == nil then 
-							RenderFunctions:CreatePlayerTag(plr, 'SCRIPT KIDDIE', 'FF0000') 
-						end--]]
+			pcall(function()
+				repeat 
+					if isAlive(plr, true) then 
+						local magnitude = (lplr.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+						if magnitude >= 10000 and playerRaycast(plr) == nil and playerRaycast({Character = {PrimaryPart = {Position = lplr.Character.HumanoidRootPart.Position}}}) then 
+							InfoNotification('HackerDetector', plr.DisplayName..' is using InfiniteFly!', 60) 
+							cachedetection(plr, 'InfiniteFly')
+							table.insert(detectedusers.InfiniteFly, plr)
+							whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
+						end
+						task.wait(2.5)
 					end
-					task.wait(2.5)
-				end
-			until not task.wait() or table.find(detectedusers.InfiniteFly, plr) or (not HackerDetector.Enabled or not HackerDetectorInfFly.Enabled)
+				until not task.wait() or table.find(detectedusers.InfiniteFly, plr) or (not HackerDetector.Enabled or not HackerDetectorInfFly.Enabled)
+			end)
 		end,
 		Invisibility = function(plr) 
-			if table.find(detectedusers.Invisibility, plr) then 
-				return 
-			end
-			repeat 
-				for i,v in next, (isAlive(plr, true) and plr.Character.Humanoid:GetPlayingAnimationTracks() or {}) do 
-					if v.Animation.AnimationId == 'http://www.roblox.com/asset/?id=11335949902' or v.Animation.AnimationId == 'rbxassetid://11335949902' then 
-						InfoNotification('HackerDetector', plr.DisplayName..' is using Invisibility!', 60) 
-						table.insert(detectedusers.Invisibility, plr)
-						cachedetection(plr, 'Invisibility')
-						whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-						--[[if RenderFunctions.playerTags[plr] == nil then 
-							RenderFunctions:CreatePlayerTag(plr, 'SCRIPT KIDDIE', 'FF0000') 
-						end--]]
-					end
-				end
-				task.wait(0.5)
-			until table.find(detectedusers.Invisibility, plr) or (not HackerDetector.Enabled or not HackerDetectorInvis.Enabled)
-		end,
-		Name = function(plr) 
-			repeat task.wait() until pastesploit 
-			local lines = pastesploit:split('\n') 
-			for i,v in next, lines do 
-				if v:find('local Owner = ') then 
-					local name = lines[i]:gsub('local Owner =', ''):gsub('"', ''):gsub("'", '') 
-					if plr.Name == name then 
-						InfoNotification('HackerDetector', plr.DisplayName..' is the owner of Godsploit! They\'re is most likely cheating.', 60) 
-						cachedetection(plr, 'Name')
-						whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-						--[[if RenderFunctions.playerTags[plr] == nil then 
-							RenderFunctions:CreatePlayerTag(plr, 'SCRIPT KIDDIE', 'FF0000') 
-						end --]]
-					end
-				end
-			end
-			for i,v in next, ({'godsploit', 'alsploit', 'renderintents'}) do 
-				local user = plr.Name:lower():find(v) 
-				local display = plr.DisplayName:lower():find(v)
-				if user or display then 
-					InfoNotification('HackerDetector', plr.DisplayName..' has "'..v..'" in their '..(user and 'username' or 'display name')..'! They might be cheating.', 20)
-					cachedetection(plr, 'Name') 
+			pcall(function()
+				if table.find(detectedusers.Invisibility, plr) then 
 					return 
 				end
-			end
+				repeat 
+					for i,v in next, (isAlive(plr, true) and plr.Character.Humanoid:GetPlayingAnimationTracks() or {}) do 
+						if v.Animation.AnimationId == 'http://www.roblox.com/asset/?id=11335949902' or v.Animation.AnimationId == 'rbxassetid://11335949902' then 
+							InfoNotification('HackerDetector', plr.DisplayName..' is using Invisibility!', 60) 
+							table.insert(detectedusers.Invisibility, plr)
+							cachedetection(plr, 'Invisibility')
+							whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
+						end
+					end
+					task.wait(0.5)
+				until table.find(detectedusers.Invisibility, plr) or (not HackerDetector.Enabled or not HackerDetectorInvis.Enabled)
+			end)
+		end,
+		Name = function(plr) 
+			pcall(function()
+				repeat task.wait() until pastesploit 
+				local lines = pastesploit:split('\n') 
+				for i,v in next, lines do 
+					if v:find('local Owner = ') then 
+						local name = lines[i]:gsub('local Owner =', ''):gsub('"', ''):gsub("'", '') 
+						if plr.Name == name then 
+							InfoNotification('HackerDetector', plr.DisplayName..' is the owner of Godsploit! They\'re is most likely cheating.', 60) 
+							cachedetection(plr, 'Name')
+							whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
+						end
+					end
+				end
+				for i,v in next, ({'godsploit', 'alsploit', 'renderintents'}) do 
+					local user = plr.Name:lower():find(v) 
+					local display = plr.DisplayName:lower():find(v)
+					if user or display then 
+						InfoNotification('HackerDetector', plr.DisplayName..' has "'..v..'" in their '..(user and 'username' or 'display name')..'! They might be cheating.', 20)
+						cachedetection(plr, 'Name') 
+						return 
+					end
+				end
+			end)
 		end, 
 		Cache = function(plr)
 			local success, response = pcall(function()
@@ -4191,9 +4184,6 @@ run(function()
 				InfoNotification('HackerDetector', plr.DisplayName..' is cached on the exploiter database!', 30)
 				table.insert(detectedusers.Cached, plr)
 				whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-				--[[if RenderFunctions.playerTags[plr] == nil then 
-					RenderFunctions:CreatePlayerTag(plr, 'SCRIPT KIDDIE', 'FF0000') 
-				end--]]
 			end
 		end
 	}
