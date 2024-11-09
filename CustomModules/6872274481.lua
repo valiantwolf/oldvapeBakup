@@ -2893,7 +2893,7 @@ run(function()
 	})
 end)
 
-rrun(function()
+run(function()
 	local InfiniteFly = {Enabled = false}
 	local InfiniteFlyMode = {Value = 'CFrame'}
 	local InfiniteFlySpeed = {Value = 23}
@@ -2918,7 +2918,7 @@ rrun(function()
 		RunLoops:UnbindFromHeartbeat('InfiniteFlyOff')
 		disabledproper = true
 		if not oldcloneroot or not oldcloneroot.Parent then return end
-		lplr.Character.Parent = replicatedstorage
+		lplr.Character.Parent = replicatedStorage
 		oldcloneroot.Parent = lplr.Character
 		lplr.Character.PrimaryPart = oldcloneroot
 		lplr.Character.Parent = workspace
@@ -2999,7 +2999,7 @@ rrun(function()
 						InfiniteFly.ToggleButton(false)
 						return
 					end
-					lplr.Character.Parent = replicatedstorage
+					lplr.Character.Parent = replicatedStorage
 					clone = oldcloneroot:Clone()
 					clone.Parent = lplr.Character
 					oldcloneroot.Parent = camera
