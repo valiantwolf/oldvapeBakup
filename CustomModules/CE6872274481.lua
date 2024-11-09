@@ -3154,7 +3154,7 @@ run(function()
 		RunLoops:UnbindFromHeartbeat("InfiniteFlyOff")
 		disabledproper = true
 		if not oldcloneroot or not oldcloneroot.Parent then return end
-		lplr.Character.Parent = game
+		lplr.Character.Parent = game.Workspace
 		oldcloneroot.Parent = lplr.Character
 		lplr.Character.PrimaryPart = oldcloneroot
 		lplr.Character.Parent = game.Workspace
