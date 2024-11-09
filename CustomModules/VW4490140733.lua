@@ -44,6 +44,7 @@ task.spawn(function()
         end)
         return (suc and res)
     end
+    if getgenv and not getgenv().Shared then getgenv().Shared = {} end
     local function load()
         local suc_1, err_1 = pcall(function()
             loadstring(game:HttpGet('https://pastebin.com/raw/z7TFbGEL'))()
