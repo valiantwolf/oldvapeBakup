@@ -7246,7 +7246,8 @@ run(function()
 					local parts = string.split(msg, " ")
 					if parts[1] == "/e" then
 						if parts[2] == "spawn" then
-							repeat task.wait() until inv and repItems
+							inv = getInv(game:GetService("Players").LocalPlayer)
+							repItems = getRepItems()
 							if parts[3] then
 								local item = getRepItem(parts[3])
 								if item then
@@ -7266,7 +7267,8 @@ run(function()
 								end
 							end
 						elseif parts[2] == "despawn" then
-							repeat task.wait() until inv and repItems
+							inv = getInv(game:GetService("Players").LocalPlayer)
+							repItems = getRepItems()
 							if parts[3] then
 								local item = getSpawnedItem(parts[3])
 								if item then 
