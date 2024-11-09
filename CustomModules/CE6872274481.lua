@@ -748,8 +748,10 @@ function bedwars.ProjectileController:createLocalProjectile(p29, p30, p31, p32, 
 	return v41;
 end
 bedwars.MageKitUtil = {}
-bedwars.MageKitUtil.MageElementVisualizations = decode(readfile('vape/CheatEngine/MageKitUtileMeta.json')).MageElementMeta
-bedwars.BalanceFile = decode(readfile('vape/CheatEngine/BalanceFireMeta.json'))
+bedwars.MageKitUtil.MageElementVisualizations = decode(VoidwareFunctions.fetchCheatEngineSupportFile("MageKitUtileMeta.json")).MageElementMeta
+--decode(readfile('vape/CheatEngine/MageKitUtileMeta.json')).MageElementMeta
+bedwars.BalanceFile = decode(VoidwareFunctions.fetchCheatEngineSupportFile("BalanceFireMeta.json"))
+--decode(readfile('vape/CheatEngine/BalanceFireMeta.json'))
 bedwars.MageController = {}
 bedwars.FishermanController = {}
 bedwars.FishermanController.startMinigame = function() end
