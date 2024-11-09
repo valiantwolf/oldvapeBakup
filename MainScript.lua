@@ -2223,7 +2223,7 @@ local function loadVape()
 			fileName2 = "CustomModules/VW6872265039.lua"
 		end
 		if CE == "CE" then InfoNotification("Voidware", "Backup mode activated!", 3) end 
-		if shared.CheatEngineMode then InfoNotification(fileName1, fileName2, 2) end
+		--if shared.CheatEngineMode then InfoNotification(fileName1, fileName2, 2) end
 		if shared.VoidDev then InfoNotification(fileName1, fileName2, 100) end
 		pload(fileName1, true)
 		pload(fileName2)
