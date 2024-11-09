@@ -729,6 +729,19 @@ if shared.TestingMode then
 						local function extractValue(text, pattern)
 							return text:match(pattern)
 						end
+
+						local components = {
+							Gui = Instance.new("ScreenGui"),
+							Background = Instance.new("Frame"),
+							UICorner = Instance.new("UICorner"),
+							SessionInfoLabel = Instance.new("TextLabel"),
+							TimePlayed = Instance.new("TextLabel"),
+							Kills = Instance.new("TextLabel"),
+							Deaths = Instance.new("TextLabel"),
+							Region = Instance.new("TextLabel"),
+							DropShadowHolder = Instance.new("Frame"),
+							DropShadow = Instance.new("ImageLabel")
+						}
 						
 						local function setupLabel(label, text, positionY)
 							label.Font = Enum.Font.SourceSans
@@ -742,19 +755,6 @@ if shared.TestingMode then
 							label.Size = UDim2.new(1, 0, 0.17, 0)
 							label.Parent = components.Background
 						end
-						
-						local components = {
-							Gui = Instance.new("ScreenGui"),
-							Background = Instance.new("Frame"),
-							UICorner = Instance.new("UICorner"),
-							SessionInfoLabel = Instance.new("TextLabel"),
-							TimePlayed = Instance.new("TextLabel"),
-							Kills = Instance.new("TextLabel"),
-							Deaths = Instance.new("TextLabel"),
-							Region = Instance.new("TextLabel"),
-							DropShadowHolder = Instance.new("Frame"),
-							DropShadow = Instance.new("ImageLabel")
-						}
 		
 						components.Gui.Name = "SessionInfo"
 						components.Gui.Parent = plrgui

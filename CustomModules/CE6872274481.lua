@@ -3233,7 +3233,7 @@ run(function()
 						InfiniteFly.ToggleButton(false)
 						return
 					end
-					lplr.Character.Parent = game
+					lplr.Character.Parent = game.Workspace
 					clone = oldcloneroot:Clone()
 					clone.Parent = lplr.Character
 					oldcloneroot.Parent = gameCamera
