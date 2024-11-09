@@ -6492,11 +6492,6 @@ run(function()
 	local function buyItem(itemtab, waitdelay)
 		if not id then return end
 		local res
-		writefile("AUTOBUY.json", encode({
-			shopItem = itemtab,
-			shopId = id
-		}))
-		print(itemtab, waitdelay)
 		bedwars.Client:Get("BedwarsPurchaseItem"):InvokeServer({
 			shopItem = itemtab,
 			shopId = id
@@ -9044,7 +9039,7 @@ task.spawn(function()
 	end
 end)
 
-run(function()
+--[[run(function()
 	local ScytheExploit = {Enabled = false}
 	ScytheExploit = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = "ScytheExploit",
@@ -9052,7 +9047,7 @@ run(function()
 			shared.scythexp = callback
 		end
 	})
-end)
+end)--]]
 
 run(function() 
     local Settings = {
