@@ -3984,7 +3984,7 @@ run(function()
 			if callback then
 				--context issues moment
 			---- BIG BALLS MOMENT
-				pcall(function()
+				--[[pcall(function()
 					if identifyexecutor and not string.find(string.lower(identifyexecutor()), "wave") then
 						killaurarangecirclepart = Instance.new("MeshPart")
 						killaurarangecirclepart.MeshId = "rbxassetid://3726303797"
@@ -3998,7 +3998,7 @@ run(function()
 						end
 						--bedwars.QueryUtil:setQueryIgnored(killaurarangecirclepart, true)
 					end
-				end)
+				end)--]]
 			else
 				if killaurarangecirclepart then
 					killaurarangecirclepart:Destroy()
