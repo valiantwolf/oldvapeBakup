@@ -803,6 +803,7 @@ local isnetworkowner = function(part)
 	end
 	return networkownerswitch <= tick()
 end
+VoidwareFunctions.GlobaliseObject("isnetworkowner", isnetworkowner)
 local getcustomasset = getsynasset or getcustomasset or function(location) return "rbxasset://"..location end
 local queueonteleport = syn and syn.queue_on_teleport or queue_on_teleport or function() end
 local synapsev3 = syn and syn.toast_notification and "V3" or ""
