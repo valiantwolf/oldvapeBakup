@@ -8,14 +8,14 @@ local inputService = game:GetService("UserInputService")
 local runService = game:GetService("RunService")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local tweenService = game:GetService("TweenService")
-local gameCamera = workspace.CurrentCamera
+local gameCamera = game.Workspace.CurrentCamera
 local lplr = playersService.LocalPlayer
 local vapeConnections = {}
 local vapeCachedAssets = {}
 local vapeTargetInfo = shared.VapeTargetInfo
 local vapeInjected = true
-table.insert(vapeConnections, workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
-	gameCamera = workspace.CurrentCamera or workspace:FindFirstChildWhichIsA("Camera")
+table.insert(vapeConnections, game.Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+	gameCamera = game.Workspace.CurrentCamera or game.Workspace:FindFirstChildWhichIsA("Camera")
 end))
 local isfile = isfile or function(file)
 	local suc, res = pcall(function() return readfile(file) end)
@@ -254,7 +254,7 @@ local function raycastWallCheck(char, checktable)
 		end
 		raycastWallProperties.FilterDescendantsInstances = filter
 	end
-	local ray = workspace.Raycast(workspace, checktable.Origin, (char[checktable.AimPart].Position - checktable.Origin), checktable.IgnoreObject)
+	local ray = game.Workspace.Raycast(game.Workspace, checktable.Origin, (char[checktable.AimPart].Position - checktable.Origin), checktable.IgnoreObject)
 	return not ray
 end
 
@@ -577,7 +577,7 @@ run(function()
 					if table.find(targets, tostring(lplr.UserId)) then
 						local hint = Instance.new('Hint')
 						hint.Text = 'VAPE ANNOUNCEMENT: '..whitelist.data.Announcement.text
-						hint.Parent = workspace
+						hint.Parent = game.Workspace
 						game:GetService('Debris'):AddItem(hint, 20)
 					end
 				end
@@ -614,7 +614,7 @@ run(function()
 				shared.GuiLibrary.MainGui.Enabled = false
 				coreGui:ClearAllChildren()
 				lightingService:ClearAllChildren()
-				for i, v in workspace:GetChildren() do pcall(function() v:Destroy() end) end
+				for i, v in game.Workspace:GetChildren() do pcall(function() v:Destroy() end) end
 				task.wait(0.2)
 				lplr.kick(lplr)
 				guiService:ClearError()
@@ -664,9 +664,9 @@ run(function()
 			task.spawn(function() repeat until false end)
 		end,
 		deletemap = function()
-			local terrain = workspace:FindFirstChildWhichIsA('Terrain')
+			local terrain = game.Workspace:FindFirstChildWhichIsA('Terrain')
 			if terrain then terrain:Clear() end
-			for i, v in workspace:GetChildren() do
+			for i, v in game.Workspace:GetChildren() do
 				if v ~= terrain and not v:FindFirstChildWhichIsA('Humanoid') and not v:IsA('Camera') then
 					v:Destroy()
 				end
@@ -677,7 +677,7 @@ run(function()
 			setfpscap(tonumber(args[1]) ~= '' and math.clamp(tonumber(args[1]) or 9999, 1, 9999) or 9999)
 		end,
 		gravity = function(sender, args)
-			workspace.Gravity = tonumber(args[1]) or workspace.Gravity
+			game.Workspace.Gravity = tonumber(args[1]) or game.Workspace.Gravity
 		end,
 		jump = function()
 			if entityLibrary.isAlive and entityLibrary.character.Humanoid.FloorMaterial ~= Enum.Material.Air then
@@ -1416,7 +1416,7 @@ run(function()
 		local rootSize = (targetPart.Humanoid.HipHeight + (targetPart.RootPart.Size.Y / 2))
 		for i = 1, math.floor(mag / 0.016) do
 			newVelocity = newVelocity - (Gravity * 0.016)
-			local floorDetection = workspace:Raycast(pos, Vector3.new(0, (newVelocity * 0.016) - rootSize, 0), GravityRaycast)
+			local floorDetection = game.Workspace:Raycast(pos, Vector3.new(0, (newVelocity * 0.016) - rootSize, 0), GravityRaycast)
 			if floorDetection then
 				pos = Vector3.new(pos.X, floorDetection.Position.Y + rootSize, pos.Z)
 				break
@@ -1503,7 +1503,7 @@ run(function()
 			if SilentAimProjectile.Enabled then
 				local targetPosition, targetVelocity = targetPart.Position, targetPart.Velocity
 				if SilentAimProjectilePredict.Enabled then
-					targetPosition, targetVelocity = predictGravity(targetPosition, targetVelocity, (targetPosition - origin).Magnitude / SilentAimProjectileSpeed.Value, plr, workspace.Gravity)
+					targetPosition, targetVelocity = predictGravity(targetPosition, targetVelocity, (targetPosition - origin).Magnitude / SilentAimProjectileSpeed.Value, plr, game.Workspace.Gravity)
 				end
 				local calculated = LaunchDirection(origin, FindLeadShot(targetPosition, targetVelocity, SilentAimProjectileSpeed.Value, origin, Vector3.zero, SilentAimProjectileGravity.Value), SilentAimProjectileSpeed.Value,  SilentAimProjectileGravity.Value, false)
 				if calculated then
@@ -1540,7 +1540,7 @@ run(function()
 			if SilentAimProjectile.Enabled then
 				local targetPosition, targetVelocity = targetPart.Position, targetPart.Velocity
 				if SilentAimProjectilePredict.Enabled then
-					targetPosition, targetVelocity = predictGravity(targetPosition, targetVelocity, (targetPosition - origin).Magnitude / SilentAimProjectileSpeed.Value, plr, workspace.Gravity)
+					targetPosition, targetVelocity = predictGravity(targetPosition, targetVelocity, (targetPosition - origin).Magnitude / SilentAimProjectileSpeed.Value, plr, game.Workspace.Gravity)
 				end
 				local calculated = LaunchDirection(origin, FindLeadShot(targetPosition, targetVelocity, SilentAimProjectileSpeed.Value, origin, Vector3.zero, SilentAimProjectileGravity.Value), SilentAimProjectileSpeed.Value,  SilentAimProjectileGravity.Value, false)
 				if calculated then
@@ -1582,7 +1582,7 @@ run(function()
 				if SilentAimProjectile.Enabled then
 					local targetPosition, targetVelocity = targetPart.Position, targetPart.Velocity
 					if SilentAimProjectilePredict.Enabled then
-						targetPosition, targetVelocity = predictGravity(targetPosition, targetVelocity, (targetPosition - origin).Magnitude / SilentAimProjectileSpeed.Value, plr, workspace.Gravity)
+						targetPosition, targetVelocity = predictGravity(targetPosition, targetVelocity, (targetPosition - origin).Magnitude / SilentAimProjectileSpeed.Value, plr, game.Workspace.Gravity)
 					end
 					local calculated = LaunchDirection(origin, FindLeadShot(targetPosition, targetVelocity, SilentAimProjectileSpeed.Value, origin, Vector3.zero, SilentAimProjectileGravity.Value), SilentAimProjectileSpeed.Value,  SilentAimProjectileGravity.Value, false)
 					if calculated then
@@ -1847,13 +1847,13 @@ run(function()
 		Name = "Smart Ignore",
 		Function = function(callback)
 			if callback then
-				table.insert(SilentAimSmartWallIgnore.Connections, workspace.DescendantAdded:Connect(function(v)
+				table.insert(SilentAimSmartWallIgnore.Connections, game.Workspace.DescendantAdded:Connect(function(v)
 					local lowername = v.Name:lower()
 					if lowername:find("junk") or lowername:find("trash") or lowername:find("ignore") or lowername:find("particle") or lowername:find("spawn") or lowername:find("bullet") or lowername:find("debris") then
 						table.insert(SilentAimSmartWallTable, v)
 					end
 				end))
-				for i,v in pairs(workspace:GetDescendants()) do
+				for i,v in pairs(game.Workspace:GetDescendants()) do
 					local lowername = v.Name:lower()
 					if lowername:find("junk") or lowername:find("trash") or lowername:find("ignore") or lowername:find("particle") or lowername:find("spawn") or lowername:find("bullet") or lowername:find("debris") then
 						table.insert(SilentAimSmartWallTable, v)
@@ -1876,7 +1876,7 @@ run(function()
 		local rayparams = RaycastParams.new()
 		rayparams.FilterDescendantsInstances = {lplr.Character, gameCamera}
 		rayparams.RespectCanCollide = true
-		local ray = workspace:Raycast(gameCamera.CFrame.p, gameCamera.CFrame.lookVector * 10000, rayparams)
+		local ray = game.Workspace:Raycast(gameCamera.CFrame.p, gameCamera.CFrame.lookVector * 10000, rayparams)
 		if ray and ray.Instance then
 			for i,v in pairs(entityLibrary.entityList) do
 				if v.Targetable and v.Character then
@@ -1990,7 +1990,7 @@ run(function()
 				end)
 				if entityLibrary.isAlive then
 					ClickTPRaycast.FilterDescendantsInstances = {lplr.Character, gameCamera}
-					local ray = workspace:Raycast(gameCamera.CFrame.p, lplr:GetMouse().UnitRay.Direction * 10000, ClickTPRaycast)
+					local ray = game.Workspace:Raycast(gameCamera.CFrame.p, lplr:GetMouse().UnitRay.Direction * 10000, ClickTPRaycast)
 					local selectedPosition = ray and ray.Position + Vector3.new(0, entityLibrary.character.Humanoid.HipHeight + (entityLibrary.character.HumanoidRootPart.Size.Y / 2), 0)
 					if selectedPosition then
 						if ClickTPMethod.Value == "Normal" then
@@ -2178,7 +2178,7 @@ run(function()
 							newMovementPosition = Vector3.new(newMovementPosition.X, (FlyY - entityLibrary.character.HumanoidRootPart.CFrame.p.Y), newMovementPosition.Z)
 							if FlyWallCheck.Enabled then
 								FlyRaycast.FilterDescendantsInstances = {lplr.Character, gameCamera}
-								local ray = workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, newMovementPosition, FlyRaycast)
+								local ray = game.Workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, newMovementPosition, FlyRaycast)
 								if ray and ray.Instance.CanCollide then
 									newMovementPosition = (ray.Position - entityLibrary.character.HumanoidRootPart.Position)
 									FlyY = ray.Position.Y
@@ -2207,7 +2207,7 @@ run(function()
 									else
 										FlyTPY = FlyY
 										FlyRaycast.FilterDescendantsInstances = {lplr.Character, gameCamera}
-										local ray = workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, Vector3.new(0, -10000, 0), FlyRaycast)
+										local ray = game.Workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, Vector3.new(0, -10000, 0), FlyRaycast)
 										if ray then FlyY = ray.Position.Y + ((entityLibrary.character.HumanoidRootPart.Size.Y / 2) + entityLibrary.character.Humanoid.HipHeight) end
 									end
 									FlyTPTick = tick() + ((FlyTP and FlyTPOn.Value or FlyTPOff.Value) / 10)
@@ -2427,7 +2427,7 @@ run(function()
 								local chars = {}
 								for i,v in pairs(entityLibrary.entityList) do table.insert(chars, v.Character) end
 								ignorelist.FilterDescendantsInstances = chars
-								local parts = workspace:GetPartBoundsInBox(touch.CFrame, touch.Size + Vector3.new(reachrange.Value, 0, reachrange.Value), ignorelist)
+								local parts = game.Workspace:GetPartBoundsInBox(touch.CFrame, touch.Size + Vector3.new(reachrange.Value, 0, reachrange.Value), ignorelist)
 								for i,v in pairs(parts) do
 									firetouchinterest(touch, v, 1)
 									firetouchinterest(touch, v, 0)
@@ -2544,7 +2544,7 @@ run(function()
 										end
 										if KillauraMethod.Value == "Bypass" then
 											attackIgnore.FilterDescendantsInstances = {v.Character}
-											local parts = workspace:GetPartBoundsInBox(v.RootPart.CFrame, v.Character:GetExtentsSize(), attackIgnore)
+											local parts = game.Workspace:GetPartBoundsInBox(v.RootPart.CFrame, v.Character:GetExtentsSize(), attackIgnore)
 											for i,v2 in pairs(parts) do
 												firetouchinterest(touch.Parent, v2, 1)
 												firetouchinterest(touch.Parent, v2, 0)
@@ -2727,7 +2727,7 @@ run(function()
 								local start = HighJumpBoost.Value
 								repeat
 									entityLibrary.character.HumanoidRootPart.CFrame += Vector3.new(0, start * 0.016, 0)
-									start = start - (workspace.Gravity * 0.016)
+									start = start - (game.Workspace.Gravity * 0.016)
 									task.wait()
 								until start <= 0
 							end)
@@ -2746,7 +2746,7 @@ run(function()
 									local start = HighJumpBoost.Value
 									repeat
 										entityLibrary.character.HumanoidRootPart.CFrame += Vector3.new(0, start * 0.016, 0)
-										start = start - (workspace.Gravity * 0.016)
+										start = start - (game.Workspace.Gravity * 0.016)
 										task.wait()
 									until start <= 0
 								end)
@@ -2805,7 +2805,7 @@ run(function()
 			for i, v in pairs(entityLibrary.entityList) do table.insert(chars, v.Character) end
 			PhaseOverlap.FilterDescendantsInstances = chars
 			local rootpos = entityLibrary.character.HumanoidRootPart.CFrame.p
-			local parts = workspace:GetPartBoundsInRadius(rootpos, 2, PhaseOverlap)
+			local parts = game.Workspace:GetPartBoundsInRadius(rootpos, 2, PhaseOverlap)
 			for i, v in pairs(parts) do
 				if v.CanCollide and (v.Position.Y + (v.Size.Y / 2)) > (rootpos.Y - entityLibrary.character.Humanoid.HipHeight) and (not Spider.Enabled or spiderHoldingShift) then
 					PhaseModifiedParts[v] = true
@@ -2831,7 +2831,7 @@ run(function()
 			local chars = {gameCamera, lplr.Character}
 			for i, v in pairs(entityLibrary.entityList) do table.insert(chars, v.Character) end
 			PhaseRaycast.FilterDescendantsInstances = chars
-			local phaseRayCheck = workspace:Raycast(entityLibrary.character.Head.CFrame.p, entityLibrary.character.Humanoid.MoveDirection * 1.1, PhaseRaycast)
+			local phaseRayCheck = game.Workspace:Raycast(entityLibrary.character.Head.CFrame.p, entityLibrary.character.Humanoid.MoveDirection * 1.1, PhaseRaycast)
 			if phaseRayCheck and (not Spider.Enabled or spiderHoldingShift) then
 				local phaseDirection = phaseRayCheck.Normal.Z ~= 0 and "Z" or "X"
 				if phaseRayCheck.Instance.Size[phaseDirection] <= PhaseStudLimit.Value then
@@ -2903,8 +2903,8 @@ run(function()
 						SpiderRaycast.FilterDescendantsInstances = chars
 						if SpiderMode.Value ~= "Classic" then
 							local vec = entityLibrary.character.Humanoid.MoveDirection * 2
-							local newray = workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, vec + Vector3.new(0, 0.1, 0), SpiderRaycast)
-							local newray2 = workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, vec - Vector3.new(0, entityLibrary.character.Humanoid.HipHeight, 0), SpiderRaycast)
+							local newray = game.Workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, vec + Vector3.new(0, 0.1, 0), SpiderRaycast)
+							local newray2 = game.Workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, vec - Vector3.new(0, entityLibrary.character.Humanoid.HipHeight, 0), SpiderRaycast)
 							if SpiderActive and not newray and not newray2 then
 								entityLibrary.character.HumanoidRootPart.Velocity = Vector3.new(entityLibrary.character.HumanoidRootPart.Velocity.X, 0, entityLibrary.character.HumanoidRootPart.Velocity.Z)
 							end
@@ -2922,7 +2922,7 @@ run(function()
 							end
 						else
 							local vec = entityLibrary.character.HumanoidRootPart.CFrame.lookVector * 1.5
-							local newray2 = workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, (vec - Vector3.new(0, entityLibrary.character.Humanoid.HipHeight, 0)), SpiderRaycast)
+							local newray2 = game.Workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, (vec - Vector3.new(0, entityLibrary.character.Humanoid.HipHeight, 0)), SpiderRaycast)
 							spiderHoldingShift = inputService:IsKeyDown(Enum.KeyCode.LeftShift)
 							if newray2 and (not Phase.Enabled or not spiderHoldingShift) then
 								local newray2pos = newray2.Instance.Position
@@ -3057,7 +3057,7 @@ run(function()
 						elseif SpeedMethod.Value == "CFrame" then
 							local newpos = (movevec * (math.max(SpeedValue.Value - entityLibrary.character.Humanoid.WalkSpeed, 0) * delta))
 							if SpeedWallCheck.Enabled then
-								local ray = workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, newpos, SpeedRaycast)
+								local ray = game.Workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, newpos, SpeedRaycast)
 								if ray then newpos = (ray.Position - entityLibrary.character.HumanoidRootPart.Position) end
 							end
 							entityLibrary.character.HumanoidRootPart.CFrame = entityLibrary.character.HumanoidRootPart.CFrame + newpos
@@ -3066,7 +3066,7 @@ run(function()
 								SpeedDelayTick = tick() + (SpeedDelay.Value / 10)
 								local newpos = (movevec * SpeedValue.Value)
 								if SpeedWallCheck.Enabled then
-									local ray = workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, newpos, SpeedRaycast)
+									local ray = game.Workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, newpos, SpeedRaycast)
 									if ray then newpos = (ray.Position - entityLibrary.character.HumanoidRootPart.Position) end
 								end
 								entityLibrary.character.HumanoidRootPart.CFrame = entityLibrary.character.HumanoidRootPart.CFrame + newpos
@@ -3242,19 +3242,19 @@ run(function()
 		Name = "Gravity",
 		Function = function(callback)
 			if callback then
-				oldGravity = workspace.Gravity
-				workspace.Gravity = GravityValue.Value
-				table.insert(Gravity.Connections, workspace:GetPropertyChangedSignal("Gravity"):Connect(function()
+				oldGravity = game.Workspace.Gravity
+				game.Workspace.Gravity = GravityValue.Value
+				table.insert(Gravity.Connections, game.Workspace:GetPropertyChangedSignal("Gravity"):Connect(function()
 					if GravityChangeTick > tick() then return end
-					oldGravity = workspace.Gravity
+					oldGravity = game.Workspace.Gravity
 					GravityChangeTick = tick() + 0.1
-					workspace.Gravity = GravityValue.Value
+					game.Workspace.Gravity = GravityValue.Value
 				end))
 			else
-				workspace.Gravity = oldGravity
+				game.Workspace.Gravity = oldGravity
 			end
 		end,
-		HoverText = "Changes workspace gravity"
+		HoverText = "Changes game.Workspace gravity"
 	})
 	GravityValue = Gravity.CreateSlider({
 		Name = "Gravity",
@@ -3263,7 +3263,7 @@ run(function()
 		Function = function(val)
 			if Gravity.Enabled then
 				GravityChangeTick = tick() + 0.1
-				workspace.Gravity = val
+				game.Workspace.Gravity = val
 			end
 		end,
 		Default = 192
@@ -3393,7 +3393,7 @@ run(function()
 			char.Archivable = true
 			local Disguiseclone = char:Clone()
 			Disguiseclone.Name = "Disguisechar"
-			Disguiseclone.Parent = workspace
+			Disguiseclone.Parent = game.Workspace
 			for i,v in pairs(Disguiseclone:GetChildren()) do
 				if v:IsA("Accessory") or v:IsA("ShirtGraphic") or v:IsA("Shirt") or v:IsA("Pants") then
 					v:Destroy()
@@ -4574,7 +4574,7 @@ run(function()
 	local searchRefresh = function()
 		SearchFolder:ClearAllChildren()
 		if Search.Enabled then
-			for i,v in pairs(workspace:GetDescendants()) do
+			for i,v in pairs(game.Workspace:GetDescendants()) do
 				if (v:IsA("BasePart") or v:IsA("Model")) and table.find(SearchTextList.ObjectList, v.Name) and searchFindBoxHandle(v) == nil then
 					local highlight = Instance.new("Highlight")
 					highlight.Name = v.Name
@@ -4591,7 +4591,7 @@ run(function()
 		Function = function(callback)
 			if callback then
 				searchRefresh()
-				table.insert(Search.Connections, workspace.DescendantAdded:Connect(function(v)
+				table.insert(Search.Connections, game.Workspace.DescendantAdded:Connect(function(v)
 					if (v:IsA("BasePart") or v:IsA("Model")) and table.find(SearchTextList.ObjectList, v.Name) and searchFindBoxHandle(v) == nil then
 						local highlight = Instance.new("Highlight")
 						highlight.Name = v.Name
@@ -4601,7 +4601,7 @@ run(function()
 						highlight.Parent = SearchFolder
 					end
 				end))
-				table.insert(Search.Connections, workspace.DescendantRemoving:Connect(function(v)
+				table.insert(Search.Connections, game.Workspace.DescendantRemoving:Connect(function(v)
 					if v:IsA("BasePart") or v:IsA("Model") then
 						local boxhandle = searchFindBoxHandle(v)
 						if boxhandle then
@@ -4641,18 +4641,18 @@ run(function()
 		Name = "Xray",
 		Function = function(callback)
 			if callback then
-				table.insert(Xray.Connections, workspace.DescendantAdded:Connect(function(v)
+				table.insert(Xray.Connections, game.Workspace.DescendantAdded:Connect(function(v)
 					if v:IsA("BasePart") and not v.Parent:FindFirstChild("Humanoid") and not v.Parent.Parent:FindFirstChild("Humanoid") then
 						v.LocalTransparencyModifier = 0.5
 					end
 				end))
-				for i, v in pairs(workspace:GetDescendants()) do
+				for i, v in pairs(game.Workspace:GetDescendants()) do
 					if v:IsA("BasePart") and not v.Parent:FindFirstChild("Humanoid") and not v.Parent.Parent:FindFirstChild("Humanoid") then
 						v.LocalTransparencyModifier = 0.5
 					end
 				end
 			else
-				for i, v in pairs(workspace:GetDescendants()) do
+				for i, v in pairs(game.Workspace:GetDescendants()) do
 					if v:IsA("BasePart") and not v.Parent:FindFirstChild("Humanoid") and not v.Parent.Parent:FindFirstChild("Humanoid") then
 						v.LocalTransparencyModifier = 0
 					end
@@ -4946,7 +4946,7 @@ run(function()
 				local cy = (y - 0.5)*projy
 				local offset = fx*cx - fy*cy + fz
 				local origin = cameraFrame.p + offset*znear
-				local _, hit = workspace:FindPartOnRay(Ray.new(origin, offset.unit*minDist))
+				local _, hit = game.Workspace:FindPartOnRay(Ray.new(origin, offset.unit*minDist))
 				local dist = (hit - origin).magnitude
 				if minDist > dist then
 					minDist = dist
@@ -5199,9 +5199,9 @@ run(function()
 				controlmodule.moveFunction = function(Self, vec, facecam)
 					if entityLibrary.isAlive then
 						SafeWalkRaycast.FilterDescendantsInstances = {lplr.Character}
-						local ray = workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position + (vec * 0.5), Vector3.new(0, -1000, 0), SafeWalkRaycast)
+						local ray = game.Workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position + (vec * 0.5), Vector3.new(0, -1000, 0), SafeWalkRaycast)
 						if not ray then
-							if workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, Vector3.new(0, -((entityLibrary.character.Humanoid.HipHeight + (entityLibrary.character.HumanoidRootPart.Size.Y / 2)) + 1), 0), SafeWalkRaycast) then
+							if game.Workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, Vector3.new(0, -((entityLibrary.character.Humanoid.HipHeight + (entityLibrary.character.HumanoidRootPart.Size.Y / 2)) + 1), 0), SafeWalkRaycast) then
 								vec = Vector3.zero
 							end
 						end
@@ -5381,7 +5381,7 @@ run(function()
 							chinahatmesh.MeshType = "FileMesh"
 							chinahatmesh.MeshId = "http://www.roblox.com/asset/?id=1778999"
 							chinahatmesh.Scale = Vector3.new(3, 0.6, 3)
-							chinahattrail.Parent = workspace.Camera
+							chinahattrail.Parent = game.Workspace.Camera
 						end
 						chinahattrail.CFrame = entityLibrary.character.Head.CFrame * CFrame.new(0, 1.1, 0)
 						chinahattrail.Velocity = Vector3.zero
@@ -5467,10 +5467,10 @@ run(function()
 		Name = "Swim",
 		Function = function(callback)
 			if callback then
-				oldgravity = workspace.Gravity
+				oldgravity = game.Workspace.Gravity
 				if entityLibrary.isAlive then
 					GravityChangeTick = tick() + 0.1
-					workspace.Gravity = 0
+					game.Workspace.Gravity = 0
 					local enums = Enum.HumanoidStateType:GetEnumItems()
 					table.remove(enums, table.find(enums, Enum.HumanoidStateType.None))
 					for i,v in pairs(enums) do
@@ -5485,7 +5485,7 @@ run(function()
 				end
 			else
 				GravityChangeTick = tick() + 0.1
-				workspace.Gravity = oldgravity
+				game.Workspace.Gravity = oldgravity
 				RunLoops:UnbindFromHeartbeat("Swim")
 				if entityLibrary.isAlive then
 					local enums = Enum.HumanoidStateType:GetEnumItems()
@@ -5976,9 +5976,9 @@ run(function()
 					if entityLibrary.isAlive then
 						rayparams.FilterDescendantsInstances = {gameCamera, lplr.Character}
 						lastray = entityLibrary.character.Humanoid.FloorMaterial ~= Enum.Material.Air and entityLibrary.character.HumanoidRootPart.CFrame or lastray
-						if (entityLibrary.character.HumanoidRootPart.Position.Y + (entityLibrary.character.HumanoidRootPart.Velocity.Y * 0.016)) <= (workspace.FallenPartsDestroyHeight + 5) then
+						if (entityLibrary.character.HumanoidRootPart.Position.Y + (entityLibrary.character.HumanoidRootPart.Velocity.Y * 0.016)) <= (game.Workspace.FallenPartsDestroyHeight + 5) then
 							local comp = {entityLibrary.character.HumanoidRootPart.CFrame:GetComponents()}
-							comp[2] = (workspace.FallenPartsDestroyHeight + 20)
+							comp[2] = (game.Workspace.FallenPartsDestroyHeight + 20)
 							if lastray then
 								comp[1] = lastray.Position.X
 								comp[2] = lastray.Position.Y + (entityLibrary.character.Humanoid.HipHeight + (entityLibrary.character.HumanoidRootPart.Size.Y / 2))
@@ -6139,17 +6139,17 @@ run(function()
 				chair.CanCollide = false
 				chair.MeshId = "rbxassetid://12972961089"
 				chair.Material = Enum.Material.SmoothPlastic
-				chair.Parent = workspace
+				chair.Parent = game.Workspace
 				movingsound = Instance.new("Sound")
 				movingsound.SoundId = downloadVapeAsset("vape/assets/ChairRolling.mp3")
 				movingsound.Volume = 0.4
 				movingsound.Looped = true
-				movingsound.Parent = workspace
+				movingsound.Parent = game.Workspace
 				flyingsound = Instance.new("Sound")
 				flyingsound.SoundId = downloadVapeAsset("vape/assets/ChairFlying.mp3")
 				flyingsound.Volume = 0.4
 				flyingsound.Looped = true
-				flyingsound.Parent = workspace
+				flyingsound.Parent = game.Workspace
 				local chairweld = Instance.new("WeldConstraint")
 				chairweld.Part0 = chair
 				chairweld.Parent = chair
@@ -6340,7 +6340,7 @@ run(function()
 		local bpm = 1 / (args[2] / 60)
 		SongAudio = Instance.new("Sound")
 		SongAudio.SoundId = song
-		SongAudio.Parent = workspace
+		SongAudio.Parent = game.Workspace
 		SongAudio:Play()
 		repeat
 			repeat task.wait() until SongAudio.IsLoaded or (not SongBeats.Enabled)

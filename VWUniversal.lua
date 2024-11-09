@@ -131,7 +131,7 @@ run(function()
 	local searchRefresh = function()
 		SearchFolder:ClearAllChildren()
 		if Search.Enabled then
-			for i,v in pairs(workspace:GetDescendants()) do
+			for i,v in pairs(game.Workspace:GetDescendants()) do
 				if (v:IsA("BasePart") or v:IsA("Model")) and table.find(SearchTextList.ObjectList, v.Name) and searchFindBoxHandle(v) == nil then
 					local highlight = Instance.new("Highlight")
 					highlight.Name = v.Name
@@ -148,7 +148,7 @@ run(function()
 		Function = function(callback)
 			if callback then
 				searchRefresh()
-				table.insert(Search.Connections, workspace.DescendantAdded:Connect(function(v)
+				table.insert(Search.Connections, game.Workspace.DescendantAdded:Connect(function(v)
 					if (v:IsA("BasePart") or v:IsA("Model")) and table.find(SearchTextList.ObjectList, v.Name) and searchFindBoxHandle(v) == nil then
 						local highlight = Instance.new("Highlight")
 						highlight.Name = v.Name
@@ -158,7 +158,7 @@ run(function()
 						highlight.Parent = SearchFolder
 					end 
 				end))
-				table.insert(Search.Connections, workspace.DescendantRemoving:Connect(function(v)
+				table.insert(Search.Connections, game.Workspace.DescendantRemoving:Connect(function(v)
 					if v:IsA("BasePart") or v:IsA("Model") then
 						local boxhandle = searchFindBoxHandle(v)
 						if boxhandle then
@@ -594,14 +594,14 @@ run(function() local CloudMods = {}
 		HoverText = 'Recolorizes the clouds to your liking.',
 		Function = function(calling)
 			if calling then 
-				clouds = workspace:WaitForChild('Clouds'):GetChildren()
+				clouds = game.Workspace:WaitForChild('Clouds'):GetChildren()
 				if not CloudMods.Enabled then 
 					return 
 				end
 				for i,v in next, clouds do 
 					cloudFunction(v)
 				end
-				table.insert(CloudMods.Connections, workspace.Clouds.ChildAdded:Connect(function(cloud)
+				table.insert(CloudMods.Connections, game.Workspace.Clouds.ChildAdded:Connect(function(cloud)
 					cloudFunction(cloud)
 					table.insert(clouds, cloud)
 				end))
@@ -1631,7 +1631,7 @@ run(function()
 	local lastpos;
 	local lastpart;
 	local createtrailpart = function()
-		local part = Instance.new('Part', workspace);
+		local part = Instance.new('Part', game.Workspace);
 		part.Anchored = true;
 		part.Material = Enum.Material.Neon;
 		part.Size = Vector3.new(2, 1, 1);

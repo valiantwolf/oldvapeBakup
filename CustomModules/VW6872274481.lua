@@ -44,7 +44,7 @@ local function BedwarsErrorNotification(mes)
 end
 getgenv().BedwarsErrorNotification = BedwarsErrorNotification
 
-local gameCamera = workspace.CurrentCamera
+local gameCamera = game.Workspace.CurrentCamera
 
 local lplr = game:GetService("Players").LocalPlayer
 
@@ -1240,9 +1240,9 @@ run(function()
 				if not processedByUI then
 					local mousepos = lplr:GetMouse().UnitRay
 					local rayparams = RaycastParams.new()
-					rayparams.FilterDescendantsInstances = {workspace.Map, workspace:FindFirstChild("SpectatorPlatform")}
+					rayparams.FilterDescendantsInstances = {game.Workspace.Map, game.Workspace:FindFirstChild("SpectatorPlatform")}
 					rayparams.FilterType = Enum.RaycastFilterType.Whitelist
-					local ray = workspace:Raycast(mousepos.Origin, mousepos.Direction * 10000, rayparams)
+					local ray = game.Workspace:Raycast(mousepos.Origin, mousepos.Direction * 10000, rayparams)
 					if ray then 
 						tppos2 = ray.Position 
 						warningNotification("DeathTP", "Set TP Position. Resetting to teleport...", 3)
@@ -1255,9 +1255,9 @@ run(function()
 		else
 			local mousepos = lplr:GetMouse().UnitRay
 			local rayparams = RaycastParams.new()
-			rayparams.FilterDescendantsInstances = {workspace.Map, workspace:FindFirstChild("SpectatorPlatform")}
+			rayparams.FilterDescendantsInstances = {game.Workspace.Map, game.Workspace:FindFirstChild("SpectatorPlatform")}
 			rayparams.FilterType = Enum.RaycastFilterType.Whitelist
-			local ray = workspace:Raycast(mousepos.Origin, mousepos.Direction * 10000, rayparams)
+			local ray = game.Workspace:Raycast(mousepos.Origin, mousepos.Direction * 10000, rayparams)
 			if ray then 
 				tppos2 = ray.Position 
 				warningNotification("DeathTP", "Set TP Position. Resetting to teleport...", 3)
@@ -2883,7 +2883,7 @@ run(function()
                     end
                     InfoNotification(
                         "ReportDetector-LogSaver", 
-                        "Successfully logged the Reports Data to LoggedReports.txt in your executor's workspace folder!", 
+                        "Successfully logged the Reports Data to LoggedReports.txt in your executor's game.Workspace folder!", 
                         7
                     )
                 end
@@ -3139,7 +3139,7 @@ run(function()
 														lplr.Character.Archivable = true
 				
 														local Clone = lplr.Character:Clone()
-														Clone.Parent = workspace
+														Clone.Parent = game.Workspace
 														Clone.Head:ClearAllChildren()
 														gameCamera.CameraSubject = Clone:FindFirstChild("Humanoid")
 					
@@ -3466,13 +3466,13 @@ local function GetTopBlock(position, smart, raycast, customvector)
 	if not position then 
 		return nil 
 	end
-	if raycast and not workspace:Raycast(position, Vector3.new(0, -2000, 0), store.blockRaycast) then
+	if raycast and not game.Workspace:Raycast(position, Vector3.new(0, -2000, 0), store.blockRaycast) then
 	    return nil
     end
 	local lastblock = nil
 	for i = 1, 500 do 
-		local newray = workspace:Raycast(lastblock and lastblock.Position or position, customvector or Vector3.new(0.55, 999999, 0.55), store.blockRaycast)
-		local smartest = newray and smart and workspace:Raycast(lastblock and lastblock.Position or position, Vector3.new(0, 5.5, 0), store.blockRaycast) or not smart
+		local newray = game.Workspace:Raycast(lastblock and lastblock.Position or position, customvector or Vector3.new(0.55, 999999, 0.55), store.blockRaycast)
+		local smartest = newray and smart and game.Workspace:Raycast(lastblock and lastblock.Position or position, Vector3.new(0, 5.5, 0), store.blockRaycast) or not smart
 		if newray and smartest then
 			lastblock = newray
 		else
@@ -3544,7 +3544,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 	local function abletocalculate() return lplr.Character and lplr.Character:FindFirstChild("HumanoidRootPart") end
 	local sortmethods = {Normal = function(entityroot, entityhealth) return abletocalculate() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, entityroot) < sort end, Health = function(entityroot, entityhealth) return abletocalculate() and entityhealth < sort end}
 	local sortmethod = healthmethod and "Health" or "Normal"
-	local function raycasted(entityroot) return abletocalculate() and blockRaycast and workspace:Raycast(entityroot.Position, Vector3.new(0, -2000, 0), store.blockRaycast) or not blockRaycast and true or false end
+	local function raycasted(entityroot) return abletocalculate() and blockRaycast and game.Workspace:Raycast(entityroot.Position, Vector3.new(0, -2000, 0), store.blockRaycast) or not blockRaycast and true or false end
 	for i,v in pairs(playersService:GetPlayers()) do
 		if v ~= lplr and abletocalculate() and isAlive(v) and v.Team ~= lplr.Team then
 			if not ({whitelist:get(v)})[2] then 
@@ -3667,7 +3667,7 @@ run(function()
 						table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
 							if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
 							local bed = FindEnemyBed()
-							if bed and (bed:GetAttribute("BedShieldEndTime") and bed:GetAttribute("BedShieldEndTime") < workspace:GetServerTimeNow() or not bed:GetAttribute("BedShieldEndTime")) then
+							if bed and (bed:GetAttribute("BedShieldEndTime") and bed:GetAttribute("BedShieldEndTime") < game.Workspace:GetServerTimeNow() or not bed:GetAttribute("BedShieldEndTime")) then
 							bedtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
 							task.wait(0.1)
 							bedtween:Play()
@@ -3684,11 +3684,11 @@ run(function()
 							end)
 							if AutowinNotification.Enabled then
 								local function get_bed_team(id)
-									--[[for i,v in pairs(shared.GlobalBedwars.ClientStoreHandler:getState().Game["teams"]) do
+									for i,v in pairs(shared.GlobalBedwars.ClientStoreHandler:getState().Game["teams"]) do
 										if v["id"] and (v["id"] == id or v["id"] == tostring(id) or v["id"] == tonumber(id)) then
 											return suc, v["name"]
 										end
-									end--]]
+									end
 									return false, "Unknown"
 								end
 								local suc, bedname = get_bed_team(bed:GetAttribute("TeamId"))
@@ -4907,7 +4907,7 @@ end)
 						y = entityLibrary.character.Head:FindFirstChild('face');
 						if y then
 							old = y;
-							y.Parent = workspace;
+							y.Parent = game.Workspace;
 						end;
 						for _, v in next, entityLibrary.character:GetChildren() do
 							if v:IsA'Accessory' then
@@ -5751,7 +5751,7 @@ run(function()
 		Function = function(calling)
 			if calling then 
 				task.spawn(function()
-					table.insert(damagehighlightvisuals.Connections, workspace.DescendantAdded:Connect(function(indicator)
+					table.insert(damagehighlightvisuals.Connections, game.Workspace.DescendantAdded:Connect(function(indicator)
 						if indicator.Name == '_DamageHighlight_' and indicator.ClassName == 'Highlight' then 
 							repeat 
 								indicator.FillColor = Color3.fromHSV(highlightcolor.Hue, highlightcolor.Sat, highlightcolor.Value);
@@ -6528,7 +6528,7 @@ run(function()
 						end
 						if #convertedData < 1 then warningNotification("ReportDetector", "No reports found for " .. targetUsername .. "!", 10) end
                         writefile("ReportDetectorLog.json", game:GetService("HttpService"):JSONEncode(saveTable))
-                        warningNotification("ReportDetector_LogSaver", "Successfully saved the report logs to ReportDetectorLog.json in your \n executor's workspace folder!", 10)
+                        warningNotification("ReportDetector_LogSaver", "Successfully saved the report logs to ReportDetectorLog.json in your \n executor's game.Workspace folder!", 10)
 					else
 						errorNotification("ReportDetector", "Data sorting failed: " .. resolvedData.Error, 10)
 					end
@@ -6631,7 +6631,7 @@ run(function()
 		Function = function(calling)
 			if calling then
 				task.spawn(function()
-					table.insert(DamageIndicator.Connections, workspace.DescendantAdded:Connect(function(v)
+					table.insert(DamageIndicator.Connections, game.Workspace.DescendantAdded:Connect(function(v)
 						pcall(function()
                             if v.Name ~= 'DamageIndicatorPart' then return end
 							local indicatorobj = v:FindFirstChildWhichIsA('BillboardGui'):FindFirstChildWhichIsA('Frame'):FindFirstChildWhichIsA('TextLabel')
@@ -7128,7 +7128,7 @@ end)
 								end
 								if ammo.tool then 
 									betterswitch(v.tool)
-									bedwars.Client:Get(bedwars.ProjectileRemote):CallServerAsync(v.tool, tostring(ammo.tool), tostring(ammo.tool) == 'star' and 'star_projectile' or tostring(ammo.tool) == 'mage_spell_base' and target.RootPart.Position + Vector3.new(0, 3, 0) or tostring(ammo.tool), target.RootPart.Position + Vector3.new(0, 3, 0), target.RootPart.Position + Vector3.new(0, 3, 0), Vector3.new(0, -1, 0), httpService:GenerateGUID(), {drawDurationSeconds = 1}, workspace:GetServerTimeNow(), target)
+									bedwars.Client:Get(bedwars.ProjectileRemote):CallServerAsync(v.tool, tostring(ammo.tool), tostring(ammo.tool) == 'star' and 'star_projectile' or tostring(ammo.tool) == 'mage_spell_base' and target.RootPart.Position + Vector3.new(0, 3, 0) or tostring(ammo.tool), target.RootPart.Position + Vector3.new(0, 3, 0), target.RootPart.Position + Vector3.new(0, 3, 0), Vector3.new(0, -1, 0), httpService:GenerateGUID(), {drawDurationSeconds = 1}, game.Workspace:GetServerTimeNow(), target)
 								end
 							end
 						end
