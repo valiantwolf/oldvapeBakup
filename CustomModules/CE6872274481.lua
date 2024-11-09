@@ -257,6 +257,40 @@ end
 bedwars.ItemTable = bedwars.ItemHandler.ItemMeta.items
 bedwars.KitMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("KitMeta.json"))
 --decode(readfile("vape/CheatEngine/KitMeta.json"))
+bedwars.ProdAnimationsMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("ProdAnimationsMeta.json"))
+--decode(readfile('vape/CheatEngine/ProdAnimationsMeta.json'))
+bedwars.AnimationTypeMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("AnimationTypeMeta.json"))
+--decode(readfile('vape/CheatEngine/AnimationTypeMeta.json'))
+bedwars.AnimationController = {
+	ProdAnimationsMeta = bedwars.ProdAnimationsMeta,
+	AnimationTypeMeta = bedwars.AnimationTypeMeta
+}
+function bedwars.AnimationController:getAssetId(IndexId)
+	return bedwars.AnimationController.ProdAnimationsMeta[IndexId]
+end
+bedwars.AnimationUtil = {}
+function bedwars.AnimationUtil:playAnimation(plr, id)
+    repeat task.wait() until plr.Character
+    local humanoid = plr.Character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then warn("[bedwars.AnimationUtil:playAnimation]: Humanoid not found in the character"); return end
+    local animation = Instance.new("Animation")
+    animation.AnimationId = id
+    local animator = humanoid:FindFirstChildOfClass("Animator")
+    if not animator then
+        animator = Instance.new("Animator")
+        animator.Parent = humanoid
+    end
+    local animationTrack = animator:LoadAnimation(animation)
+    animationTrack:Play()
+    return animationTrack 
+end
+function bedwars.AnimationUtil:fetchAnimationIndexId(name)
+	if not bedwars.AnimationController.AnimationTypeMeta[name] then return nil end
+	for i,v in pairs(bedwars.AnimationController.AnimationTypeMeta) do
+		if i == name then return v end
+	end
+	return nil
+end
 bedwars.BlockController = {}
 function bedwars.BlockController:isBlockBreakable() return true end
 function bedwars.BlockController:getBlockPosition(block)
@@ -298,7 +332,10 @@ function bedwars.BlockController:calculateBlockDamage(plr, posTbl)
 	end
 	return tooldmg
 end
-bedwars.breakBlock = function(block)
+function bedwars.BlockController:getAnimationController()
+	return bedwars.AnimationController
+end
+bedwars.breakBlock = function(block, anim)
     if GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled or lplr:GetAttribute("DenyBlockBreak") then return end
 	if block.Name == "bed" and tostring(block:GetAttribute("TeamId")) == tostring(game:GetService("Players").LocalPlayer:GetAttribute("Team")) then return end
     local resolvedPos = bedwars.BlockController:getBlockPosition(block)
@@ -310,6 +347,19 @@ bedwars.breakBlock = function(block)
             hitPosition = resolvedPos,
             hitNormal = resolvedPos
         })
+		task.spawn(function()
+			local animation
+			if anim then
+				local lplr = game:GetService("Players").LocalPlayer
+				animation = bedwars.AnimationUtil:playAnimation(lplr, bedwars.BlockController:getAnimationController():getAssetId(bedwars.AnimationUtil:fetchAnimationIndexId("BREAK_BLOCK")))
+				--bedwars.ViewmodelController:playAnimation(15)
+			end
+			task.wait(0.3)
+			if animation ~= nil then
+				animation:Stop()
+				animation:Destroy()
+			end
+		end)
     end
 end
 local cachedNormalSides = {}
@@ -409,6 +459,34 @@ bedwars.SwordController = {
 	lastAttack = workspace:GetServerTimeNow()
 }
 function bedwars.SwordController:canSee() return true end
+-- bedwars.SwordController:playSwordEffect(swordmeta, false)
+function bedwars.SwordController:playSwordEffect(swordmeta, status)
+	task.spawn(function()
+		local animation
+		local animName = swordmeta.displayName:find(" Scythe") and "SCYTHE_SWING" or "SWORD_SWING"
+		local animCooldown = swordmeta.displayName:find(" Scythe") and 0.3 or 0.15
+		local lplr = game:GetService("Players").LocalPlayer
+		animation = bedwars.AnimationUtil:playAnimation(lplr, bedwars.BlockController:getAnimationController():getAssetId(bedwars.AnimationUtil:fetchAnimationIndexId(animName)))
+		task.wait(animCooldown)
+		if animation ~= nil then
+			animation:Stop()
+			animation:Destroy()
+		end
+	end)
+end
+bedwars.ScytheController = {}
+function bedwars.ScytheController:playLocalAnimation() -- kinda useless but eh 
+	task.spawn(function()
+		local animation
+		local lplr = game:GetService("Players").LocalPlayer
+		animation = bedwars.AnimationUtil:playAnimation(lplr, bedwars.BlockController:getAnimationController():getAssetId(bedwars.AnimationUtil:fetchAnimationIndexId("SCYTHE_SWING")))
+		task.wait(0.3)
+		if animation ~= nil then
+			animation:Stop()
+			animation:Destroy()
+		end
+	end)
+end
 bedwars.SettingsController = {}
 function bedwars.SettingsController:setFOV(num)
 	gameCamera.FieldOfView = num
@@ -3424,9 +3502,9 @@ run(function()
 	end
 
 	local function getAttackData()
-		--[[if GuiLibrary.ObjectsThatCanBeSaved["Lobby CheckToggle"].Api.Enabled then
+		if GuiLibrary.ObjectsThatCanBeSaved["Lobby CheckToggle"].Api.Enabled then
 			if store.matchState == 0 then return false end
-		end--]]
+		end
 		if killauramouse.Enabled then
 			if not inputService:IsMouseButtonPressed(0) then return false end
 		end
@@ -3601,10 +3679,10 @@ run(function()
 										if animationdelay <= tick() then
 											animationdelay = tick() + (swordmeta.sword.respectAttackSpeedForEffects and swordmeta.sword.attackSpeed or (killaurasync.Enabled and 0.24 or 0.14))
 											if not killauraswing.Enabled then
-												--bedwars.SwordController:playSwordEffect(swordmeta, false)
+												bedwars.SwordController:playSwordEffect(swordmeta, false)
 											end
 											if swordmeta.displayName:find(" Scythe") then
-												--bedwars.ScytheController:playLocalAnimation()
+												bedwars.ScytheController:playLocalAnimation()
 											end
 										end
 									end
@@ -3977,11 +4055,11 @@ run(function()
 		Function = function() end,
 		HoverText = "Removes the swinging sound."
 	})--]]
-	--[[killauraswing = Killaura.CreateToggle({
+	killauraswing = Killaura.CreateToggle({
 		Name = "No Swing",
 		Function = function() end,
 		HoverText = "Removes the swinging animation."
-	})--]]
+	})
 	killaurahandcheck = Killaura.CreateToggle({
 		Name = "Sword Check",
 		Function = function() end,
@@ -8340,11 +8418,9 @@ run(function()
 										if obj:GetAttribute("BedShieldEndTime") then
 											if obj:GetAttribute("BedShieldEndTime") > workspace:GetServerTimeNow() then continue end
 										end
-										--print(tostring(obj:GetAttribute("TeamId")), tostring(game:GetService("Players").LocalPlayer:GetAttribute("Team")))
-										--if tostring(obj:GetAttribute("TeamId")) == tostring(game:GetService("Players").LocalPlayer:GetAttribute("Team")) then break end
 										if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - obj.Position).magnitude <= nukerrange.Value then
 											if tool and bedwars.ItemTable[tool.Name].breakBlock then
-												bedwars.breakBlock(obj)
+												bedwars.breakBlock(obj, nukeranimation.Enabled)
 												task.wait(nukerslowmode.Value)
 												break
 											end
@@ -8359,7 +8435,7 @@ run(function()
 									if obj and obj.Parent ~= nil then
 										if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - obj.Position).magnitude <= nukerrange.Value and (nukerown.Enabled or obj:GetAttribute("PlacedByUserId") ~= lplr.UserId) then
 											if tool and bedwars.ItemTable[tool.Name].breakBlock then
-												bedwars.breakBlock(obj)
+												bedwars.breakBlock(obj, nukeranimation.Enabled)
 												break
 											end
 										end
@@ -8406,11 +8482,11 @@ run(function()
 			end
 		 end,
 		Default = true
-	})
+	})--]]
 	nukeranimation = Nuker.CreateToggle({
 		Name = "Break Animation",
 		Function = function() end
-	})--]]
+	})
 	nukerown = Nuker.CreateToggle({
 		Name = "Self Break",
 		Function = function() end,
