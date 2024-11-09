@@ -7275,6 +7275,8 @@ run(function()
 									end)
 									bedwars.StoreController:updateLocalInventory()
 									table.insert(spawnedItems, newItem)
+								else
+									errorNotification("ItemSpawner", tostring(parts[3]).." is not a valid item name!", 3)
 								end
 							end
 						elseif parts[2] == "despawn" then
@@ -7288,6 +7290,8 @@ run(function()
 									end)
 									bedwars.StoreController:updateLocalInventory()
 								end
+							else
+								errorNotification("ItemSpawner", tostring(parts[3]).." is not a valid item name!", 3)
 							end
 						end
 					end
