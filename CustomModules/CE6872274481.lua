@@ -668,14 +668,26 @@ end
 function bedwars.StoreController:updateStoreBlocks()
 	store.blocks = collectionService:GetTagged("block")
 end
+function bedwars.StoreController:updateLocalHand()
+	local currentHand = bedwars.StoreController:fetchLocalHand()
+	if (not currentHand) then store.localHand = {} return end
+	local handType = ""
+	if currentHand and currentHand.Value and currentHand.Value ~= "" then
+		local handData = bedwars.ItemTable[tostring(currentHand.Value)]
+		handType = handData.sword and "sword" or handData.block and "block" or tostring(currentHand.Value):find("bow") and "bow"
+	end
+	store.localHand = {tool = currentHand and currentHand.Value, Type = handType, amount = currentHand and currentHand:GetAttribute("Amount") and type(currentHand:GetAttribute("Amount")) == "number" or 0}
+end
 function bedwars.StoreController:updateStore()
-	task.spawn(function() bedwars.StoreController:updateLocalInventory() end)
+	task.spawn(function() pcall(function() bedwars.StoreController:updateLocalHand() end) end)
 	task.wait(0.1)
-	task.spawn(function() bedwars.StoreController:updateEquippedKit() end)
+	task.spawn(function() pcall(function() bedwars.StoreController:updateLocalInventory() end) end)
 	task.wait(0.1)
-	task.spawn(function() bedwars.StoreController:updateMatchState() end)
+	task.spawn(function() pcall(function() bedwars.StoreController:updateEquippedKit() end) end)
 	task.wait(0.1)
-	task.spawn(function() bedwars.StoreController:updateStoreBlocks() end)
+	task.spawn(function() pcall(function() bedwars.StoreController:updateMatchState() end) end)
+	task.wait(0.1)
+	task.spawn(function() pcall(function() bedwars.StoreController:updateStoreBlocks() end) end)
 end
 
 store.blockRaycast.FilterType = Enum.RaycastFilterType.Include
@@ -685,14 +697,6 @@ task.spawn(function()
 	repeat
 		task.spawn(function() bedwars.StoreController:updateStore() end)
 		task.wait(0.2)
-		local currentHand = bedwars.StoreController:fetchLocalHand()
-		if (not currentHand) then store.localHand = {} return end
-		local handType = ""
-		if currentHand and currentHand.Value and currentHand.Value ~= "" then
-			local handData = bedwars.ItemTable[tostring(currentHand.Value)]
-			handType = handData.sword and "sword" or handData.block and "block" or tostring(currentHand.Value):find("bow") and "bow"
-		end
-		store.localHand = {tool = currentHand and currentHand.Value, Type = handType, amount = currentHand and currentHand:GetAttribute("Amount") and type(currentHand:GetAttribute("Amount")) == "number" or 0}
 	until (not shared.VapeExecuted)
 end)
 
@@ -3430,6 +3434,7 @@ run(function()
 			if bedwars.AppController:isLayerOpen(bedwars.UILayers.MAIN) then return false end
 		end--]]
 		local sword = killaurahandcheck.Enabled and store.localHand or getSword()
+		--warn("getAttackData", tostring(sword))
 		if not sword or not sword.tool then return false end
 		local swordmeta = bedwars.ItemTable[sword.itemType]
 		--[[if killaurahandcheck.Enabled then
@@ -3554,6 +3559,7 @@ run(function()
 						local firstPlayerNear
 						if #plrs > 0 then
 							local sword, swordmeta = getAttackData()
+							--print("3", tostring(sword), tostring(swordmeta))
 							if getItemNear('infernal_saber') then
 								bedwars.Client:Get('HellBladeRelease'):FireServer({
 									chargeTime = 1,
