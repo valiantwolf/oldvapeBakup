@@ -7194,3 +7194,129 @@ end)
 	ProjectileAuraRangeSlider.Object.Visible = false
 	ProjectileAuraMobs.Object.Visible = false
 end)--]]
+
+run(function()
+	local ItemSpawner = {Enabled = false}
+	local spawnedItems = {}
+	local chattedConnection
+	local function getInv(plr)
+		return plr.Character and plr.Character:FindFirstChild("InventoryFolder") and plr.Character:FindFirstChild("InventoryFolder").Value
+	end
+	local ArmorIncluded = {Enabled = false}
+	local ProjectilesIncluded = {Enabled = false}
+	local ItemsIncluded = {Enabled = false}
+	local StrictMatch = {Enabled = false}
+	local function getRepItems()
+		local tbl = {
+			"Armor",
+			"Projectiles"
+		}
+		local a = ItemsIncluded.Enabled and game:GetService("ReplicatedStorage"):FindFirstChild("Items") and game:GetService("ReplicatedStorage"):FindFirstChild("Items"):GetChildren() or {}
+		local b = ArmorIncluded.Enabled and game:GetService("ReplicatedStorage"):FindFirstChild("Assets") and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[1]) and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[1]):GetChildren() or {}
+		local b = ProjectilesIncluded.Enabled and game:GetService("ReplicatedStorage"):FindFirstChild("Assets") and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[2]) and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[2]):GetChildren() or {}
+		
+		local fullTbl = {}
+		local c = {a,b,c}
+		for i,v in pairs(c) do
+			for i2,v2 in pairs(v) do table.insert(fullTbl, v2) end
+		end
+		return fullTbl
+	end
+	local inv
+	local repItems
+	local function getRepItem(name)
+		repItems = getRepItems()
+		print(#repItems)
+		for i,v in pairs(repItems) do
+			if v.Name and ((StrictMatch.Enabled and v.Name == name) or ((not StrictMatch.Enabled) and string.find(v.Name, name))) then
+				return v
+			end
+		end
+		return nil
+	end
+	local function getSpawnedItem(name)
+		for i,v in pairs(spawnedItems) do
+			if v.Name and ((StrictMatch.Enabled and v.Name == name) or ((not StrictMatch.Enabled) and string.find(v.Name, name))) then
+				return v
+			end
+		end
+		return nil
+	end
+	ItemSpawner = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+		Name = "ItemSpawner (CS)",
+		Function = function(call)
+			if call then
+				task.spawn(function()
+					repeat task.wait(0.1)
+						inv = getInv(game:GetService("Players").LocalPlayer)
+					until inv
+				end)
+				task.spawn(function()
+					repeat task.wait(0.1)
+						repItems = getRepItems()
+					until repItems
+				end)
+				chattedConnection = game:GetService("Players").LocalPlayer.Chatted:Connect(function(msg)
+					local parts = string.split(msg, " ")
+					if parts[1] == "/e" then
+						if parts[2] == "spawn" then
+							repeat task.wait() until inv and repItems
+							if parts[3] then
+								local item = getRepItem(parts[3])
+								if item then
+									local amount = tonumber(parts[4]) or 1
+									local newItem = item:Clone()
+									newItem.Parent = inv
+									pcall(function()
+										newItem:SetAttribute("Amount", amount)
+									end)
+									pcall(function()
+										newItem:SetAttribute("CustomSpawned", true)
+									end)
+									bedwars.StoreController:updateLocalInventory()
+									table.insert(spawnedItems, newItem)
+								end
+							end
+						elseif parts[2] == "despawn" then
+							repeat task.wait() until inv and repItems
+							if parts[3] then
+								local item = getSpawnedItem(parts[3])
+								if item then 
+									table.remove(spawnedItems, table.find(spawnedItems, item))
+									pcall(function()
+										item:Destroy()
+									end)
+									bedwars.StoreController:updateLocalInventory()
+								end
+							end
+						end
+					end
+				end)
+			else
+				pcall(function() chattedConnection:Disconnect() end)
+				pcall(function() chattedConnection:Disconnect() end)
+				for i,v in pairs(spawnedItems) do pcall(function() v:Destroy() end) end
+			end
+		end
+	})
+	StrictMatch = ItemSpawner.CreateToggle({
+		Name = "StrictMatch",
+		Function = function() if ItemSpawner.Enabled then ItemSpawner.ToggleButton(false); ItemSpawner.ToggleButton(false) end end,
+		Default = true
+	})
+	ItemsIncluded = ItemSpawner.CreateToggle({
+		Name = "ItemsIncluded",
+		Function = function() if ItemSpawner.Enabled then ItemSpawner.ToggleButton(false); ItemSpawner.ToggleButton(false) end end,
+		Default = true
+	})
+	ProjectilesIncluded = ItemSpawner.CreateToggle({
+		Name = "ProjectilesIncluded",
+		Function = function() if ItemSpawner.Enabled then ItemSpawner.ToggleButton(false); ItemSpawner.ToggleButton(false) end end,
+		Default = true
+	})
+	ArmorIncluded = ItemSpawner.CreateToggle({
+		Name = "ArmorIncluded",
+		Function = function() if ItemSpawner.Enabled then ItemSpawner.ToggleButton(false); ItemSpawner.ToggleButton(false) end end,
+		Default = true
+	})
+end)

@@ -335,33 +335,6 @@ end
 function bedwars.BlockController:getAnimationController()
 	return bedwars.AnimationController
 end
-bedwars.breakBlock = function(block, anim)
-    if GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled or lplr:GetAttribute("DenyBlockBreak") then return end
-	if block.Name == "bed" and tostring(block:GetAttribute("TeamId")) == tostring(game:GetService("Players").LocalPlayer:GetAttribute("Team")) then return end
-    local resolvedPos = bedwars.BlockController:getBlockPosition(block)
-    if resolvedPos then
-		bedwars.Client:Get(bedwars.DamageBlockRemote):InvokeServer({
-            blockRef = {
-                blockPosition = resolvedPos
-            },
-            hitPosition = resolvedPos,
-            hitNormal = resolvedPos
-        })
-		task.spawn(function()
-			local animation
-			if anim then
-				local lplr = game:GetService("Players").LocalPlayer
-				animation = bedwars.AnimationUtil:playAnimation(lplr, bedwars.BlockController:getAnimationController():getAssetId(bedwars.AnimationUtil:fetchAnimationIndexId("BREAK_BLOCK")))
-				--bedwars.ViewmodelController:playAnimation(15)
-			end
-			task.wait(0.3)
-			if animation ~= nil then
-				animation:Stop()
-				animation:Destroy()
-			end
-		end)
-    end
-end
 local cachedNormalSides = {}
 for i,v in pairs(Enum.NormalId:GetEnumItems()) do if v.Name ~= "Bottom" then table.insert(cachedNormalSides, v) end end
 local function getPlacedBlock(pos)
@@ -385,6 +358,39 @@ local function isBlockCovered(pos)
 		end
 	end
 	return coveredsides == #cachedNormalSides
+end
+local failedBreak = 0
+bedwars.breakBlock = function(block, anim)
+    if GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled or lplr:GetAttribute("DenyBlockBreak") then return end
+	if block.Name == "bed" and tostring(block:GetAttribute("TeamId")) == tostring(game:GetService("Players").LocalPlayer:GetAttribute("Team")) then return end
+    local resolvedPos = bedwars.BlockController:getBlockPosition(block)
+    if resolvedPos then
+		local result = bedwars.Client:Get(bedwars.DamageBlockRemote):InvokeServer({
+            blockRef = {
+                blockPosition = resolvedPos
+            },
+            hitPosition = resolvedPos,
+            hitNormal = resolvedPos
+        })
+		if result ~= "failed" then
+			failedBreak = 0
+			task.spawn(function()
+				local animation
+				if anim then
+					local lplr = game:GetService("Players").LocalPlayer
+					animation = bedwars.AnimationUtil:playAnimation(lplr, bedwars.BlockController:getAnimationController():getAssetId(bedwars.AnimationUtil:fetchAnimationIndexId("BREAK_BLOCK")))
+					--bedwars.ViewmodelController:playAnimation(15)
+				end
+				task.wait(0.3)
+				if animation ~= nil then
+					animation:Stop()
+					animation:Destroy()
+				end
+			end)
+		else
+			failedBreak = failedBreak + 1
+		end
+    end
 end
 bedwars.placeBlock = function(pos, blockName)
 	--if (not isBlockCovered(Vector3.new(pos.X/3, pos.Y/3, pos.Z/3))) then
@@ -411,11 +417,13 @@ bedwars.getInventory = function(plr)
 	if repInv then
 		if repInv.ClassName and repInv.ClassName == "Folder" then
 			for i,v in pairs(repInv:GetChildren()) do
-				table.insert(inv.items, {
-					tool = v,
-					itemType = tostring(v),
-					amount = v:GetAttribute("Amount")
-				})
+				if not v:GetAttribute("CustomSpawned") then
+					table.insert(inv.items, {
+						tool = v,
+						itemType = tostring(v),
+						amount = v:GetAttribute("Amount")
+					})
+				end
 			end
 		end
 	end
