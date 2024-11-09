@@ -3298,21 +3298,23 @@ run(function()
 				warningNotification("EmberInstakill", "Ember blade is required for this to work", 3)
 				task.spawn(function()
 					repeat 
-						local folder = nil
+						local folder
 						for i,v in pairs(game:GetService("ReplicatedStorage"):WaitForChild("Inventories"):GetChildren()) do
 							if v.ClassName == "Folder" and v.Name == game:GetService("Players").LocalPlayer.Name and #v:GetChildren() > 2 then
 								folder = v
 								break
 							end
 						end
-						local args = {
-							[1] = {
-								["chargeTime"] = 1.3664593696594238,
-								["player"] = game:GetService("Players").LocalPlayer,
-								["weapon"] = folder:WaitForChild("infernal_saber")
+						if folder then
+							local args = {
+								[1] = {
+									["chargeTime"] = 1.3664593696594238,
+									["player"] = game:GetService("Players").LocalPlayer,
+									["weapon"] = folder:WaitForChild("infernal_saber")
+								}
 							}
-						}
-						game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("HellBladeRelease"):FireServer(unpack(args))
+							game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("HellBladeRelease"):FireServer(unpack(args))
+						end
 						task.wait(0.1)
 					until (not insta.Enabled)
 				end)
