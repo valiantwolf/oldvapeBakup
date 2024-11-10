@@ -2226,7 +2226,10 @@ local function loadVape()
 		end
 		--if CE == "CE" then InfoNotification("Voidware", "Backup mode activated!", 3) end 
 		--if shared.CheatEngineMode then InfoNotification(fileName1, fileName2, 2) end
-		if shared.VoidDev or shared.TestingMode then InfoNotification(fileName1, fileName2, 100); InfoNotification(tostring(shared.CheatEngineMode), tostring(shared.TestingMode), 5) end
+		warn("[CheatEngineMode]: ", tostring(shared.CheatEngineMode))
+		warn("[TestingMode]: ", tostring(shared.TestingMode))
+		warn("[FileName1]: ", tostring(fileName1), " [FileName2]: ", tostring(fileName2), " [FileName3]: ", tostring(fileName3))
+		if shared.VoidDev then InfoNotification(fileName1, fileName2, 100); InfoNotification(tostring(shared.CheatEngineMode), tostring(shared.TestingMode), 5) end
 		pload(fileName1, true)
 		pload(fileName2)
 		if fileName3 then pload(fileName3) end
