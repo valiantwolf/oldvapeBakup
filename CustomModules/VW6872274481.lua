@@ -10,6 +10,7 @@ end
 local GuiLibrary = shared.GuiLibrary
 local store = shared.GlobalStore
 local bedwars = shared.GlobalBedwars
+local playersService = game:GetService("Players")
 if (not shared.GlobalBedwars) or (shared.GlobalBedwars and type(shared.GlobalBedwars) ~= "table") or (not shared.GlobalStore) or (shared.GlobalStore and type(shared.GlobalStore) ~= "table") then
 	errorNotification("VW-BEDWARS", "Critical! Important connection is missing! Please report this buy to erchodev#0", 10)
 	local delfile = delfile or function(file) writefile(file, "") end
@@ -3680,12 +3681,15 @@ run(function()
 							end)
 							if AutowinNotification.Enabled then
 								local function get_bed_team(id)
-									for i,v in pairs(shared.GlobalBedwars.ClientStoreHandler:getState().Game["teams"]) do
-										if v["id"] and (v["id"] == id or v["id"] == tostring(id) or v["id"] == tonumber(id)) then
-											return suc, v["name"]
+									local teamName = "Unknown"
+									for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+										if v ~= game:GetService("Players").LocalPlayer then
+											if v:GetAttribute("Team") and tostring(v:GetAttribute("Team")) == tostring(id) then
+												teamName = tostring(v.Team)
+											end
 										end
 									end
-									return false, "Unknown"
+									return false, teamName
 								end
 								local suc, bedname = get_bed_team(bed:GetAttribute("TeamId"))
 								task.spawn(InfoNotification, "Autowin", "Destroying "..bedname:lower().." team's bed", 5)
