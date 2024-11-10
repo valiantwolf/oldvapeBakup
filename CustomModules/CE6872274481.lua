@@ -321,6 +321,30 @@ function bedwars.BlockController:getBlockPosition(block)
         return false
     end
 end
+function bedwars.BlockController:getBlockPosition2(position)
+    local RayParams = RaycastParams.new()
+    RayParams.FilterType = Enum.RaycastFilterType.Exclude
+    RayParams.FilterDescendantsInstances = {game:GetService("Players").LocalPlayer.Character, game.Workspace.Camera}
+    RayParams.IgnoreWater = true
+    local startPosition = position + Vector3.new(0, 30, 0)
+    local direction = Vector3.new(0, -35, 0)
+    local RayRes = game.Workspace:Raycast(startPosition, direction, RayParams)
+    if RayRes then
+        local targetBlock = RayRes.Instance
+        if targetBlock then
+            local function resolvePos(pos)
+                return Vector3.new(
+                    math.round(pos.X / 3),
+                    math.round(pos.Y / 3),
+                    math.round(pos.Z / 3)
+                )
+            end
+            return resolvePos(targetBlock.Position)
+        end
+    end
+    return nil
+end
+
 local function getBestTool(block)
 	local tool = nil
 	local blockmeta = bedwars.ItemTable[block]
@@ -348,18 +372,41 @@ end
 function bedwars.BlockController:getAnimationController()
 	return bedwars.AnimationController
 end
+function bedwars.BlockController:resolveBreakPosition(pos)
+	return Vector3.new(math.round(pos.X / 3), math.round(pos.Y / 3), math.round(pos.Z / 3))
+end
+function bedwars.BlockController:resolveRaycastResult(block)
+	local RayParams = RaycastParams.new()
+	RayParams.FilterType = Enum.RaycastFilterType.Exclude
+	RayParams.FilterDescendantsInstances = {game:GetService("Players").LocalPlayer.Character}
+	RayParams.IgnoreWater = true
+	return game.Workspace:Raycast(block.Position + Vector3.new(0, 30, 0), Vector3.new(0, -35, 0), RayParams)
+end
 local cachedNormalSides = {}
 for i,v in pairs(Enum.NormalId:GetEnumItems()) do if v.Name ~= "Bottom" then table.insert(cachedNormalSides, v) end end
 local function getPlacedBlock(pos)
+	if (not pos) then warn(debug.traceback("[getPlacedBlock]: pos is nil!")) return nil end
     local regionSize = Vector3.new(1, 1, 1)
     local region = Region3.new(pos - regionSize / 2, pos + regionSize / 2)
     local parts = game.Workspace:FindPartsInRegion3(region, nil, math.huge)
+	local res 
     for _, part in pairs(parts) do
-        if part and part.ClassName and part.ClassName == "Part" and part.Parent and part.Parent.Name == 'Blocks' and part.Parent.ClassName == "Folder" then
-            return part
+        if part and part.ClassName and part.ClassName == "Part" and part.Parent then
+            res = part
         end
+		break
     end
-    return nil
+    return res
+end
+function bedwars.BlockController:getStore()
+	local tbl = {}
+	function tbl:getBlockData(pos)
+		return getPlacedBlock(pos)
+	end
+	function tbl:getBlockAt(pos)
+		return getPlacedBlock(pos)
+	end
+	return tbl
 end
 local function isBlockCovered(pos)
 	local coveredsides = 0
@@ -404,6 +451,157 @@ bedwars.breakBlock = function(block, anim)
 			failedBreak = failedBreak + 1
 		end
     end
+end
+local updateitem = Instance.new("BindableEvent")
+table.insert(vapeConnections, updateitem.Event:Connect(function(inputObj)
+	if inputService:IsMouseButtonPressed(0) then
+		game:GetService("ContextActionService"):CallFunction("block-break", Enum.UserInputState.Begin, newproxy(true))
+	end
+end))
+local function switchToAndUseTool(block, legit)
+	local tool = getBestTool(block.Name)
+	if tool and (entityLibrary.isAlive and lplr.Character:FindFirstChild("HandInvItem") and lplr.Character.HandInvItem.Value ~= tool.tool) then
+		--[[if legit then
+			if getHotbarSlot(tool.itemType) then
+				bedwars.ClientStoreHandler:dispatch({
+					type = "InventorySelectHotbarSlot",
+					slot = getHotbarSlot(tool.itemType)
+				})
+				vapeEvents.InventoryChanged.Event:Wait()
+				updateitem:Fire(inputobj)
+				return true
+			else
+				return false
+			end
+		end--]]
+		switchItem(tool.tool)
+	end
+end
+bedwars.ClientDamageBlock = {}
+function bedwars.ClientDamageBlock:Get(rem)
+	local a = bedwars.Client:Get(bedwars.DamageBlockRemote)
+	local tbl = {}
+	function tbl:CallServerAsync(call)
+		local res = a:InvokeServer(call)
+		local tbl2 = {}
+		function tbl2:andThen(func)
+			func(res)
+		end
+		return tbl2
+	end
+	return tbl
+end
+local function getLastCovered(pos, normal)
+	local lastfound, lastpos = nil, nil
+	for i = 1, 20 do
+		local blockpos = (pos + (Vector3.FromNormalId(normal) * (i * 3)))
+		local extrablock, extrablockpos = getPlacedBlock(blockpos)
+		local covered = isBlockCovered(blockpos)
+		if extrablock then
+			lastfound, lastpos = extrablock, extrablockpos
+			if not covered then
+				break
+			end
+		else
+			break
+		end
+	end
+	return lastfound, lastpos
+end
+
+local healthbarblocktable = {
+	blockHealth = -1,
+	breakingBlockPosition = Vector3.zero
+}
+local physicsUpdate = 1 / 60
+--[[bedwars.breakBlock2 = function(pos, effects, normal, bypass, anim)
+	if GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled or lplr:GetAttribute("DenyBlockBreak") then return end
+	local block, blockpos = nil, nil
+	print("2", not bypass, not block)
+	if not bypass then block, blockpos = getLastCovered(pos, normal) end
+	print("block 1", block, blockpos)
+	if not block then block, blockpos = getPlacedBlock(pos) end
+	print("block 2", block, blockpos)
+	if blockpos and block then
+		local blockhealthbarpos = {blockPosition = Vector3.zero}
+		local blockdmg = 0
+		if block and block.Parent ~= nil then
+			if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - (blockpos * 3)).magnitude > 30 then return end
+			store.blockPlace = tick() + 0.1
+			switchToAndUseTool(block)
+			blockhealthbarpos = {
+				blockPosition = blockpos
+			}
+			task.spawn(function()
+				bedwars.ClientDamageBlock:Get("DamageBlock"):CallServerAsync({
+					blockRef = blockhealthbarpos,
+					hitPosition = blockpos * 3,
+					hitNormal = Vector3.FromNormalId(normal)
+				}):andThen(function(result)
+					print("res: ", result)
+					if result ~= "failed" then
+						failedBreak = 0
+						if healthbarblocktable.blockHealth == -1 or blockhealthbarpos.blockPosition ~= healthbarblocktable.breakingBlockPosition then
+							local blockdata = bedwars.BlockController:getStore():getBlockData(blockhealthbarpos.blockPosition)
+							local blockhealth = blockdata and (blockdata:GetAttribute("Health") or blockdata:GetAttribute(lplr.Name .. "_Health")) or block:GetAttribute("Health")
+							healthbarblocktable.blockHealth = blockhealth
+							healthbarblocktable.breakingBlockPosition = blockhealthbarpos.blockPosition
+						end
+						healthbarblocktable.blockHealth = result == "destroyed" and 0 or healthbarblocktable.blockHealth
+						blockdmg = bedwars.BlockController:calculateBlockDamage(lplr, blockhealthbarpos)
+						healthbarblocktable.blockHealth = math.max(healthbarblocktable.blockHealth - blockdmg, 0)
+						local animation
+						if anim then
+							local lplr = game:GetService("Players").LocalPlayer
+							animation = bedwars.AnimationUtil:playAnimation(lplr, bedwars.BlockController:getAnimationController():getAssetId(bedwars.AnimationUtil:fetchAnimationIndexId("BREAK_BLOCK")))
+						end
+						task.wait(0.3)
+						if animation ~= nil then
+							animation:Stop()
+							animation:Destroy()
+						end
+					else
+						failedBreak = failedBreak + 1
+					end
+				end)
+			end)
+			task.wait(physicsUpdate)
+		end
+	end
+end--]]
+bedwars.breakBlock2 = function(block)
+	if GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled or lplr:GetAttribute("DenyBlockBreak") then return end
+	if block.Name == "bed" and tostring(block:GetAttribute("TeamId")) == tostring(game:GetService("Players").LocalPlayer:GetAttribute("Team")) then return end
+	local RayRes = bedwars.BlockController:resolveRaycastResult(block)
+	local res
+	if RayRes then
+		res = RayRes.Instance or block	
+		local result = bedwars.Client:Get(bedwars.DamageBlockRemote):InvokeServer({
+			blockRef = {
+				blockPosition = bedwars.BlockController:resolveBreakPosition(res.Position)
+			},
+			hitPosition = bedwars.BlockController:resolveBreakPosition(res.Position),
+			hitNormal = bedwars.BlockController:resolveBreakPosition(res.Position)
+		})
+		if result ~= "failed" then
+			failedBreak = 0
+			task.spawn(function()
+				local animation
+				if anim then
+					local lplr = game:GetService("Players").LocalPlayer
+					animation = bedwars.AnimationUtil:playAnimation(lplr, bedwars.BlockController:getAnimationController():getAssetId(bedwars.AnimationUtil:fetchAnimationIndexId("BREAK_BLOCK")))
+					--bedwars.ViewmodelController:playAnimation(15)
+				end
+				task.wait(0.3)
+				if animation ~= nil then
+					animation:Stop()
+					animation:Destroy()
+				end
+			end)
+		else
+			failedBreak = failedBreak + 1
+		end
+	end
 end
 bedwars.placeBlock = function(pos, blockName)
 	--if (not isBlockCovered(Vector3.new(pos.X/3, pos.Y/3, pos.Z/3))) then
@@ -1264,12 +1462,6 @@ local blacklistedblocks = {
 	bed = true,
 	ceramic = true
 }
-local updateitem = Instance.new("BindableEvent")
-table.insert(vapeConnections, updateitem.Event:Connect(function(inputObj)
-	if inputService:IsMouseButtonPressed(0) then
-		game:GetService("ContextActionService"):CallFunction("block-break", Enum.UserInputState.Begin, newproxy(true))
-	end
-end))
 
 local oldpos = Vector3.zero
 
@@ -1315,26 +1507,6 @@ local function switchItem(tool)
 end
 VoidwareFunctions.GlobaliseObject("switchItem", switchItem)
 
-local function switchToAndUseTool(block, legit)
-	local tool = getBestTool(block.Name)
-	if tool and (entityLibrary.isAlive and lplr.Character:FindFirstChild("HandInvItem") and lplr.Character.HandInvItem.Value ~= tool.tool) then
-		if legit then
-			if getHotbarSlot(tool.itemType) then
-				bedwars.ClientStoreHandler:dispatch({
-					type = "InventorySelectHotbarSlot",
-					slot = getHotbarSlot(tool.itemType)
-				})
-				vapeEvents.InventoryChanged.Event:Wait()
-				updateitem:Fire(inputobj)
-				return true
-			else
-				return false
-			end
-		end
-		switchItem(tool.tool)
-	end
-end
-
 local function GetPlacedBlocksNear(pos, normal)
 	local blocks = {}
 	local lastfound = nil
@@ -1357,35 +1529,19 @@ local function GetPlacedBlocksNear(pos, normal)
 	return blocks
 end
 
-local function getLastCovered(pos, normal)
-	local lastfound, lastpos = nil, nil
-	for i = 1, 20 do
-		local blockpos = (pos + (Vector3.FromNormalId(normal) * (i * 3)))
-		local extrablock, extrablockpos = getPlacedBlock(blockpos)
-		local covered = isBlockCovered(blockpos)
-		if extrablock then
-			lastfound, lastpos = extrablock, extrablockpos
-			if not covered then
-				break
-			end
-		else
-			break
-		end
-	end
-	return lastfound, lastpos
-end
-
 local function getBestBreakSide(pos)
 	local softest, softestside = 9e9, Enum.NormalId.Top
 	for i,v in pairs(cachedNormalSides) do
 		local sidehardness = 0
 		for i2,v2 in pairs(GetPlacedBlocksNear(pos, v)) do
-			local blockmeta = bedwars.ItemTable[v2].block
-			sidehardness = sidehardness + (blockmeta and blockmeta.health or 10)
-			if blockmeta then
-				local tool = getBestTool(v2)
-				if tool then
-					sidehardness = sidehardness - bedwars.ItemTable[tool.itemType].breakBlock[blockmeta.breakType]
+			if bedwars.ItemTable[v2] then
+				local blockmeta = bedwars.ItemTable[v2].block
+				sidehardness = sidehardness + (blockmeta and blockmeta.health or 10)
+				if blockmeta then
+					local tool = getBestTool(v2)
+					if tool then
+						sidehardness = sidehardness - bedwars.ItemTable[tool.itemType].breakBlock[blockmeta.breakType]
+					end
 				end
 			end
 		end
@@ -3229,7 +3385,7 @@ run(function()
 		RunLoops:UnbindFromHeartbeat("InfiniteFlyOff")
 		disabledproper = true
 		if not oldcloneroot or not oldcloneroot.Parent then return end
-		lplr.Character.Parent = game.Workspace
+		lplr.Character.Parent = game
 		oldcloneroot.Parent = lplr.Character
 		lplr.Character.PrimaryPart = oldcloneroot
 		lplr.Character.Parent = game.Workspace
@@ -4249,7 +4405,7 @@ run(function()
 						end
 						task.delay(broken, function()
 							for i = 1, 3 do
-								local call = bedwars.Client:Get(bedwars.CannonLaunchRemote):InvokeServer({cannonBlockPos = bedwars.BlockController:getBlockPosition(block.Position)})
+								local call = bedwars.Client:Get(bedwars.CannonLaunchRemote):InvokeServer({cannonBlockPos = bedwars.BlockController:getBlockPosition(block)})
 								if call then
 									bedwars.breakBlock(block)
 									task.delay(0.1, function()
@@ -8489,7 +8645,7 @@ run(function()
 										end
 										if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - obj.Position).magnitude <= nukerrange.Value then
 											if tool and bedwars.ItemTable[tool.Name].breakBlock then
-												bedwars.breakBlock(obj, nukeranimation.Enabled)
+												bedwars.breakBlock2(obj, nukeranimation.Enabled)
 												task.wait(nukerslowmode.Value)
 												break
 											end
@@ -8713,12 +8869,12 @@ run(function()
 		local ok = bedwars.RuntimeLib.try(function()
 			bedwars.ClientDamageBlock:Get("PlaceBlock"):CallServer({
 				blockType = blocktype or getWool(),
-				position = bedwars.BlockController:getBlockPosition(pos)
+				position = bedwars.BlockController:getBlockPosition2(pos)
 			})
 		end, function(thing)
 			fail = true
 		end)
-		if (not fail) and bedwars.BlockController:getStore():getBlockAt(bedwars.BlockController:getBlockPosition(pos)) then
+		if (not fail) and bedwars.BlockController:getStore():getBlockAt(bedwars.BlockController:getBlockPosition2(pos)) then
 			removefunc()
 		end
 	end
