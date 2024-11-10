@@ -1035,7 +1035,7 @@ function bedwars.StoreController:updateLocalHand()
 		local handData = bedwars.ItemTable[tostring(currentHand.Value)]
 		handType = handData.sword and "sword" or handData.block and "block" or tostring(currentHand.Value):find("bow") and "bow"
 	end
-	store.localHand = {tool = currentHand and currentHand.Value, Type = handType, amount = currentHand and currentHand:GetAttribute("Amount") and type(currentHand:GetAttribute("Amount")) == "number" or 0}
+	store.localHand = {tool = currentHand and currentHand.Value, itemType = currentHand and currentHand.Value and tostring(currentHand.Value) or "", Type = handType, amount = currentHand and currentHand:GetAttribute("Amount") and type(currentHand:GetAttribute("Amount")) == "number" or 0}
 end
 function bedwars.StoreController:updateStore()
 	task.spawn(function() pcall(function() bedwars.StoreController:updateLocalHand() end) end)
@@ -3753,6 +3753,8 @@ run(function()
 		end--]]
 		local sword = killaurahandcheck.Enabled and store.localHand or getSword()
 		--warn("getAttackData", tostring(sword))
+		--print(encode(store.localHand))
+		--print(killaurahandcheck.Enabled, store.localHand, sword, sword and sword.tool or "no tool", sword and sword.itemType and bedwars.ItemTable[sword.itemType] or "itemType not found!")
 		if not sword or not sword.tool then return false end
 		local swordmeta = bedwars.ItemTable[sword.itemType]
 		--[[if killaurahandcheck.Enabled then
@@ -3885,7 +3887,7 @@ run(function()
 									weapon = getItemNear('infernal_saber')
 								})
 							end
-							if sword then
+							if sword and swordmeta then
 								switchItem(sword.tool)
 								for i, plr in pairs(plrs) do
 									local root = plr.RootPart
@@ -4935,7 +4937,7 @@ run(function()
 									end
 									task.spawn(bedwars.placeBlock, speedCFrame, wool, ScaffoldAnimation.Enabled)
 									if ScaffoldExpand.Value > 1 then
-										task.wait()
+										task.wait(0.01)
 									end
 									oldpos = speedCFrame
 								end
