@@ -7199,11 +7199,11 @@ run(function()
 		}
 		local a = ItemsIncluded.Enabled and game:GetService("ReplicatedStorage"):FindFirstChild("Items") and game:GetService("ReplicatedStorage"):FindFirstChild("Items"):GetChildren() or {}
 		local b = ArmorIncluded.Enabled and game:GetService("ReplicatedStorage"):FindFirstChild("Assets") and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[1]) and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[1]):GetChildren() or {}
-		local b = ProjectilesIncluded.Enabled and game:GetService("ReplicatedStorage"):FindFirstChild("Assets") and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[2]) and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[2]):GetChildren() or {}
+		local c = ProjectilesIncluded.Enabled and game:GetService("ReplicatedStorage"):FindFirstChild("Assets") and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[2]) and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[2]):GetChildren() or {}
 		
 		local fullTbl = {}
-		local c = {a,b,c}
-		for i,v in pairs(c) do
+		local d = {a,b,c}
+		for i,v in pairs(d) do
 			for i2,v2 in pairs(v) do table.insert(fullTbl, v2) end
 		end
 		return fullTbl
