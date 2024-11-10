@@ -2209,14 +2209,16 @@ local function loadVape()
 		pload("VWUniversal.lua", true)
 		local fileName1 = "CustomModules/"..game.PlaceId..".lua"
 		local fileName2 = "CustomModules/VW"..game.PlaceId..".lua"
+		local fileName3
 		local isGame = table.find(bedwarsID.game, game.PlaceId) and true or false
 		local isLobby = table.find(bedwarsID.lobby, game.PlaceId) and true or false
-		--local CE = shared.CheatEngineMode and shared.TestingMode and "CE" or ""
-		local CE = "CE"
+		shared.CheatEngine = shared.TestingMode and false or true
+		local CE = shared.CheatEngineMode and "CE" or ""
 		if isGame then
 			if game.PlaceId ~= 6872274481 then shared.CustomSaveVape = 6872274481 end
-			fileName1 = "CustomModules/"..CE.."6872274481.lua"
+			fileName1 = "CustomModules/CE6872274481.lua"
 			fileName2 = "CustomModules/VW6872274481.lua"
+			if (not shared.CheatEngineMode) then fileName3 = "CustomModules/S6872274481.lua" end
 		end
 		if isLobby then
 			fileName1 = "CustomModules/"..CE.."6872265039.lua"
@@ -2227,6 +2229,7 @@ local function loadVape()
 		if shared.VoidDev then InfoNotification(fileName1, fileName2, 100) end
 		pload(fileName1, true)
 		pload(fileName2)
+		if fileName3 then pload(fileName3) end
 	else
 		repeat task.wait() until shared.VapeManualLoad
 	end

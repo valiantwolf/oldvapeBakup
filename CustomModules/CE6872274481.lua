@@ -245,6 +245,15 @@ function bedwars.Client:GetNamespace(nameSpace, blacklist)
     namespaceCache[cacheKey] = resolveFunctionTable 
     return resolveFunctionTable
 end
+
+function bedwars.Client:WaitFor(remName)
+	local tbl = {}
+	function tbl:andThen(func)
+		repeat task.wait() until bedwars.Client:Get(remName)
+		func(bedwars.Client:Get(remName).OnClientEvent)
+	end
+	return tbl
+end
 bedwars.ClientStoreHandler = {}
 function bedwars.ClientStoreHandler:dispatch(tbl)
     --- pov u can't reverse engineer this function :skull:
@@ -398,6 +407,7 @@ local function getPlacedBlock(pos)
     end
     return res
 end
+VoidwareFunctions.GlobaliseObject("getPlacedBlock", getPlacedBlock)
 function bedwars.BlockController:getStore()
 	local tbl = {}
 	function tbl:getBlockData(pos)
@@ -458,6 +468,16 @@ table.insert(vapeConnections, updateitem.Event:Connect(function(inputObj)
 		game:GetService("ContextActionService"):CallFunction("block-break", Enum.UserInputState.Begin, newproxy(true))
 	end
 end))
+local function switchItem(tool)
+	if lplr.Character.HandInvItem.Value ~= tool then
+		bedwars.Client:Get(bedwars.EquipItemRemote):InvokeServer({
+			hand = tool
+		})
+		local started = tick()
+		repeat task.wait() until (tick() - started) > 0.3 or lplr.Character.HandInvItem.Value == tool
+	end
+end
+VoidwareFunctions.GlobaliseObject("switchItem", switchItem)
 local function switchToAndUseTool(block, legit)
 	local tool = getBestTool(block.Name)
 	if tool and (entityLibrary.isAlive and lplr.Character:FindFirstChild("HandInvItem") and lplr.Character.HandInvItem.Value ~= tool.tool) then
@@ -490,6 +510,9 @@ function bedwars.ClientDamageBlock:Get(rem)
 		return tbl2
 	end
 	return tbl
+end
+function bedwars.ClientDamageBlock:WaitFor(remName)
+	return bedwars.Client:WaitFor(remName)
 end
 local function getLastCovered(pos, normal)
 	local lastfound, lastpos = nil, nil
@@ -1037,6 +1060,12 @@ function bedwars.StoreController:updateLocalHand()
 	end
 	store.localHand = {tool = currentHand and currentHand.Value, itemType = currentHand and currentHand.Value and tostring(currentHand.Value) or "", Type = handType, amount = currentHand and currentHand:GetAttribute("Amount") and type(currentHand:GetAttribute("Amount")) == "number" or 0}
 end
+VoidwareFunctions.GlobaliseObject("StoreTable", {})
+function bedwars.StoreController:executeStoreTable()
+	for i,v in pairs(shared.StoreTable) do
+		if type(v) == "function" then task.spawn(function() pcall(function() v() end) end) end
+	end
+end
 function bedwars.StoreController:updateStore()
 	task.spawn(function() pcall(function() bedwars.StoreController:updateLocalHand() end) end)
 	task.wait(0.1)
@@ -1047,7 +1076,28 @@ function bedwars.StoreController:updateStore()
 	task.spawn(function() pcall(function() bedwars.StoreController:updateMatchState() end) end)
 	task.wait(0.1)
 	task.spawn(function() pcall(function() bedwars.StoreController:updateStoreBlocks() end) end)
+	task.wait(0.1)
+	task.spawn(function() pcall(function() bedwars.StoreController:executeStoreTable() end) end)
 end
+
+for i, v in pairs({"MatchEndEvent", "EntityDeathEvent", "EntityDamageEvent", "BedwarsBedBreak", "BalloonPopped", "AngelProgress"}) do
+	bedwars.Client:WaitFor(v):andThen(function(connection)
+		table.insert(vapeConnections, connection:Connect(function(...)
+			vapeEvents[v]:Fire(...)
+		end))
+	end)
+end
+for i, v in pairs({"PlaceBlockEvent", "BreakBlockEvent"}) do
+	bedwars.ClientDamageBlock:WaitFor(v):andThen(function(connection)
+		table.insert(vapeConnections, connection:Connect(function(...)
+			vapeEvents[v]:Fire(...)
+		end))
+	end)
+end
+VoidwareFunctions.GlobaliseObject("vapeEvents", vapeEvents)
+table.insert(shared.StoreTable, function()
+	VoidwareFunctions.GlobaliseObject("vapeEvents", vapeEvents)
+end)
 
 store.blockRaycast.FilterType = Enum.RaycastFilterType.Include
 local AutoLeave = {Enabled = false}
@@ -1146,7 +1196,7 @@ local function run(func)
 	local suc, err = pcall(function()
 		func()
 	end)
-	if err then warn("[687224481.lua Module Error]: "..tostring(debug.traceback(err))) end
+	if err then warn("[CE687224481.lua Module Error]: "..tostring(debug.traceback(err))) end
 end
 
 local function isFriend(plr, recolor)
@@ -1170,6 +1220,7 @@ end
 local function isVulnerable(plr)
 	return plr.Humanoid.Health > 0 and not plr.Character.FindFirstChildWhichIsA(plr.Character, "ForceField")
 end
+VoidwareFunctions.GlobaliseObject("isVulnarable", isVulnarable)
 
 local function getPlayerColor(plr)
 	if isFriend(plr, true) then
@@ -1478,6 +1529,7 @@ local function getScaffold(vec, diagonaltoggle)
 	end
 	return realvec
 end
+VoidwareFunctions.GlobaliseObject("getScaffold", getScaffold)
 
 local function getBestTool(block)
 	local tool = nil
@@ -1495,17 +1547,7 @@ local function getBestTool(block)
 	end
 	return tool
 end
-
-local function switchItem(tool)
-	if lplr.Character.HandInvItem.Value ~= tool then
-		bedwars.Client:Get(bedwars.EquipItemRemote):InvokeServer({
-			hand = tool
-		})
-		local started = tick()
-		repeat task.wait() until (tick() - started) > 0.3 or lplr.Character.HandInvItem.Value == tool
-	end
-end
-VoidwareFunctions.GlobaliseObject("switchItem", switchItem)
+VoidwareFunctions.GlobaliseObject("getBestTool", getBestTool)
 
 local function GetPlacedBlocksNear(pos, normal)
 	local blocks = {}
@@ -1648,6 +1690,7 @@ local function EntityNearMouse(distance)
 	end
 	return closestEntity
 end
+VoidwareFunctions.GlobaliseObject("EntityNearMouse", EntityNearMouse)
 
 --[[local function AllNearPosition(distance, amount, sortfunction, prediction)
 	local returnedplayer = {}
