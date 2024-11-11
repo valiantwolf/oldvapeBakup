@@ -19,9 +19,6 @@ local function checkDebug(tbl)
 end
 if getgenv and getgenv().debug and type(getgenv().debug) == debugChecks.Type and (not CheatEngineMode) then checkDebug(getgenv().debug) end
 
-if string.lower(identifyexecutor()) == 'salad' or string.lower(identifyexecutor()) == 'solara' then
-    CheatEngineMode = true;
-end
 
 shared.CheatEngineMode = shared.CheatEngineMode or CheatEngineMode
 local errorPopupShown = false
