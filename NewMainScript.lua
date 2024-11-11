@@ -1,5 +1,6 @@
 repeat task.wait() until game:IsLoaded()
 local CheatEngineMode = false
+if (not getgenv) or (getgenv and type(getgenv) ~= "function") then CheatEngineMode = true end
 if getgenv and not getgenv().shared then CheatEngineMode = true; getgenv().shared = {}; end
 if getgenv and not getgenv().debug then CheatEngineMode = true; getgenv().debug = {traceback = function(string) return string end} end
 if getgenv and not getgenv().require then CheatEngineMode = true; end
