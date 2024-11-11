@@ -393,7 +393,7 @@ function bedwars.BlockController:resolveRaycastResult(block)
 end
 local cachedNormalSides = {}
 for i,v in pairs(Enum.NormalId:GetEnumItems()) do if v.Name ~= "Bottom" then table.insert(cachedNormalSides, v) end end
-local function getPlacedBlock(pos)
+local function getPlacedBlock(pos, strict)
 	if (not pos) then warn(debug.traceback("[getPlacedBlock]: pos is nil!")) return nil end
     local regionSize = Vector3.new(1, 1, 1)
     local region = Region3.new(pos - regionSize / 2, pos + regionSize / 2)
@@ -401,7 +401,11 @@ local function getPlacedBlock(pos)
 	local res 
     for _, part in pairs(parts) do
         if part and part.ClassName and part.ClassName == "Part" and part.Parent then
-            res = part
+			if strict then
+				if part.Parent.Name == 'Blocks' and part.Parent.ClassName == "Folder" then res = part end
+			else
+				res = part 
+			end
         end
 		break
     end
@@ -5215,8 +5219,8 @@ run(function()
 					if entityLibrary.isAlive and (GuiLibrary.ObjectsThatCanBeSaved.PhaseOptionsButton.Api.Enabled == false or holdingshift == false) then
 						if SpiderMode.Value == "Normal" then
 							local vec = entityLibrary.character.Humanoid.MoveDirection * 2
-							local newray = getPlacedBlock(entityLibrary.character.HumanoidRootPart.Position + (vec + Vector3.new(0, 0.1, 0)))
-							local newray2 = getPlacedBlock(entityLibrary.character.HumanoidRootPart.Position + (vec - Vector3.new(0, entityLibrary.character.Humanoid.HipHeight, 0)))
+							local newray = getPlacedBlock(entityLibrary.character.HumanoidRootPart.Position + (vec + Vector3.new(0, 0.1, 0)), true)
+							local newray2 = getPlacedBlock(entityLibrary.character.HumanoidRootPart.Position + (vec - Vector3.new(0, entityLibrary.character.Humanoid.HipHeight, 0)), true)
 							if newray and (not newray.CanCollide) then newray = nil end
 							if newray2 and (not newray2.CanCollide) then newray2 = nil end
 							if spiderActive and (not newray) and (not newray2) then
@@ -5234,7 +5238,7 @@ run(function()
 								SpiderPart.Anchored = true
 								SpiderPart.Parent = gameCamera
 							end
-							local newray2, newray2pos = getPlacedBlock(entityLibrary.character.HumanoidRootPart.Position + ((entityLibrary.character.HumanoidRootPart.CFrame.lookVector * 1.5) - Vector3.new(0, entityLibrary.character.Humanoid.HipHeight, 0)))
+							local newray2, newray2pos = getPlacedBlock(entityLibrary.character.HumanoidRootPart.Position + ((entityLibrary.character.HumanoidRootPart.CFrame.lookVector * 1.5) - Vector3.new(0, entityLibrary.character.Humanoid.HipHeight, 0)), true)
 							if newray2 and (not newray2.CanCollide) then newray2 = nil end
 							spiderActive = (newray2 and true or false)
 							if newray2 then
