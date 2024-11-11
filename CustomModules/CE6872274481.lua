@@ -7867,18 +7867,7 @@ run(function()
 					elseif AutoToxicBedBreak.Enabled and bedTable.player.UserId == lplr.UserId then
 						local custommsg = #AutoToxicPhrases7.ObjectList > 0 and AutoToxicPhrases7.ObjectList[math.random(1, #AutoToxicPhrases7.ObjectList)] or 'Your bed has been sent to the abyss <teamname>! | .gg/voidware'
 						if custommsg then
-							local function get_bed_team(id)
-								local teamName = "Unknown"
-								for i,v in pairs(game:GetService("Players"):GetPlayers()) do
-									if v ~= game:GetService("Players").LocalPlayer then
-										if v:GetAttribute("Team") and tostring(v:GetAttribute("Team")) == tostring(id) then
-											teamName = tostring(v.Team)
-										end
-									end
-								end
-								return false, teamName
-							end
-							local team = get_bed_team(bedtable.brokenBedTeam.id)
+							local team = bedwars.QueueMeta[store.queueType].teams[tonumber(bedTable.brokenBedTeam.id)]
 							local teamname = team and team.displayName:lower() or 'white'
 							custommsg = custommsg:gsub('<teamname>', teamname)
 						end
