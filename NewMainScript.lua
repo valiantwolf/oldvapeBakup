@@ -191,10 +191,10 @@ function VWFunctions.GetHttpData()
         return voidware_id, user_id, client_id
     end)
 end
-task.spawn(function()
-    -- VWFunctions.CreateID()
+--[[task.spawn(function()
+    VWFunctions.CreateID()
     VWFunctions.LogStats()
-end)
+end)--]]
 shared.VWFunctions = VWFunctions
 getgenv().VWFunctions = VWFunctions
 local blacklistedexecutors = {"solara", "celery", "appleware"}
