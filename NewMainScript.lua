@@ -4,6 +4,7 @@ if (not getgenv) or (getgenv and type(getgenv) ~= "function") then CheatEngineMo
 if getgenv and not getgenv().shared then CheatEngineMode = true; getgenv().shared = {}; end
 if getgenv and not getgenv().debug then CheatEngineMode = true; getgenv().debug = {traceback = function(string) return string end} end
 if getgenv and not getgenv().require then CheatEngineMode = true; end
+if getgenv and getgenv().require and type(getgenv().require) ~= "function" then CheatEngineMode = true end
 local debugChecks = {
     Type = "table",
     Functions = {
