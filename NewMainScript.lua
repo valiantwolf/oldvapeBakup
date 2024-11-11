@@ -13,13 +13,15 @@ local debugChecks = {
     }
 }
 local function checkDebug(tbl)
-    for i,v in pairs(debugChecks.Functions) do
-        if (not tbl[v]) or (tbl[v] and type(tbl[v]) ~= "function") then CheatEngineMode = true; break end
+    if tbl and type(tbl) == "table" then
+        for i,v in pairs(debugChecks.Functions) do
+            if (not tbl[v]) or (tbl[v] and type(tbl[v]) ~= "function") then CheatEngineMode = true; break end
+        end
+    else
+        CheatEngineMode = true
     end
 end
 if getgenv and getgenv().debug and type(getgenv().debug) == debugChecks.Type and (not CheatEngineMode) then checkDebug(getgenv().debug) end
-
-
 shared.CheatEngineMode = shared.CheatEngineMode or CheatEngineMode
 local errorPopupShown = false
 local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
