@@ -149,6 +149,7 @@ bedwars = setmetatable({
 	PickupRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.ItemDropController.checkForPickup)),
 	BowConstantsTable = bowConstants,
 	ShopItems = debug.getupvalue(debug.getupvalue(require(replicatedStorage.TS.games.bedwars.shop["bedwars-shop"]).BedwarsShop.getShopItem, 1), 3),
+	DefaultKillEffect = require(lplr.PlayerScripts.TS.controllers.game.locker["kill-effect"].effects["default-kill-effect"]),
 }, {
     __index = function(self, ind)
         rawset(self, ind, KnitClient.Controllers[ind])
@@ -1818,5 +1819,148 @@ run(function()
 			end
 		end,
 		HoverText = "Allows you to access tiered items early."
+	})
+end)
+
+run(function()
+	local oldkilleffect
+	local KillEffectMode = {Value = "Gravity"}
+	local KillEffectList = {Value = "None"}
+	local KillEffectName2 = {}
+	local killeffects = {
+		Gravity = function(p3, p4, p5, p6)
+			p5:BreakJoints()
+			task.spawn(function()
+				local partvelo = {}
+				for i,v in pairs(p5:GetDescendants()) do
+					if v:IsA("BasePart") then
+						partvelo[v.Name] = v.Velocity * 3
+					end
+				end
+				p5.Archivable = true
+				local clone = p5:Clone()
+				clone.Humanoid.Health = 100
+				clone.Parent = workspace
+				local nametag = clone:FindFirstChild("Nametag", true)
+				if nametag then nametag:Destroy() end
+				game:GetService("Debris"):AddItem(clone, 30)
+				p5:Destroy()
+				task.wait(0.01)
+				clone.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+				clone:BreakJoints()
+				task.wait(0.01)
+				for i,v in pairs(clone:GetDescendants()) do
+					if v:IsA("BasePart") then
+						local bodyforce = Instance.new("BodyForce")
+						bodyforce.Force = Vector3.new(0, (workspace.Gravity - 10) * v:GetMass(), 0)
+						bodyforce.Parent = v
+						v.CanCollide = true
+						v.Velocity = partvelo[v.Name] or Vector3.zero
+					end
+				end
+			end)
+		end,
+		Lightning = function(p3, p4, p5, p6)
+			p5:BreakJoints()
+			local startpos = 1125
+			local startcf = p5.PrimaryPart.CFrame.p - Vector3.new(0, 8, 0)
+			local newpos = Vector3.new((math.random(1, 10) - 5) * 2, startpos, (math.random(1, 10) - 5) * 2)
+			for i = startpos - 75, 0, -75 do
+				local newpos2 = Vector3.new((math.random(1, 10) - 5) * 2, i, (math.random(1, 10) - 5) * 2)
+				if i == 0 then
+					newpos2 = Vector3.zero
+				end
+				local part = Instance.new("Part")
+				part.Size = Vector3.new(1.5, 1.5, 77)
+				part.Material = Enum.Material.SmoothPlastic
+				part.Anchored = true
+				part.Material = Enum.Material.Neon
+				part.CanCollide = false
+				part.CFrame = CFrame.new(startcf + newpos + ((newpos2 - newpos) * 0.5), startcf + newpos2)
+				part.Parent = workspace
+				local part2 = part:Clone()
+				part2.Size = Vector3.new(3, 3, 78)
+				part2.Color = Color3.new(0.7, 0.7, 0.7)
+				part2.Transparency = 0.7
+				part2.Material = Enum.Material.SmoothPlastic
+				part2.Parent = workspace
+				game:GetService("Debris"):AddItem(part, 0.5)
+				game:GetService("Debris"):AddItem(part2, 0.5)
+				bedwars.QueryUtil:setQueryIgnored(part, true)
+				bedwars.QueryUtil:setQueryIgnored(part2, true)
+				if i == 0 then
+					local soundpart = Instance.new("Part")
+					soundpart.Transparency = 1
+					soundpart.Anchored = true
+					soundpart.Size = Vector3.zero
+					soundpart.Position = startcf
+					soundpart.Parent = workspace
+					bedwars.QueryUtil:setQueryIgnored(soundpart, true)
+					local sound = Instance.new("Sound")
+					sound.SoundId = "rbxassetid://6993372814"
+					sound.Volume = 2
+					sound.Pitch = 0.5 + (math.random(1, 3) / 10)
+					sound.Parent = soundpart
+					sound:Play()
+					sound.Ended:Connect(function()
+						soundpart:Destroy()
+					end)
+				end
+				newpos = newpos2
+			end
+		end
+	}
+	local KillEffectName = {}
+	for i,v in pairs(bedwars.KillEffectMeta) do
+		table.insert(KillEffectName, v.name)
+		KillEffectName[v.name] = i
+	end
+	table.sort(KillEffectName, function(a, b) return a:lower() < b:lower() end)
+	local KillEffect = {Enabled = false}
+	KillEffect = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+		Name = "KillEffect",
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					repeat task.wait() until store.matchState ~= 0 or not KillEffect.Enabled
+					if KillEffect.Enabled then
+						lplr:SetAttribute("KillEffectType", "none")
+						if KillEffectMode.Value == "Bedwars" then
+							lplr:SetAttribute("KillEffectType", KillEffectName[KillEffectList.Value])
+						end
+					end
+				end)
+				oldkilleffect = bedwars.DefaultKillEffect.onKill
+				bedwars.DefaultKillEffect.onKill = function(p3, p4, p5, p6)
+					killeffects[KillEffectMode.Value](p3, p4, p5, p6)
+				end
+			else
+				bedwars.DefaultKillEffect.onKill = oldkilleffect
+			end
+		end
+	})
+	local modes = {"Bedwars"}
+	for i,v in pairs(killeffects) do
+		table.insert(modes, i)
+	end
+	KillEffectMode = KillEffect.CreateDropdown({
+		Name = "Mode",
+		Function = function()
+			if KillEffect.Enabled then
+				KillEffect.ToggleButton(false)
+				KillEffect.ToggleButton(false)
+			end
+		end,
+		List = modes
+	})
+	KillEffectList = KillEffect.CreateDropdown({
+		Name = "Bedwars",
+		Function = function()
+			if KillEffect.Enabled then
+				KillEffect.ToggleButton(false)
+				KillEffect.ToggleButton(false)
+			end
+		end,
+		List = KillEffectName
 	})
 end)
