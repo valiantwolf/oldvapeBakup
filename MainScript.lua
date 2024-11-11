@@ -2223,7 +2223,6 @@ local function loadVape()
 			fileName1 = "CustomModules/"..CE.."6872265039.lua"
 			fileName2 = "CustomModules/VW6872265039.lua"
 		end
-		if shared.CheatEngineMode and (not shared.VapeSwitchServers) then InfoNotification("Voidware", "Loaded in Cheat Engine Mode! Some functions might be missing.", 1.5) end
 		--if CE == "CE" then InfoNotification("Voidware", "Backup mode activated!", 3) end 
 		--if shared.CheatEngineMode then InfoNotification(fileName1, fileName2, 2) end
 		warn("[CheatEngineMode]: ", tostring(shared.CheatEngineMode))
@@ -2268,7 +2267,11 @@ local function loadVape()
 		shared.VapeOpenGui = nil
 	end
 	--game:GetService("Players").LocalPlayer.GameplayPaused = false
-	InfoNotification("Voidware", "Successfully loaded Voidware :D", 1.5)
+	if shared.CheatEngineMode then
+		if shared.CheatEngineMode and (not shared.VapeSwitchServers) then InfoNotification("Voidware", "Loaded in Cheat Engine Mode! Some functions might be missing.", 1.5) end
+	else
+		InfoNotification("Voidware", "Successfully loaded Voidware :D", 1.5)
+	end
 	coroutine.resume(saveSettingsLoop)
 	shared.VapeFullyLoaded = true
 end
