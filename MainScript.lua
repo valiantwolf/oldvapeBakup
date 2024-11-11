@@ -2229,7 +2229,7 @@ local function loadVape()
 		warn("[TestingMode]: ", tostring(shared.TestingMode))
 		warn("[FileName1]: ", tostring(fileName1), " [FileName2]: ", tostring(fileName2), " [FileName3]: ", tostring(fileName3))
 		if shared.VoidDev then InfoNotification(fileName1, fileName2, 100) end
-		pload(fileName1, true)
+		pload(fileName1)
 		pload(fileName2)
 		if fileName3 then pload(fileName3) end
 	else
