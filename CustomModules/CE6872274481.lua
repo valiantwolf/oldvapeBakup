@@ -5841,7 +5841,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local oldkilleffect
 	local KillEffectMode = {Value = "Gravity"}
 	local KillEffectList = {Value = "None"}
@@ -5982,7 +5982,7 @@ run(function()
 		end,
 		List = KillEffectName
 	})
-end)
+end)--]]
 
 run(function()
 	local KitESP = {Enabled = false}
@@ -7867,7 +7867,7 @@ run(function()
 					elseif AutoToxicBedBreak.Enabled and bedTable.player.UserId == lplr.UserId then
 						local custommsg = #AutoToxicPhrases7.ObjectList > 0 and AutoToxicPhrases7.ObjectList[math.random(1, #AutoToxicPhrases7.ObjectList)] or 'Your bed has been sent to the abyss <teamname>! | .gg/voidware'
 						if custommsg then
-							local function get_bed_team(id)
+							--[[local function get_bed_team(id)
 								local teamName = "Unknown"
 								for i,v in pairs(game:GetService("Players"):GetPlayers()) do
 									if v ~= game:GetService("Players").LocalPlayer then
@@ -7880,7 +7880,7 @@ run(function()
 							end
 							local team = get_bed_team(bedtable.brokenBedTeam.id)
 							local teamname = team and team.displayName:lower() or 'white'
-							custommsg = custommsg:gsub('<teamname>', teamname)
+							custommsg = custommsg:gsub('<teamname>', teamname)--]]
 						end
 						sendmessage(custommsg)
 					end
