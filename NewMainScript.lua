@@ -1,8 +1,24 @@
 repeat task.wait() until game:IsLoaded()
 local CheatEngineMode = false
-if getgenv and not getgenv().shared then getgenv().shared = {}; end
+if getgenv and not getgenv().shared then CheatEngineMode = true; getgenv().shared = {}; end
 if getgenv and not getgenv().debug then CheatEngineMode = true; getgenv().debug = {traceback = function(string) return string end} end
-shared.CheatEngineMode = true
+if getgenv and not getgenv().require then CheatEngineMode = true; end
+local debugChecks = {
+    Type = "table",
+    Functions = {
+        "getupvalue",
+        "getupvalues",
+        "getconstants",
+        "getproto"
+    }
+}
+local function checkDebug(tbl)
+    for i,v in pairs(debugChecks.Functions) do
+        if (not tbl[v]) or (tbl[v] and type(tbl[v]) ~= "function") then CheatEngineMode = true; break end
+    end
+end
+if getgenv and getgenv().debug and type(getgenv().debug) == debugChecks.Type and (not CheatEngineMode) then checkDebug(getgenv().debug) end
+shared.CheatEngineMode = shared.CheatEngineMode or CheatEngineMode
 local errorPopupShown = false
 local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
 local getidentity = syn and syn.get_thread_identity or get_thread_identity or getidentity or getthreadidentity or function() return 8 end
