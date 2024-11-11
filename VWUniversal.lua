@@ -2253,7 +2253,7 @@ run(function()
             end
         end,
         HoverText = "Transform yourself into an Among Us character.",
-        ExtraText = function() return Mode.Value .. " - " .. Mode.Ver end
+        ExtraText = function() return "sussy" end
     })
 
     AmongUsOthers = AmongUsMode.CreateToggle({

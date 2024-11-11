@@ -9516,7 +9516,7 @@ run(function()
             if Settings.ZephyrMode.Enabled then activeCount = activeCount + 1 end
             if Settings.ScytheEnabled then activeCount = activeCount + 1 end
             if Settings.ClientMod.Enabled then activeCount = activeCount + 1 end
-            return activeCount.." Features Active"
+            return activeCount.." Bypasses Activated"
         end
     })
     

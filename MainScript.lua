@@ -2212,7 +2212,7 @@ local function loadVape()
 		local fileName3
 		local isGame = table.find(bedwarsID.game, game.PlaceId) and true or false
 		local isLobby = table.find(bedwarsID.lobby, game.PlaceId) and true or false
-		shared.CheatEngineMode = shared.TestingMode and false or true
+		if shared.TestingMode then shared.CheatEngineMode = false end
 		local CE = shared.CheatEngineMode and "CE" or ""
 		if isGame then
 			if game.PlaceId ~= 6872274481 then shared.CustomSaveVape = 6872274481 end
@@ -2229,7 +2229,7 @@ local function loadVape()
 		warn("[CheatEngineMode]: ", tostring(shared.CheatEngineMode))
 		warn("[TestingMode]: ", tostring(shared.TestingMode))
 		warn("[FileName1]: ", tostring(fileName1), " [FileName2]: ", tostring(fileName2), " [FileName3]: ", tostring(fileName3))
-		if shared.VoidDev then InfoNotification(fileName1, fileName2, 100); InfoNotification(tostring(shared.CheatEngineMode), tostring(shared.TestingMode), 5) end
+		if shared.VoidDev then InfoNotification(fileName1, fileName2, 100) end
 		pload(fileName1, true)
 		pload(fileName2)
 		if fileName3 then pload(fileName3) end
