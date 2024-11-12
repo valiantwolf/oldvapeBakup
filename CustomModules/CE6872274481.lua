@@ -1676,6 +1676,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 	end
 	return closestEntity
 end
+VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 
 local function EntityNearMouse(distance)
 	local closestEntity, closestMagnitude = nil, distance
@@ -5841,7 +5842,7 @@ run(function()
 	})
 end)
 
---[[run(function()
+run(function()
 	local oldkilleffect
 	local KillEffectMode = {Value = "Gravity"}
 	local KillEffectList = {Value = "None"}
@@ -5982,7 +5983,7 @@ end)
 		end,
 		List = KillEffectName
 	})
-end)--]]
+end)
 
 run(function()
 	local KitESP = {Enabled = false}
@@ -7769,6 +7770,25 @@ sendmessage = function(text)
 end
 getgenv().sendmessage = sendmessage
 
+local bedTeamCache = {}
+local function get_bed_team(id)
+	if bedTeamCache[id] then
+		return true, bedTeamCache[id]
+	end
+	local teamName = "Unknown"
+	for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+		if player ~= game:GetService("Players").LocalPlayer then
+			if player:GetAttribute("Team") and tostring(player:GetAttribute("Team")) == tostring(id) then
+				teamName = tostring(player.Team)
+				break
+			end
+		end
+	end
+	bedTeamCache[id] = teamName
+	return false, teamName
+end
+
+
 run(function()
 	local justsaid = ''
 	local leavesaid = false
@@ -7867,20 +7887,9 @@ run(function()
 					elseif AutoToxicBedBreak.Enabled and bedTable.player.UserId == lplr.UserId then
 						local custommsg = #AutoToxicPhrases7.ObjectList > 0 and AutoToxicPhrases7.ObjectList[math.random(1, #AutoToxicPhrases7.ObjectList)] or 'Your bed has been sent to the abyss <teamname>! | .gg/voidware'
 						if custommsg then
-							--[[local function get_bed_team(id)
-								local teamName = "Unknown"
-								for i,v in pairs(game:GetService("Players"):GetPlayers()) do
-									if v ~= game:GetService("Players").LocalPlayer then
-										if v:GetAttribute("Team") and tostring(v:GetAttribute("Team")) == tostring(id) then
-											teamName = tostring(v.Team)
-										end
-									end
-								end
-								return false, teamName
-							end
 							local team = get_bed_team(bedtable.brokenBedTeam.id)
 							local teamname = team and team.displayName:lower() or 'white'
-							custommsg = custommsg:gsub('<teamname>', teamname)--]]
+							custommsg = custommsg:gsub('<teamname>', teamname)
 						end
 						sendmessage(custommsg)
 					end

@@ -3654,7 +3654,7 @@ run(function()
 						table.insert(Autowin.Connections, runService.Heartbeat:Connect(function()
 							pcall(function()
 							if not isnetworkowner(lplr.Character.HumanoidRootPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
-								if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and not VoidwareStore.GameFinished then
+								if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and store.matchState < 2 then
 									lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
 									lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
 								end
@@ -3698,26 +3698,25 @@ run(function()
 								--GuiLibrary.ObjectsThatCanBeSaved.NukerOptionsButton.Api.ToggleButton(false)
 							end
 							repeat task.wait() until FindEnemyBed() ~= bed or not isAlive()
-							if FindTarget(45, store.blockRaycast).RootPart and isAlive() then
+							if EntityNearPosition(45) and EntityNearPosition(45).RootPart and isAlive() then
 								if AutowinNotification.Enabled then
 									local team = VoidwareStore.bedtable[bed] or "unknown"
 									task.spawn(InfoNotification, "Autowin", "Killing "..team:lower().." team's teamates", 5)
 								end
 								repeat
-								local target = FindTarget(45, store.blockRaycast)
+								local target = EntityNearPosition(45)
 								if not target.RootPart then break end
 								playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 								playertween:Play()
 								task.wait()
-								until not FindTarget(45, store.blockRaycast).RootPart or not Autowin.Enabled or not isAlive()
+								until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
 							end
 							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
 								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
 								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
 							end
-							elseif FindTarget(nil, store.blockRaycast).RootPart then
-								task.wait()
-								local target = FindTarget(nil, store.blockRaycast)
+							elseif EntityNearPosition(45) and EntityNearPosition(45).RootPart then
+								local target = EntityNearPosition(45)
 								playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 								playertween:Play()
 								if AutowinNotification.Enabled then
@@ -3725,14 +3724,14 @@ run(function()
 								end
 								playertween.Completed:Wait()
 								if not Autowin.Enabled then return end
-									if FindTarget(50, store.blockRaycast).RootPart and isAlive() then
+									if EntityNearPosition(50).RootPart and isAlive() then
 										repeat
-										target = FindTarget(50, store.blockRaycast)
+										target = EntityNearPosition(50)
 										if not target.RootPart or not isAlive() then break end
 										playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 										playertween:Play()
 										task.wait()
-										until not FindTarget(50, store.blockRaycast).RootPart or not Autowin.Enabled or not isAlive()
+										until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
 									end
 								if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
 									lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)

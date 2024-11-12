@@ -17,6 +17,8 @@ local lplr = playersService.LocalPlayer
 local vapeInjected = shared.VapeExecuted
 local entityLibrary = shared.vapeentity
 
+local vapeEvents = shared.vapeEvents
+
 local vapeConnections = {}
 GuiLibrary.SelfDestructEvent.Event:Connect(function()
 	for i, v in pairs(vapeConnections) do
@@ -150,6 +152,8 @@ bedwars = setmetatable({
 	BowConstantsTable = bowConstants,
 	ShopItems = debug.getupvalue(debug.getupvalue(require(replicatedStorage.TS.games.bedwars.shop["bedwars-shop"]).BedwarsShop.getShopItem, 1), 3),
 	DefaultKillEffect = require(lplr.PlayerScripts.TS.controllers.game.locker["kill-effect"].effects["default-kill-effect"]),
+	KillEffectMeta = require(replicatedStorage.TS.locker["kill-effect"]["kill-effect-meta"]).KillEffectMeta,
+	QueueMeta = require(replicatedStorage.TS.game["queue-meta"]).QueueMeta,
 }, {
     __index = function(self, ind)
         rawset(self, ind, KnitClient.Controllers[ind])
@@ -157,40 +161,15 @@ bedwars = setmetatable({
     end
 })
 
---[[local function updateStore(newStore, oldStore)
+local function updateStore(newStore, oldStore)
 	if newStore.Game ~= oldStore.Game then
 		store.matchState = newStore.Game.matchState
 		store.queueType = newStore.Game.queueType or "bedwars_test"
-		store.forgeMasteryPoints = newStore.Game.forgeMasteryPoints
-		store.forgeUpgrades = newStore.Game.forgeUpgrades
-	end
-	if newStore.Bedwars ~= oldStore.Bedwars then
-		store.equippedKit = newStore.Bedwars.kit ~= "none" and newStore.Bedwars.kit or ""
-	end
-	if newStore.Inventory ~= oldStore.Inventory then
-		local newInventory = (newStore.Inventory and newStore.Inventory.observedInventory or {inventory = {}})
-		local oldInventory = (oldStore.Inventory and oldStore.Inventory.observedInventory or {inventory = {}})
-		store.localInventory = newStore.Inventory.observedInventory
-		if newInventory ~= oldInventory then
-			vapeEvents.InventoryChanged:Fire()
-		end
-		if newInventory.inventory.items ~= oldInventory.inventory.items then
-			vapeEvents.InventoryAmountChanged:Fire()
-		end
-		if newInventory.inventory.hand ~= oldInventory.inventory.hand then
-			local currentHand = newStore.Inventory.observedInventory.inventory.hand
-			local handType = ""
-			if currentHand then
-				local handData = bedwars.ItemTable[currentHand.itemType]
-				handType = handData.sword and "sword" or handData.block and "block" or currentHand.itemType:find("bow") and "bow"
-			end
-			store.localHand = {tool = currentHand and currentHand.tool, Type = handType, amount = currentHand and currentHand.amount or 0}
-		end
 	end
 end
 
 table.insert(vapeConnections, bedwars.ClientStoreHandler.changed:connect(updateStore))
-updateStore(bedwars.ClientStoreHandler:getState(), {})--]]
+updateStore(bedwars.ClientStoreHandler:getState(), {})
 
 local killauraNearPlayer = GuiLibrary.ObjectsThatCanBeSaved.KillauraOptionsButton.Api.Enabled
 
@@ -1963,4 +1942,421 @@ run(function()
 		end,
 		List = KillEffectName
 	})
+end)
+
+run(function()
+	local justsaid = ''
+	local leavesaid = false
+	local alreadyreported = {}
+
+	local function removerepeat(str)
+		local newstr = ''
+		local lastlet = ''
+		for i,v in next, (str:split('')) do 
+			if v ~= lastlet then
+				newstr = newstr..v 
+				lastlet = v
+			end
+		end
+		return newstr
+	end
+	local reporttable = {
+		gay = 'Bullying',
+		gae = 'Bullying',
+		gey = 'Bullying',
+		hack = 'Scamming',
+		exploit = 'Scamming',
+		cheat = 'Scamming',
+		hecker = 'Scamming',
+		haxker = 'Scamming',
+		hacer = 'Scamming',
+		fat = 'Bullying',
+		black = 'Bullying',
+		getalife = 'Bullying',
+		report = 'Bullying',
+		fatherless = 'Bullying',
+		disco = 'Offsite Links',
+		yt = 'Offsite Links',
+		dizcourde = 'Offsite Links',
+		retard = 'Swearing',
+		bad = 'Bullying',
+		trash = 'Bullying',
+		nolife = 'Bullying',
+		killyour = 'Bullying',
+		kys = 'Bullying',
+		hacktowin = 'Bullying',
+		bozo = 'Bullying',
+		kid = 'Bullying',
+		adopted = 'Bullying',
+		linlife = 'Bullying',
+		commitnotalive = 'Bullying',
+		vape = 'Offsite Links',
+		futureclient = 'Offsite Links',
+		download = 'Offsite Links',
+		youtube = 'Offsite Links',
+		die = 'Bullying',
+		lobby = 'Bullying',
+		ban = 'Bullying',
+		wizard = 'Bullying',
+		wisard = 'Bullying',
+		witch = 'Bullying',
+		magic = 'Bullying',
+	}
+	local reporttableexact = {
+		L = 'Bullying',
+	}
+	local rendermessages = {
+		[1] = {'cry me a river <name>', 'boo hooo <name>', 'womp womp <name>', 'I could care less <name>.'}
+	}
+	local function findreport(msg)
+		local checkstr = removerepeat(msg:gsub('%W+', ''):lower())
+		for i,v in next, (reporttable) do 
+			if checkstr:find(i) then 
+				return v, i
+			end
+		end
+		for i,v in next, (reporttableexact) do 
+			if checkstr == i then 
+				return v, i
+			end
+		end
+		for i,v in next, (AutoToxicPhrases5.ObjectList) do 
+			if checkstr:find(v) then 
+				return 'Bullying', v
+			end
+		end
+		return nil
+	end
+
+	AutoToxic = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+		Name = 'AutoToxic',
+		Function = function(calling)
+			if calling then 
+				table.insert(AutoToxic.Connections, vapeEvents.BedwarsBedBreak.Event:Connect(function(bedTable)
+					if AutoToxicBedDestroyed.Enabled and bedTable.brokenBedTeam.id == lplr:GetAttribute('Team') then
+						local custommsg = #AutoToxicPhrases6.ObjectList > 0 and AutoToxicPhrases6.ObjectList[math.random(1, #AutoToxicPhrases6.ObjectList)] or 'Who needs a bed when you got Voidware <name>? | .gg/voidware'
+						if custommsg then
+							custommsg = custommsg:gsub('<name>', (bedTable.player.DisplayName or bedTable.player.Name))
+						end
+						textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(custommsg)
+					elseif AutoToxicBedBreak.Enabled and bedTable.player.UserId == lplr.UserId then
+						local custommsg = #AutoToxicPhrases7.ObjectList > 0 and AutoToxicPhrases7.ObjectList[math.random(1, #AutoToxicPhrases7.ObjectList)] or 'Your bed has been sent to the abyss <teamname>! | .gg/voidware'
+						if custommsg then
+							local team = bedwars.QueueMeta[store.queueType].teams[tonumber(bedTable.brokenBedTeam.id)]
+							local teamname = team and team.displayName:lower() or 'white'
+							custommsg = custommsg:gsub('<teamname>', teamname)
+						end
+						sendmessage(custommsg)
+					end
+				end))
+				table.insert(AutoToxic.Connections, vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
+					if deathTable.finalKill then
+						local killer = playersService:GetPlayerFromCharacter(deathTable.fromEntity)
+						local killed = playersService:GetPlayerFromCharacter(deathTable.entityInstance)
+						if not killed or not killer then return end
+						if killed == lplr then 
+							if (not leavesaid) and killer ~= lplr and AutoToxicDeath.Enabled then
+								leavesaid = true
+								local custommsg = #AutoToxicPhrases3.ObjectList > 0 and AutoToxicPhrases3.ObjectList[math.random(1, #AutoToxicPhrases3.ObjectList)] or 'I was too laggy <name>. That\'s why you won. | .gg/voidware'
+								if custommsg then
+									custommsg = custommsg:gsub('<name>', (killer.DisplayName or killer.Name))
+								end
+								sendmessage(custommsg)
+							end
+						else
+							if killer == lplr and AutoToxicFinalKill.Enabled then 
+								local custommsg = #AutoToxicPhrases2.ObjectList > 0 and AutoToxicPhrases2.ObjectList[math.random(1, #AutoToxicPhrases2.ObjectList)] or '<name> things could have ended for you so differently, if you\'ve used Voidware. | .gg/voidware'
+								if custommsg == lastsaid then
+									custommsg = #AutoToxicPhrases2.ObjectList > 0 and AutoToxicPhrases2.ObjectList[math.random(1, #AutoToxicPhrases2.ObjectList)] or '<name> things could have ended for you so differently, if you\'ve used Voidware. | .gg/voidware'
+								else
+									lastsaid = custommsg
+								end
+								if custommsg then
+									custommsg = custommsg:gsub('<name>', (killed.DisplayName or killed.Name))
+								end
+								sendmessage(custommsg)
+							end
+						end
+					end
+				end))
+				table.insert(AutoToxic.Connections, vapeEvents.MatchEndEvent.Event:Connect(function(winstuff)
+					local myTeam = bedwars.ClientStoreHandler:getState().Game.myTeam
+					if myTeam and myTeam.id == winstuff.winningTeamId or lplr.Neutral then
+						if AutoToxicGG.Enabled then
+							sendmessage('gg')
+						end
+						if AutoToxicWin.Enabled then
+							sendmessage(#AutoToxicPhrases.ObjectList > 0 and AutoToxicPhrases.ObjectList[math.random(1, #AutoToxicPhrases.ObjectList)] or 'Voidware is simply better everyone. | .gg/voidware')
+						end
+					end
+				end))
+				table.insert(AutoToxic.Connections, textChatService.MessageReceived:Connect(function(tab)
+					if AutoToxicRespond.Enabled then
+						local plr = playersService:GetPlayerByUserId(tab.TextSource.UserId)
+						local args = tab.Text:split(" ")
+						if plr and plr ~= lplr and not alreadyreported[plr] then
+							local reportreason, reportedmatch = findreport(tab.Text)
+							if reportreason then
+								alreadyreported[plr] = true
+								local custommsg = #AutoToxicPhrases4.ObjectList > 0 and AutoToxicPhrases4.ObjectList[math.random(1, #AutoToxicPhrases4.ObjectList)]
+								if custommsg then
+									custommsg = custommsg:gsub("<name>", (plr.DisplayName or plr.Name))
+								end
+								local msg = custommsg or "I don't care about the fact that I'm hacking, I care about you dying in a block game. L "..(plr.DisplayName or plr.Name).." | vxpe on top"
+								if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+									textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(msg)
+								else
+									replicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(msg, 'All')
+								end
+							end
+						end
+					end
+				end))
+			end
+		end
+	})
+	AutoToxicGG = AutoToxic.CreateToggle({
+		Name = 'AutoGG',
+		Function = function() end, 
+		Default = true
+	})
+	AutoToxicWin = AutoToxic.CreateToggle({
+		Name = 'Win',
+		Function = function() end, 
+		Default = true
+	})
+	AutoToxicDeath = AutoToxic.CreateToggle({
+		Name = 'Death',
+		Function = function() end, 
+		Default = true
+	})
+	AutoToxicBedBreak = AutoToxic.CreateToggle({
+		Name = 'Bed Break',
+		Function = function() end, 
+		Default = true
+	})
+	AutoToxicBedDestroyed = AutoToxic.CreateToggle({
+		Name = 'Bed Destroyed',
+		Function = function() end, 
+		Default = true
+	})
+	AutoToxicRespond = AutoToxic.CreateToggle({
+		Name = 'Respond',
+		Function = function() end, 
+		Default = true
+	})
+	AutoToxicFinalKill = AutoToxic.CreateToggle({
+		Name = 'Final Kill',
+		Function = function() end, 
+		Default = true
+	})
+	AutoToxicTeam = AutoToxic.CreateToggle({
+		Name = 'Teammates',
+		Function = function() end, 
+	})
+	AutoToxicPhrases = AutoToxic.CreateTextList({
+		Name = 'ToxicList',
+		TempText = 'phrase (win)',
+	})
+	AutoToxicPhrases2 = AutoToxic.CreateTextList({
+		Name = 'ToxicList2',
+		TempText = 'phrase (kill) <name>',
+	})
+	AutoToxicPhrases3 = AutoToxic.CreateTextList({
+		Name = 'ToxicList3',
+		TempText = 'phrase (death) <name>',
+	})
+	AutoToxicPhrases7 = AutoToxic.CreateTextList({
+		Name = 'ToxicList7',
+		TempText = 'phrase (bed break) <teamname>',
+	})
+	AutoToxicPhrases7.Object.AddBoxBKG.AddBox.TextSize = 12
+	AutoToxicPhrases6 = AutoToxic.CreateTextList({
+		Name = 'ToxicList6',
+		TempText = 'phrase (bed destroyed) <name>',
+	})
+	AutoToxicPhrases6.Object.AddBoxBKG.AddBox.TextSize = 12
+	AutoToxicPhrases4 = AutoToxic.CreateTextList({
+		Name = 'ToxicList4',
+		TempText = 'phrase (text to respond with) <name>',
+	})
+	AutoToxicPhrases4.Object.AddBoxBKG.AddBox.TextSize = 12
+	AutoToxicPhrases5 = AutoToxic.CreateTextList({
+		Name = 'ToxicList5',
+		TempText = 'phrase (text to respond to)',
+	})
+	AutoToxicPhrases5.Object.AddBoxBKG.AddBox.TextSize = 12
+	AutoToxicPhrases8 = AutoToxic.CreateTextList({
+		Name = 'ToxicList8',
+		TempText = 'phrase (lagback) <name>',
+	})
+	AutoToxicPhrases8.Object.AddBoxBKG.AddBox.TextSize = 12
+end)
+
+local AutoLeave = {Enabled = false}
+run(function()
+	local AutoLeaveDelay = {Value = 1}
+	local AutoPlayAgain = {Enabled = false}
+	local AutoLeaveStaff = {Enabled = true}
+	local AutoLeaveStaff2 = {Enabled = true}
+	local AutoLeaveRandom = {Enabled = false}
+	local leaveAttempted = false
+
+	local function getRole(plr)
+		local suc, res = pcall(function() return plr:GetRankInGroup(5774246) end)
+		if not suc then
+			repeat
+				suc, res = pcall(function() return plr:GetRankInGroup(5774246) end)
+				task.wait()
+			until suc
+		end
+		if plr.UserId == 1774814725 then
+			return 200
+		end
+		return res
+	end
+
+	local flyAllowedmodules = {"Sprint", "AutoClicker", "AutoReport", "AutoReportV2", "AutoRelic", "AimAssist", "AutoLeave", "Reach"}
+	local function autoLeaveAdded(plr)
+		task.spawn(function()
+			if not shared.VapeFullyLoaded then
+				repeat task.wait() until shared.VapeFullyLoaded
+			end
+			if getRole(plr) >= 100 then
+				if AutoLeaveStaff.Enabled then
+					if #bedwars.ClientStoreHandler:getState().Party.members > 0 then
+						bedwars.QueueController.leaveParty()
+					end
+					if AutoLeaveStaff2.Enabled then
+						warningNotification("Vape", "Staff Detected : "..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name).." : Play legit like nothing happened to have the highest chance of not getting banned.", 60)
+						GuiLibrary.SaveSettings = function() end
+						for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
+							if v.Type == "OptionsButton" then
+								if table.find(flyAllowedmodules, i:gsub("OptionsButton", "")) == nil and tostring(v.Object.Parent.Parent):find("Render") == nil then
+									if v.Api.Enabled then
+										v.Api.ToggleButton(false)
+									end
+									v.Api.SetKeybind("")
+									v.Object.TextButton.Visible = false
+								end
+							end
+						end
+					else
+						GuiLibrary.SelfDestruct()
+						game:GetService("StarterGui"):SetCore("SendNotification", {
+							Title = "Vape",
+							Text = "Staff Detected\n"..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name),
+							Duration = 60,
+						})
+					end
+					return
+				else
+					warningNotification("Vape", "Staff Detected : "..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name), 60)
+				end
+			end
+		end)
+	end
+
+	local function isEveryoneDead() return true end
+
+	AutoLeave = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+		Name = "AutoLeave",
+		Function = function(callback)
+			if callback then
+				table.insert(AutoLeave.Connections, vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
+					if (not leaveAttempted) and deathTable.finalKill and deathTable.entityInstance == lplr.Character then
+						leaveAttempted = true
+						if isEveryoneDead() and store.matchState ~= 2 then
+							task.wait(1 + (AutoLeaveDelay.Value / 10))
+							if bedwars.ClientStoreHandler:getState().Game.customMatch == nil and bedwars.ClientStoreHandler:getState().Party.leader.userId == lplr.UserId then
+								if not AutoPlayAgain.Enabled then
+									bedwars.Client:Get("TeleportToLobby"):FireServer()
+								else
+									if AutoLeaveRandom.Enabled then
+										local listofmodes = {}
+										for i,v in pairs(bedwars.QueueMeta) do
+											if not v.disabled and not v.voiceChatOnly and not v.rankCategory then table.insert(listofmodes, i) end
+										end
+										bedwars.QueueController:joinQueue(listofmodes[math.random(1, #listofmodes)])
+									else
+										bedwars.QueueController:joinQueue(store.queueType)
+									end
+								end
+							end
+						end
+					end
+				end))
+				table.insert(AutoLeave.Connections, vapeEvents.MatchEndEvent.Event:Connect(function(deathTable)
+					task.wait(AutoLeaveDelay.Value / 10)
+					if not AutoLeave.Enabled then return end
+					if leaveAttempted then return end
+					leaveAttempted = true
+					if bedwars.ClientStoreHandler:getState().Game.customMatch == nil and bedwars.ClientStoreHandler:getState().Party.leader.userId == lplr.UserId then
+						if not AutoPlayAgain.Enabled then
+							bedwars.Client:Get("TeleportToLobby"):FireServer()
+						else
+							if bedwars.ClientStoreHandler:getState().Party.queueState == 0 then
+								if AutoLeaveRandom.Enabled then
+									local listofmodes = {}
+									for i,v in pairs(bedwars.QueueMeta) do
+										if not v.disabled and not v.voiceChatOnly and not v.rankCategory then table.insert(listofmodes, i) end
+									end
+									bedwars.QueueController:joinQueue(listofmodes[math.random(1, #listofmodes)])
+								else
+									bedwars.QueueController:joinQueue(store.queueType)
+								end
+							end
+						end
+					end
+				end))
+				table.insert(AutoLeave.Connections, playersService.PlayerAdded:Connect(autoLeaveAdded))
+				for i, plr in pairs(playersService:GetPlayers()) do
+					autoLeaveAdded(plr)
+				end
+			end
+		end,
+		HoverText = "Leaves if a staff member joins your game or when the match ends."
+	})
+	AutoLeaveDelay = AutoLeave.CreateSlider({
+		Name = "Delay",
+		Min = 0,
+		Max = 50,
+		Default = 0,
+		Function = function() end,
+		HoverText = "Delay before going back to the hub."
+	})
+	AutoPlayAgain = AutoLeave.CreateToggle({
+		Name = "Play Again",
+		Function = function() end,
+		HoverText = "Automatically queues a new game.",
+		Default = true
+	})
+	AutoLeaveStaff = AutoLeave.CreateToggle({
+		Name = "Staff",
+		Function = function(callback)
+			if AutoLeaveStaff2.Object then
+				AutoLeaveStaff2.Object.Visible = callback
+			end
+		end,
+		HoverText = "Automatically uninjects when staff joins",
+		Default = true
+	})
+	AutoLeaveStaff2 = AutoLeave.CreateToggle({
+		Name = "Staff AutoConfig",
+		Function = function() end,
+		HoverText = "Instead of uninjecting, It will now reconfig vape temporarily to a more legit config.",
+		Default = true
+	})
+	AutoLeaveRandom = AutoLeave.CreateToggle({
+		Name = "Random",
+		Function = function(callback) end,
+		HoverText = "Chooses a random mode"
+	})
+	AutoLeaveStaff2.Object.Visible = false
+end)
+task.spawn(function()
+	repeat task.wait() until shared.VapeFullyLoaded
+	if not AutoLeave.Enabled then
+		AutoLeave.ToggleButton(false)
+	end
 end)
