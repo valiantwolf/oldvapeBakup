@@ -14,6 +14,7 @@ local debugChecks = {
         "getproto"
     }
 }
+if identifyexecutor and type(identifyexecutor) == "function" and tostring(identifyexecutor()):lower() == "appleware" then CheatEngineMode = true end
 local function checkDebug(tbl)
     if tbl and type(tbl) == "table" then for i,v in pairs(debugChecks.Functions) do if (not tbl[v]) or (tbl[v] and type(tbl[v]) ~= "function") or (tbl[v] and type(tbl[v]) == "function" and identifyexecutor and type(identifyexecutor) == "function" and identifyexecutor() == "Salad" and tbl[v]() == "Not Implemented") then CheatEngineMode = true; break end end else CheatEngineMode = true end
 end
