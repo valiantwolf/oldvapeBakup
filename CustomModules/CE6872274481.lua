@@ -1057,23 +1057,7 @@ function bedwars.StoreController:updateStoreBlocks()
 	store.blocks = collectionService:GetTagged("block")
 end
 function bedwars.StoreController:updateZephyrOrb()
-	local a, b, c, d, e
-	a = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
-	if a then
-		b = a:FindFirstChild("StatusEffectHudScreen")
-		if b then
-			c = b:FindFirstChild("StatusEffectHud")
-			if c then
-				d = c:FindFirstChild("WindWalkerEffect")
-				if d then
-					e = d:FindFirstChild("EffectStack")
-					if e and e.ClassName and e.ClassName == "TextLabel" then
-						store.zephyrOrb = tonumber(e.Text)
-					end
-				end
-			end
-		end
-	end
+	if game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui") and game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("StatusEffectHudScreen") and game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("StatusEffectHudScreen"):FindFirstChild("StatusEffectHud") and game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("StatusEffectHudScreen"):FindFirstChild("StatusEffectHud"):FindFirstChild("WindWalkerEffect") and game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("StatusEffectHudScreen"):FindFirstChild("StatusEffectHud"):FindFirstChild("WindWalkerEffect"):FindFirstChild("EffectStack") and game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("StatusEffectHudScreen"):FindFirstChild("StatusEffectHud"):FindFirstChild("WindWalkerEffect"):FindFirstChild("EffectStack").ClassName and game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("StatusEffectHudScreen"):FindFirstChild("StatusEffectHud"):FindFirstChild("WindWalkerEffect"):FindFirstChild("EffectStack").ClassName == "TextLabel" then store.zephyrOrb = tonumber(game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("StatusEffectHudScreen"):FindFirstChild("StatusEffectHud"):FindFirstChild("WindWalkerEffect"):FindFirstChild("EffectStack").Text) end
 end
 function bedwars.StoreController:updateLocalHand()
 	local currentHand = bedwars.StoreController:fetchLocalHand()
@@ -1091,6 +1075,21 @@ function bedwars.StoreController:executeStoreTable()
 		if type(v) == "function" then task.spawn(function() pcall(function() v() end) end) end
 	end
 end
+--[[local UpdateIndexes = {}
+function bedwars.StoreController:registerUpdateIndex(func, cooldown)
+	table.insert(updateIndexes, {
+		Function = func,
+		WaitTime = cooldown
+	})
+end
+bedwars.StoreController:registerUpdateIndex(function() bedwars.StoreController:updateLocalHand() end, 0.1)
+bedwars.StoreController:registerUpdateIndex(function() bedwars.StoreController:updateLocalInventory() end, 0.1)
+bedwars.StoreController:registerUpdateIndex(function() bedwars.StoreController:updateEquippedKit() end, 0.5)
+bedwars.StoreController:registerUpdateIndex(function() bedwars.StoreController:updateMatchState() end, 0.1)
+bedwars.StoreController:registerUpdateIndex(function() bedwars.StoreController:updateStoreBlocks() end, 1)
+bedwars.StoreController:registerUpdateIndex(function() bedwars.StoreController:executeStoreTable() end, 0.5)
+bedwars.StoreController:registerUpdateIndex(function() if store.equippedKit == "wind_walker" then bedwars.StoreController:updateZephyrOrbe() end end, 0.5)--]]
+
 function bedwars.StoreController:updateStore()
 	task.spawn(function() pcall(function() bedwars.StoreController:updateLocalHand() end) end)
 	task.wait(0.1)
