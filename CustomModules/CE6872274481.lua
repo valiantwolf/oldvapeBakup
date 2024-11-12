@@ -1056,6 +1056,25 @@ end
 function bedwars.StoreController:updateStoreBlocks()
 	store.blocks = collectionService:GetTagged("block")
 end
+function bedwars.StoreController:updateZephyrOrb()
+	local a, b, c, d, e
+	a = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
+	if a then
+		b = a:FindFirstChild("StatusEffectHudScreen")
+		if b then
+			c = b:FindFirstChild("StatusEffectHud")
+			if c then
+				d = c:FindFirstChild("WindWalkerEffect")
+				if d then
+					e = d:FindFirstChild("EffectStack")
+					if e and e.ClassName and e.ClassName == "TextLabel" then
+						store.zephyrOrb = tonumber(e.Text)
+					end
+				end
+			end
+		end
+	end
+end
 function bedwars.StoreController:updateLocalHand()
 	local currentHand = bedwars.StoreController:fetchLocalHand()
 	if (not currentHand) then store.localHand = {} return end
@@ -1084,6 +1103,10 @@ function bedwars.StoreController:updateStore()
 	task.spawn(function() pcall(function() bedwars.StoreController:updateStoreBlocks() end) end)
 	task.wait(0.1)
 	task.spawn(function() pcall(function() bedwars.StoreController:executeStoreTable() end) end)
+	if store.equippedKit == "wind_walker" then
+		task.wait(0.1)
+		task.spawn(function() pcall(function() bedwars.StoreController:updateZephyrOrb() end) end)
+	end
 end
 
 for i, v in pairs({"MatchEndEvent", "EntityDeathEvent", "EntityDamageEvent", "BedwarsBedBreak", "BalloonPopped", "AngelProgress"}) do
@@ -1500,6 +1523,9 @@ local function getSpeed()
 		local armor = store.localInventory.inventory.armor[3]
 		if type(armor) ~= "table" then armor = {itemType = ""} end
 		if armor.itemType == "speed_boots" then
+			speed = speed + 12
+		end
+		if store.zephyrOrb ~= 0 then
 			speed = speed + 12
 		end
 		if store.zephyrOrb ~= 0 and shared.zephyrActive then
