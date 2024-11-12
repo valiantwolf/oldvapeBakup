@@ -7359,7 +7359,7 @@ run(function()
 					local itemdrops = collectionService:GetTagged("hidden-metal")
 					for i,v in pairs(itemdrops) do
 						if entityLibrary.isAlive and v.PrimaryPart and (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude <= 20 then
-							bedwars.Client:Get(bedwars.PickupMetalRemote):SendToServer({
+							bedwars.Client:Get(bedwars.PickupMetalRemote):InvokeServer({
 								id = v:GetAttribute("Id")
 							})
 						end
