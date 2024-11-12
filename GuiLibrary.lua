@@ -2471,7 +2471,7 @@ if shared.VapeExecuted then
 					end
 				end
 			end)
-			GuiLibrary.ObjectsThatCanBeSaved[argstable["Name"].."Button"] = {["Type"] = "ButtonMain", ["Object"] = button, ["Api"] = buttonapi}
+			GuiLibrary.ObjectsThatCanBeSaved[argstable["Name"].."Button"] = {["Name"] = argstable["Name"] or "Unknown", ["Type"] = "ButtonMain", ["Object"] = button, ["Api"] = buttonapi}
 
 			return buttonapi
 		end
@@ -3796,7 +3796,7 @@ if shared.VapeExecuted then
 		end)
 		local noexpand = false
 		dragGUI(windowtitle)
-		GuiLibrary.ObjectsThatCanBeSaved[argstablemain2["Name"].."Window"] = {["Object"] = windowtitle, ["ChildrenObject"] = children, ["Type"] = "Window", ["Api"] = windowapi, ["SortOrder"] = 0}
+		GuiLibrary.ObjectsThatCanBeSaved[argstablemain2["Name"].."Window"] = {["Name"] = argstablemain2["Name"] or "Unknown", ["Object"] = windowtitle, ["ChildrenObject"] = children, ["Type"] = "Window", ["Api"] = windowapi, ["SortOrder"] = 0}
 
 		windowapi["SetVisible"] = function(value)
 			windowtitle.Visible = value
@@ -7296,16 +7296,77 @@ if shared.VapeExecuted then
 			holdingalt = false
 		end
 	end)
-
+	local searchbarHandler = {
+		Modules = {},
+		Windows = {}
+	}
+	function searchbarHandler:register(obj, parent, order)
+		if not table.find(searchbarHandler.Modules, obj.Name) then
+			searchbarHandler.Modules[obj.Name] = {
+				Object = obj,
+				Parent = parent,
+				LayoutOrder = order
+			}
+		end
+	end
+	function searchbarHandler:unregister(obj)
+		if searchbarHandler.Modules[obj] and searchbarHandler.Modules[obj].Object and searchbarHandler.Modules[obj].Parent and searchbarHandler.Modules[obj].Parent.LayoutOrder then
+			searchbarHandler.Modules[obj].Object.Parent = searchbarHandler.Modules[obj].Parent
+			searchbarHandler.Modules[obj].Object.LayoutOrder = searchbarHandler.Modules[obj].LayoutOrder
+			searchbarHandler.Modules[obj] = nil
+		end
+	end
+	function searchbarHandler:revert()
+		for i,v in pairs(searchbarHandler.Modules) do
+			searchbarHandler:unregister(i)
+		end
+	end
+	function searchbarHandler:hideWindows()
+		local blacklist = {searchbarchildren.Parent}
+		for i,v in pairs(searchbarchildren.Parent.Parent:GetChildren()) do
+			if (not table.find(blacklist, v)) and v.ClassName == "TextButton" and v:FindFirstChild("ScrollingFrame") and v.Visible then
+				v.Visible = false
+				table.insert(searchbarHandler.Windows, {
+					Object = v
+				})
+			end
+		end
+	end
+	function searchbarHandler:unHideWindows()
+		for i,v in pairs(searchbarHandler.Windows) do
+			v.Object.Visible = true
+		end
+	end
+	local UIListLayout = Instance.new("UIListLayout", searchbarchildren)
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	searchbar:GetPropertyChangedSignal("Text"):Connect(function()
+		searchbarHandler:revert()
+		searchbarHandler:unHideWindows()
 		searchbarchildren:ClearAllChildren()
+		local UIListLayout = Instance.new("UIListLayout", searchbarchildren)
+		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		local optionbuttons = {}
 		if searchbar.Text == "" then
 			searchbarmain.Size = UDim2.new(0, 220, 0, 37)
 		else
-			local optionbuttons = {}
+			optionbuttons = {}
 			for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
 				if i:find("OptionsButton") and i:sub(1, searchbar.Text:len()):lower() == searchbar.Text:lower() then
-					local button = Instance.new("TextButton")
+					local obj = GuiLibrary.ObjectsThatCanBeSaved[i].Object
+					local oldParent = obj.Parent
+					local oldOrder = obj.LayoutOrder
+					local obj2 = GuiLibrary.ObjectsThatCanBeSaved[i].ChildrenObject
+					local oldParent2 = obj2.Parent
+					local oldOrder2 = obj2.LayoutOrder
+					searchbarHandler:register(obj, oldParent, oldOrder)
+					searchbarHandler:register(obj2, oldParent2, oldOrder2)
+					obj.Parent = searchbarchildren
+					obj.LayoutOrder = amount
+					obj2.Parent = searchbarchildren
+					obj2.LayoutOrder = amount
+					--obj.Position = UDim2.new(0, 0, 0, 40 * #optionbuttons)
+					--table.insert(optionbuttons, v)
+					--[[local button = Instance.new("TextButton")
 					button.Name = v.Object.Name
 					button.AutoButtonColor = false
 					button.Active = true
@@ -7368,12 +7429,12 @@ if shared.VapeExecuted then
 					buttontext.Parent = button
 					button.MouseButton1Click:Connect(function()
 						v["Api"]["ToggleButton"](false)
-					end)
-					table.insert(optionbuttons, v)
+					end)]]--
 				end
 			end
 			searchbarmain.Size = UDim2.new(0, 220, 0, 39 + (40 * #optionbuttons))
 		end
+		if #searchbarchildren:GetChildren() > 1 then searchbarHandler:hideWindows() else searchbarHandler:unHideWindows() end
 	end)
 	GuiLibrary["MainRescale"]:GetPropertyChangedSignal("Scale"):Connect(function()
 		searchbarmain.Position = UDim2.new(0.5 / GuiLibrary["MainRescale"].Scale, -110, 0, -23)
