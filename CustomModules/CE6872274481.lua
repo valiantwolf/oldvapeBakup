@@ -92,7 +92,9 @@ local bedwars = {
 	MageRemote = "LearnElementTome",
 	DragonRemote = "RequestDragonPunch",
 	ConsumeSoulRemote = "ConsumeGrimReaperSoul",
-	TreeRemote = "ConsumeTreeOrb"
+	TreeRemote = "ConsumeTreeOrb",
+	PickupMetalRemote = "CollectCollectableEntity",
+	BatteryRemote = "ConsumeBattery"
 }
 local function extractTime(timeText)
 	local minutes, seconds = string.match(timeText, "(%d+):(%d%d)")
@@ -7350,7 +7352,7 @@ run(function()
 				until (not AutoKit.Enabled)
 			end)
 		end,
-		--[[["metal_detector"] = function()
+		["metal_detector"] = function()
 			task.spawn(function()
 				repeat
 					task.wait()
@@ -7364,7 +7366,7 @@ run(function()
 					end
 				until (not AutoKit.Enabled)
 			end)
-		end,--]]
+		end,
 		--[[["battery"] = function()
 			task.spawn(function()
 				repeat
