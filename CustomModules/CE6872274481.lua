@@ -1149,7 +1149,6 @@ local networkownerswitch = tick()
 local isnetworkowner = function(part)
 	local suc, res = pcall(function() return gethiddenproperty(part, "NetworkOwnershipRule") end)
 	if suc and res == Enum.NetworkOwnership.Manual then
-		sethiddenproperty(part, "NetworkOwnershipRule", Enum.NetworkOwnership.Automatic)
 		networkownerswitch = tick() + 8
 	end
 	return networkownerswitch <= tick()
@@ -3460,7 +3459,7 @@ run(function()
 		RunLoops:UnbindFromHeartbeat("InfiniteFlyOff")
 		disabledproper = true
 		if not oldcloneroot or not oldcloneroot.Parent then return end
-		lplr.Character.Parent = game
+		lplr.Character.Parent = replicatedStorage
 		oldcloneroot.Parent = lplr.Character
 		lplr.Character.PrimaryPart = oldcloneroot
 		lplr.Character.Parent = game.Workspace
@@ -3532,7 +3531,7 @@ run(function()
 					end)
 				end
 				clonesuccess = false
-				if entityLibrary.isAlive and entityLibrary.character.Humanoid.Health > 0 and isnetworkowner(entityLibrary.character.HumanoidRootPart) then
+				if entityLibrary.isAlive and entityLibrary.character.Humanoid.Health > 0 then
 					cloned = lplr.Character
 					oldcloneroot = entityLibrary.character.HumanoidRootPart
 					if not lplr.Character.Parent then
@@ -3578,28 +3577,22 @@ run(function()
 						if store.matchState == 0 then return end
 					end
 					if entityLibrary.isAlive then
-						if isnetworkowner(oldcloneroot) then
-							local playerMass = (entityLibrary.character.HumanoidRootPart:GetMass() - 1.4) * (delta * 100)
-
-							local flyVelocity = entityLibrary.character.Humanoid.MoveDirection * (InfiniteFlyMode.Value == "Normal" and InfiniteFlySpeed.Value or 20)
-							entityLibrary.character.HumanoidRootPart.Velocity = flyVelocity + (Vector3.new(0, playerMass + (InfiniteFlyUp and InfiniteFlyVerticalSpeed.Value or 0) + (InfiniteFlyDown and -InfiniteFlyVerticalSpeed.Value or 0), 0))
-							if InfiniteFlyMode.Value ~= "Normal" then
-								entityLibrary.character.HumanoidRootPart.CFrame = entityLibrary.character.HumanoidRootPart.CFrame + (entityLibrary.character.Humanoid.MoveDirection * ((InfiniteFlySpeed.Value + getSpeed()) - 20)) * delta
-							end
-
-							local speedCFrame = {oldcloneroot.CFrame:GetComponents()}
-							speedCFrame[1] = clone.CFrame.X
-							if speedCFrame[2] < 1000 or (not goneup) then
-								task.spawn(warningNotification, "InfiniteFly", "Teleported Up", 3)
-								speedCFrame[2] = 100000
-								goneup = true
-							end
-							speedCFrame[3] = clone.CFrame.Z
-							oldcloneroot.CFrame = CFrame.new(unpack(speedCFrame))
-							oldcloneroot.Velocity = Vector3.new(clone.Velocity.X, oldcloneroot.Velocity.Y, clone.Velocity.Z)
-						else
-							InfiniteFly.ToggleButton(false)
+						local playerMass = (entityLibrary.character.HumanoidRootPart:GetMass() - 1.4) * (delta * 100)
+						local flyVelocity = entityLibrary.character.Humanoid.MoveDirection * (InfiniteFlyMode.Value == "Normal" and InfiniteFlySpeed.Value or 20)
+						entityLibrary.character.HumanoidRootPart.Velocity = flyVelocity + (Vector3.new(0, playerMass + (InfiniteFlyUp and InfiniteFlyVerticalSpeed.Value or 0) + (InfiniteFlyDown and -InfiniteFlyVerticalSpeed.Value or 0), 0))
+						if InfiniteFlyMode.Value ~= "Normal" then
+							entityLibrary.character.HumanoidRootPart.CFrame = entityLibrary.character.HumanoidRootPart.CFrame + (entityLibrary.character.Humanoid.MoveDirection * ((InfiniteFlySpeed.Value + getSpeed()) - 20)) * delta
 						end
+						local speedCFrame = {oldcloneroot.CFrame:GetComponents()}
+						speedCFrame[1] = clone.CFrame.X
+						if speedCFrame[2] < 1000 or (not goneup) then
+							task.spawn(warningNotification, "InfiniteFly", "Teleported Up", 3)
+							speedCFrame[2] = 100000
+							goneup = true
+						end
+						speedCFrame[3] = clone.CFrame.Z
+						oldcloneroot.CFrame = CFrame.new(unpack(speedCFrame))
+						oldcloneroot.Velocity = Vector3.new(clone.Velocity.X, oldcloneroot.Velocity.Y, clone.Velocity.Z)
 					end
 				end)
 			else
@@ -3800,7 +3793,40 @@ run(function()
 			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.1},
 			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.05},
 			{CFrame = CFrame.new(0.63, -0.1, 1.37) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.15}
-		}
+		},
+		Pulse = {
+			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.5},
+			{CFrame = CFrame.new(0.69, -0.72, 0.6) * CFrame.Angles(math.rad(-20), math.rad(0), math.rad(0)), Time = 1.0},
+			{CFrame = CFrame.new(0.69, -0.68, 0.6) * CFrame.Angles(math.rad(20), math.rad(0), math.rad(0)), Time = 1.5},
+			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 2.0}
+		},
+		["Slowly Smooth"] = {
+			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.25},
+			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.5},
+			{CFrame = CFrame.new(0.150, -0.8, 0.1) * CFrame.Angles(math.rad(-45), math.rad(40), math.rad(-75)), Time = 0.75},
+			{CFrame = CFrame.new(0.02, -0.8, 0.05) * CFrame.Angles(math.rad(-60), math.rad(60), math.rad(-95)), Time = 1},
+			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 1.25},
+			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 1.5},
+		},
+		["Latest Remake"] = {
+			{CFrame = CFrame.new(0.68, -0.72, 0.12) * CFrame.Angles(math.rad(-63), math.rad(57), math.rad(-49)), Time = 0.4},
+			{CFrame = CFrame.new(0.17, -1.18, 0.52) * CFrame.Angles(math.rad(-177), math.rad(56), math.rad(31)), Time = 0.4}
+		},
+		["Exhibition Fast"] = {
+			{CFrame = CFrame.new(0.7, -0.7, 0.6) * CFrame.Angles(math.rad(-20), math.rad(50), math.rad(-90)), Time = 0.05},
+			{CFrame = CFrame.new(0.8, -0.8, 0.5) * CFrame.Angles(math.rad(-60), math.rad(60), math.rad(-80)), Time = 0.07},
+		},
+		["Smooth Gaming"] = {
+			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.25},
+			{CFrame = CFrame.new(0.68, -0.72, 0.12) * CFrame.Angles(math.rad(-63), math.rad(57), math.rad(-49)), Time = 0.4},
+			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.6},
+			{CFrame = CFrame.new(0.17, -1.18, 0.52) * CFrame.Angles(math.rad(-177), math.rad(56), math.rad(31)), Time = 0.6},
+			{CFrame = CFrame.new(0.150, -0.8, 0.1) * CFrame.Angles(math.rad(-45), math.rad(40), math.rad(-75)), Time = 0.8},
+			{CFrame = CFrame.new(0.02, -0.8, 0.05) * CFrame.Angles(math.rad(-60), math.rad(60), math.rad(-95)), Time = 1.0},
+			{CFrame = CFrame.new(0.8, -0.8, 0.5) * CFrame.Angles(math.rad(-60), math.rad(60), math.rad(-80)), Time = 1.2},
+			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 1.4},
+			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 1.6}
+		}	
 	}
 
 	local function closestpos(block, pos)
@@ -7815,7 +7841,6 @@ local function get_bed_team(id)
 	return false, teamName
 end
 
-
 run(function()
 	local justsaid = ''
 	local leavesaid = false
@@ -8455,7 +8480,7 @@ run(function()
 		return closest
 	end
 
-	local antivoidypos = 0
+	local antivoidypos = 20
 	local antivoiding = false
 	AntiVoid = GuiLibrary.ObjectsThatCanBeSaved.WorldWindow.Api.CreateOptionsButton({
 		Name = "AntiVoid",
@@ -8589,7 +8614,6 @@ end)
 
 run(function()
 	local oldhitblock
-
 	local AutoTool = GuiLibrary.ObjectsThatCanBeSaved.WorldWindow.Api.CreateOptionsButton({
 		Name = "AutoTool",
 		Function = function(callback)
