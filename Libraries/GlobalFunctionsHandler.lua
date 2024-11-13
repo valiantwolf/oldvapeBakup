@@ -124,6 +124,7 @@ local function Read_Global_Commands_Data(data)
             end
             
             if actionid == "cmdrp" or (actionid ~= "" and (not processdata[actionid])) then
+                print('cmd executed')
                 if cdata["Command"] and cdata["Sender"] and type(cdata["Sender"]) == "table" and cdata["Receiver"] and cdata["Type"] then
                     cdata["Command"] = tostring(cdata["Command"])
                     cdata["Receiver"] = tostring(cdata["Receiver"])
@@ -343,6 +344,7 @@ task.spawn(function()
         task.spawn(function()
             pcall(function()
                 Read_Global_Functions_Data()
+                print('debug: check repeat')
             end)
         end)
     until not shared.VapeExecuted
