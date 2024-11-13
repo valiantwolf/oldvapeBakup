@@ -313,8 +313,10 @@ local function Read_Global_Functions_Data()
     end)
     if not vdataloaded then return false end
     if isfile('vape/Libraries/vdata.json') then delfile('vape/Libraries/vdata.json') end
+    VData.olddata = shared.VWOldData or game:GetService("HttpService"):JSONEncode({})
+    --print("STATUS: ", VData.textdata ~= VData.olddata)
     if VData.textdata ~= VData.olddata then
-        --writefile('vape/Libraries/vdata.json', VData.textdata)
+        shared.VWOldData = VData.textdata
         local data = game:GetService("HttpService"):JSONDecode(VData.textdata) 
         if type(data) == "table" then
             if data["Announcment"] and type(data["Announcment"]) == "table" then
@@ -337,12 +339,12 @@ end
 
 task.spawn(function()
     repeat task.wait() until shared.VapeFullyLoaded
-    --[[repeat
+    repeat
         task.spawn(function()
             pcall(function()
                 Read_Global_Functions_Data()
             end)
         end)
         task.wait(7.5)
-    until not shared.VapeExecuted--]]
+    until not shared.VapeExecuted
 end)
