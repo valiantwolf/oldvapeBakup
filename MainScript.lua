@@ -252,6 +252,7 @@ task.spawn(function()
 end)
 
 local GUI = GuiLibrary.CreateMainWindow()
+VWFunctions.GlobaliseObject("GUI", GUI)
 local Combat = GuiLibrary.CreateWindow({
 	Name = "Combat",
 	Icon = "vape/assets/CombatIcon.png",

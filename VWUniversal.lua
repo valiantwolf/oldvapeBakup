@@ -4,6 +4,7 @@ repeat task.wait() until shared.GuiLibrary
 
 local GuiLibrary = shared.GuiLibrary
 local entityLibrary = shared.vapeentity
+local GUI = shared.GUI
 
 local function vapeGithubRequest(scripturl)
 	if not isfile("vape/"..scripturl) then
@@ -64,7 +65,7 @@ local lightingService = game:GetService("Lighting")
 local core
 pcall(function() core = game:GetService('CoreGui') end)
 
-if shared.TestingMode then task.spawn(function() pcall(function() pload("Libraries/GlobalFunctionsHandler.lua", false) end) end) end
+task.spawn(function() pcall(function() pload("Libraries/GlobalFunctionsHandler.lua", false) end) end)
 
 local function warningNotification(title, text, delay)
 	local suc, res = pcall(function()
@@ -2625,5 +2626,95 @@ run(function()
 				LightingTheme.ToggleButton(false)
 			end
 		end
+	})
+end)
+
+run(function()
+	local Anime = GuiLibrary.CreateCustomWindow({
+		Name = "AnimeImages",
+		Icon = "vape/assets/TargetInfoIcon1.png",
+		IconSize = 16
+	})
+	local AnimeSelection = {Value = "AnimeWaifu1"}
+	local Anime_table = {
+		["SHREKDADDY"] = {
+			["ID"] = 131192839895812,
+			["Size"] = UDim2.new(0, 150, 0, 200)
+		},
+		["SHREKMOMMY"] = {
+			["ID"] = 96690292388820,
+			["Size"] = UDim2.new(0, 150, 0, 200)
+		},
+		["AnimeWaifu1"] = 18498989965,
+		["Anime2"] = {
+			["ID"] = 18499238992,
+			["Size"] = UDim2.new(0, 150, 0, 200)
+		},
+		["Anime3"] = {
+			["ID"] = 18499361548,
+			["Size"] = UDim2.new(0, 150, 0, 200)
+		},
+		["Anime4"] = 18499384179,
+		["Anime5"] = 18499402527
+	}
+	local default_table = {
+		["Size"] = UDim2.new(0, 100, 0, 200),
+		["Position"] = UDim2.new(0.17, 0, 0, 0)
+	}
+	local anime_image_label
+
+	local chosenid = Anime_table[AnimeSelection.Value]
+
+	local b = Instance.new("ImageLabel")
+	b.Parent = Anime.GetCustomChildren()
+	b.BackgroundTransparency = 1
+
+	--- CUSTOM ---
+	if type(Anime_table[AnimeSelection.Value]) == "table" then
+		b.Image = "rbxassetid://"..tostring(chosenid["ID"])
+		--b.Position = UDim2.new(0.9, 0, 0, 0)
+		b.Size = UDim2.new(0, 100, 0, 200)
+		for i,v in pairs(chosenid) do
+			if i ~= "ID" then
+				b[i] = chosenid[i]
+			end
+		end
+	else
+		b.Image = "rbxassetid://"..tostring(chosenid)
+		b.Position = UDim2.new(0.17, 0, 0, 0)
+		b.Size = UDim2.new(0, 100, 0, 200)
+	end
+
+	anime_image_label = b
+	local options = {}
+	for i,v in pairs(Anime_table) do table.insert(options, i) end
+	AnimeSelection = Anime.CreateDropdown({
+		Name = "Selection",
+		Function = function()
+			if anime_image_label then 
+				local chosenid = Anime_table[AnimeSelection.Value]
+				if type(Anime_table[AnimeSelection.Value]) == "table" then
+					anime_image_label.Image = "rbxassetid://"..tostring(chosenid["ID"])
+					anime_image_label.Position = UDim2.new(0.17, 0, 0, 0)
+					anime_image_label.Size = UDim2.new(0, 100, 0, 200)
+					for i,v in pairs(chosenid) do
+						if i ~= "ID" then
+							anime_image_label[i] = chosenid[i]
+						end
+					end
+				else
+					anime_image_label.Image = "rbxassetid://"..tostring(chosenid)
+					anime_image_label.Position = UDim2.new(0.17, 0, 0, 0)
+					anime_image_label.Size = UDim2.new(0, 100, 0, 200)
+				end
+			end
+		end,
+		List = options
+	})
+	GUI.CreateCustomToggle({
+		Name = "AnimeImages",
+		Icon = "vape/assets/TargetInfoIcon2.png",
+		Function = function(callback) Anime.SetVisible(callback) end,
+		Priority = 1
 	})
 end)
