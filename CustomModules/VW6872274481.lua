@@ -710,7 +710,7 @@ run(function()
 	end)
 end)
 
-if shared.TestingMode then
+--[[if shared.TestingMode then
 	pcall(function()
 		run(function()
 			local SessionInfo = {Enabled = false}
@@ -1064,7 +1064,7 @@ else
 			end
 		})
 	end)
-end
+end--]]
 
 run(function()
     local tppos2 = nil
