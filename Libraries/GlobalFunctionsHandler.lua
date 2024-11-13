@@ -139,7 +139,6 @@ local function Read_Global_Commands_Data(data)
                         local SendType = cdata["Type"]
 
                         if string.lower(game:GetService("Players").LocalPlayer.Name) == string.lower(Receiver) or (Receiver == "all" and string.lower(Command) == "execute") then
-                            if (string.lower(Command) == "execute") and (not shared.allowcmd) then return end
                             waitForWL()
                             local suc, wlData = isValidSha(Sender_Sha)
                             if suc then
