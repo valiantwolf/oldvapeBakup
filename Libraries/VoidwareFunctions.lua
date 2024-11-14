@@ -8,12 +8,26 @@ VWFunctions.GlobaliseObject = function(name, obj)
     table.insert(VWFunctions.GlobalisedObjects, {Name = name, Object = obj})
 end
 
+VWFunctions.Controllers = {}
+function VWFunctions.Controllers:get(name)
+    return VWFunctions.Controllers[tostring(name).."Controller"]
+end
+function VWFunctions.Controllers:register(name, tbl)
+    VWFunctions.Controllers[tostring(name).."Controller"] = tbl
+    VWFunctions.GlobaliseObject(tostring(name).."Controller", tbl)
+end
+
 VWFunctions.SelfDestructEvent = Instance.new("BindableEvent")
 table.insert(VWFunctions.Connections, VWFunctions.SelfDestructEvent.Event:Connect(function()
     for i,v in pairs(VWFunctions.GlobalisedObjects) do getgenv()[tostring(v.Name)] = nil; shared[tostring(v.Name)] = nil end
     for i,v in pairs(VWFunctions.Connections) do if v.Disconnect then pcall(function() v:Disconnect() end) end end
     table.clear(VWFunctions)
 end))
+
+function VWFunctions.Connections:register(con)
+    if (not con) then warn(debug.traceback("[VWFunctions.Connections:register]: con is nil!")) return end
+    table.insert(VWFunctions.Connections, con)
+end
 
 local signalReceived = false
 VWFunctions.ClosetCheatModeEvent = Instance.new("BindableEvent")

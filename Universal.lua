@@ -6608,7 +6608,13 @@ run(function()
 	FPSLabel.Font = Enum.Font.Gotham
 	FPSLabel.Text = "inf FPS"
 	FPSLabel.TextColor3 = Color3.new(1, 1, 1)
-	FPSLabel.BackgroundColor3 = Color3.new()
+	local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+	FPSLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+	--Color3.new()
+	VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+		color = {Hue = h, Sat = s, Value = v}
+		FPSLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+	end))
 	FPSLabel.Parent = FPS.GetCustomChildren()
 	local ReachCorner = Instance.new("UICorner")
 	ReachCorner.CornerRadius = UDim.new(0, 4)
@@ -6639,7 +6645,13 @@ run(function()
 	PingLabel.Font = Enum.Font.Gotham
 	PingLabel.Text = "0 ms"
 	PingLabel.TextColor3 = Color3.new(1, 1, 1)
-	PingLabel.BackgroundColor3 = Color3.new()
+	local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+	PingLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+	--Color3.new()
+	VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+		color = {Hue = h, Sat = s, Value = v}
+		PingLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+	end))
 	PingLabel.Parent = Ping.GetCustomChildren()
 	local PingCorner = Instance.new("UICorner")
 	PingCorner.CornerRadius = UDim.new(0, 4)

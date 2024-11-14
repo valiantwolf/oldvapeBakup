@@ -1520,6 +1520,10 @@ local ModuleSettings = GUI.CreateDivider2("Module Settings")
 local GUISettings = GUI.CreateDivider2("GUI Settings")
 local VWSettings = GUI.CreateDivider2("VW Settings")
 local StreamerModeToggle = {Enabled = false}
+VoidwareFunctions.Controllers:register("UpdateUI", {UIUpdate = Instance.new("BindableEvent")})
+VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+	GuiLibrary.UpdateUI(h,s,v)
+end)
 StreamerModeToggle = VWSettings.CreateToggle({
 	Name = "StreamerMode",
 	Function = function() end,
@@ -1586,11 +1590,11 @@ ModuleSettings.CreateToggle({
 })
 GUIColorSlider = GUI.CreateColorSlider("GUI Theme", function(h, s, v)
 	GUIColor1 = {Hue = h, Sat = s, Value = v}
-	GuiLibrary.UpdateUI(h, s, v)
+	VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate:Fire(h,s,v)
 end)
 GUIGradientSlider = GUI.CreateColorSlider("GUI Gradient", function(h, s, v)
 	GUIColor2 = {Hue = h, Sat = s, Value = v}
-	GuiLibrary.UpdateUI(h, s, v)
+	VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate:Fire(h,s,v)
 end, true)
 GUIGradientSlider.Object.Visible = GradientUIToggle.Enabled
 GradientUIToggle = GUI.CreateToggle({ 
@@ -1756,23 +1760,23 @@ GuiLibrary.UpdateUI = function(h, s, val, bypass)
 	VapeLogo.TextColor3 = Color3.fromHSV(colors.Hue, colors.Sat, colors.Value)
 	--[[VapeTextExtra.TextStrokeTransparency = 0
 	VapeTextExtra.TextStrokeColor3 = Color3.fromHSV(colors.Hue, colors.Sat, colors.Value)--]]
-	pcall(function()
+	local suc, err = pcall(function()
 		local rainbowGUICheck = GUIColorSlider.RainbowValue
 		local mainRainbowSaturation = rainbowGUICheck and getVapeSaturation(h) or s
 		local mainRainbowGradient = h + (rainbowGUICheck and -0.05 or 0)
 		mainRainbowGradient = mainRainbowGradient % 1
 
-		GuiLibrary.ObjectsThatCanBeSaved.GUIWindow.Object.Logo1.Logo2.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+		--GuiLibrary.ObjectsThatCanBeSaved.GUIWindow.Object.Logo1.Logo2.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
 		VapeText.TextColor3 = Color3.fromHSV(TextGUIGradient.Enabled and mainRainbowGradient or h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
 		VapeCustomText.TextColor3 = VapeText.TextColor3
 		VapeLogoGradient.Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)),
 			ColorSequenceKeypoint.new(1, VapeText.TextColor3)
 		})
-		VapeLogoGradient2.Color = ColorSequence.new({
+		--[[VapeLogoGradient2.Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, Color3.fromHSV(h, TextGUIGradient.Enabled and rainbowGUICheck and mainRainbowSaturation or 0, 1)),
 			ColorSequenceKeypoint.new(1, Color3.fromHSV(TextGUIGradient.Enabled and mainRainbowGradient or h, TextGUIGradient.Enabled and rainbowGUICheck and mainRainbowSaturation or 0, 1))
-		})
+		})--]]
 
 		local newTextGUIText = "\n"
 		local backgroundTable = {}
@@ -1872,6 +1876,7 @@ GuiLibrary.UpdateUI = function(h, s, val, bypass)
 			end
 		end
 	end)
+	print("UPDATEUI", suc, err)
 end
 
 GUISettings.CreateToggle({
