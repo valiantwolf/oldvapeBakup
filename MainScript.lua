@@ -1876,7 +1876,7 @@ GuiLibrary.UpdateUI = function(h, s, val, bypass)
 			end
 		end
 	end)
-	print("UPDATEUI", suc, err)
+	--print("UPDATEUI", suc, err)
 end
 
 GUISettings.CreateToggle({
