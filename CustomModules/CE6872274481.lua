@@ -9455,7 +9455,13 @@ run(function()
 	ReachLabel.Font = Enum.Font.Gotham
 	ReachLabel.Text = "0.00 studs"
 	ReachLabel.TextColor3 = Color3.new(1, 1, 1)
-	ReachLabel.BackgroundColor3 = Color3.new()
+	local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+	ReachLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+	VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+		color = {Hue = h, Sat = s, Value = v}
+		ReachLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+	end))
+	--Color3.new()
 	ReachLabel.Parent = ReachDisplay.GetCustomChildren()
 	local ReachCorner = Instance.new("UICorner")
 	ReachCorner.CornerRadius = UDim.new(0, 4)
