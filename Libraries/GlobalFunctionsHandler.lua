@@ -337,7 +337,7 @@ local function Read_Global_Functions_Data()
     end
 end
 
-task.spawn(function()
+local task1 = task.spawn(function()
     repeat task.wait() until shared.VapeFullyLoaded
     repeat
         task.wait(7.5)
@@ -348,4 +348,7 @@ task.spawn(function()
             end)
         end)
     until not shared.VapeExecuted
+end)
+GuiLibrary.SelfDestructEvent.Event:Connect(function()
+    pcall(function() task.cancel(task1) end)
 end)
