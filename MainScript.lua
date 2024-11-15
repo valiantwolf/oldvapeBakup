@@ -1772,6 +1772,13 @@ GuiLibrary.UpdateUI = function(h, s, val, bypass)
 	local rainbowEnabled = GUIColorSlider.RainbowValue or GUIGradientSlider.RainbowValue
 	if rainbowEnabled or (not GradientEnabled) then
 		local suc, err = pcall(function()
+			for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
+				if v.Type == "OptionsButton" then
+					if v.Api.Enabled then
+						delgradient(v.Object)
+					end
+				end
+			end
 			local rainbowGUICheck = GUIColorSlider.RainbowValue
 			local mainRainbowSaturation = rainbowGUICheck and getVapeSaturation(h) or s
 			local mainRainbowGradient = h + (rainbowGUICheck and -0.05 or 0)
