@@ -90,8 +90,8 @@ local vapeAssetTable = {
 }
 if inputService:GetPlatform() ~= Enum.Platform.Windows then
 	--mobile exploit fix
-	getgenv().getsynasset = nil
-	getgenv().getcustomasset = nil
+	--getgenv().getsynasset = nil
+	--getgenv().getcustomasset = nil
 	-- why is this needed
 	getsynasset = nil
 	getcustomasset = nil
@@ -227,6 +227,15 @@ local saveSettingsLoop = coroutine.create(function()
         task.wait(10)
 	until not vapeInjected or not GuiLibrary
 end)
+
+local function encode(tbl)
+    return game:GetService("HttpService"):JSONEncode(tbl)
+end
+VoidwareFunctions.GlobaliseObject("encode", encode)
+local function decode(tbl)
+    return game:GetService("HttpService"):JSONDecode(tbl)
+end
+VoidwareFunctions.GlobaliseObject("decode", decode)
 
 task.spawn(function()
 	local image = Instance.new("ImageLabel")
@@ -1760,123 +1769,125 @@ GuiLibrary.UpdateUI = function(h, s, val, bypass)
 	VapeLogo.TextColor3 = Color3.fromHSV(colors.Hue, colors.Sat, colors.Value)
 	--[[VapeTextExtra.TextStrokeTransparency = 0
 	VapeTextExtra.TextStrokeColor3 = Color3.fromHSV(colors.Hue, colors.Sat, colors.Value)--]]
-	local suc, err = pcall(function()
-		local rainbowGUICheck = GUIColorSlider.RainbowValue
-		local mainRainbowSaturation = rainbowGUICheck and getVapeSaturation(h) or s
-		local mainRainbowGradient = h + (rainbowGUICheck and -0.05 or 0)
-		mainRainbowGradient = mainRainbowGradient % 1
+	if (not GradientEnabled) then
+		local suc, err = pcall(function()
+			local rainbowGUICheck = GUIColorSlider.RainbowValue
+			local mainRainbowSaturation = rainbowGUICheck and getVapeSaturation(h) or s
+			local mainRainbowGradient = h + (rainbowGUICheck and -0.05 or 0)
+			mainRainbowGradient = mainRainbowGradient % 1
 
-		--GuiLibrary.ObjectsThatCanBeSaved.GUIWindow.Object.Logo1.Logo2.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-		VapeText.TextColor3 = Color3.fromHSV(TextGUIGradient.Enabled and mainRainbowGradient or h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-		VapeCustomText.TextColor3 = VapeText.TextColor3
-		VapeLogoGradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)),
-			ColorSequenceKeypoint.new(1, VapeText.TextColor3)
-		})
-		--[[VapeLogoGradient2.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromHSV(h, TextGUIGradient.Enabled and rainbowGUICheck and mainRainbowSaturation or 0, 1)),
-			ColorSequenceKeypoint.new(1, Color3.fromHSV(TextGUIGradient.Enabled and mainRainbowGradient or h, TextGUIGradient.Enabled and rainbowGUICheck and mainRainbowSaturation or 0, 1))
-		})--]]
+			--GuiLibrary.ObjectsThatCanBeSaved.GUIWindow.Object.Logo1.Logo2.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+			VapeText.TextColor3 = Color3.fromHSV(TextGUIGradient.Enabled and mainRainbowGradient or h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+			VapeCustomText.TextColor3 = VapeText.TextColor3
+			VapeLogoGradient.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)),
+				ColorSequenceKeypoint.new(1, VapeText.TextColor3)
+			})
+			--[[VapeLogoGradient2.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromHSV(h, TextGUIGradient.Enabled and rainbowGUICheck and mainRainbowSaturation or 0, 1)),
+				ColorSequenceKeypoint.new(1, Color3.fromHSV(TextGUIGradient.Enabled and mainRainbowGradient or h, TextGUIGradient.Enabled and rainbowGUICheck and mainRainbowSaturation or 0, 1))
+			})--]]
 
-		local newTextGUIText = "\n"
-		local backgroundTable = {}
-		for i, v in pairs(TextGUIFormatted) do
-			local rainbowcolor = h + (rainbowGUICheck and (-0.025 * (i + (TextGUIGradient.Enabled and 2 or 0))) or 0)
-			rainbowcolor = rainbowcolor % 1
-			local newcolor = Color3.fromHSV(rainbowcolor, rainbowGUICheck and getVapeSaturation(rainbowcolor) or mainRainbowSaturation, rainbowGUICheck and 1 or val)
-			newTextGUIText = newTextGUIText..'<font color="rgb('..math.floor(newcolor.R * 255)..","..math.floor(newcolor.G * 255)..","..math.floor(newcolor.B * 255)..')">'..v.Text..'</font><font color="rgb(170, 170, 170)">'..v.ExtraText..'</font>\n'
-			backgroundTable[i] = newcolor
-		end
-
-		if TextGUIMode.Value == "Drawing" then
-			for i,v in pairs(TextGUIObjects.Labels) do
-				if backgroundTable[i] then
-					v.Color = backgroundTable[i]
-				end
-			end
-		end
-
-		if TextGUIBackgroundToggle.Enabled then
-			for i, v in pairs(VapeBackgroundTable) do
-				v.ColorFrame.BackgroundColor3 = backgroundTable[v.LayoutOrder] or Color3.new()
-			end
-		end
-		VapeText.Text = newTextGUIText
-
-		if (not GuiLibrary.MainGui.ScaledGui.ClickGui.Visible) and (not GuiLibrary.MainGui.ScaledGui.LegitGui.Visible) and (not bypass) then return end
-		GuiLibrary.MainGui.ScaledGui.ClickGui.SearchBar.LegitMode.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-		local buttonColorIndex = 0
-		for i, v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
-			if v.Type == "TargetFrame" then
-				if v.Object2.Visible then
-					v.Object.TextButton.Frame.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-				end
-			elseif v.Type == "TargetButton" then
-				if v.Api.Enabled then
-					v.Object.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-				end
-			elseif v.Type == "CircleListFrame" then
-				if v.Object2.Visible then
-					v.Object.TextButton.Frame.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-				end
-			elseif v.Type == "LegitModule" then
-				if v.Toggle.Visible and v.Api.Enabled  then
-					v.Toggle.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-				end
-			elseif (v.Type == "Button" or v.Type == "ButtonMain") and v.Api.Enabled then
-				buttonColorIndex = buttonColorIndex + 1
-				local rainbowcolor = h + (rainbowGUICheck and (-0.025 * windowSortOrder[i]) or 0)
+			local newTextGUIText = "\n"
+			local backgroundTable = {}
+			for i, v in pairs(TextGUIFormatted) do
+				local rainbowcolor = h + (rainbowGUICheck and (-0.025 * (i + (TextGUIGradient.Enabled and 2 or 0))) or 0)
 				rainbowcolor = rainbowcolor % 1
 				local newcolor = Color3.fromHSV(rainbowcolor, rainbowGUICheck and getVapeSaturation(rainbowcolor) or mainRainbowSaturation, rainbowGUICheck and 1 or val)
-				v.Object.ButtonText.TextColor3 = Color3.new(255, 255, 255)
-				if v.Object:FindFirstChild("ButtonIcon") then
-					v.Object.ButtonIcon.ImageColor3 = Color3.new(255, 255, 255)
-				end
-			elseif v.Type == "OptionsButton" then
-				if v.Api.Enabled then
-					local newcolor = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-					if (not oldrainbow) then
-						local mainRainbowGradient = table.find(windowSortOrder2, v.Object.Parent.Parent.Name)
-						mainRainbowGradient = mainRainbowGradient and (mainRainbowGradient - 1) > 0 and GuiLibrary.ObjectsThatCanBeSaved[windowSortOrder2[mainRainbowGradient - 1].."Window"].SortOrder or 0
-						local rainbowcolor = h + (rainbowGUICheck and (-0.025 * (mainRainbowGradient + v.SortOrder)) or 0)
-						rainbowcolor = rainbowcolor % 1
-						newcolor = Color3.fromHSV(rainbowcolor, rainbowGUICheck and getVapeSaturation(rainbowcolor) or mainRainbowSaturation, rainbowGUICheck and 1 or val)
+				newTextGUIText = newTextGUIText..'<font color="rgb('..math.floor(newcolor.R * 255)..","..math.floor(newcolor.G * 255)..","..math.floor(newcolor.B * 255)..')">'..v.Text..'</font><font color="rgb(170, 170, 170)">'..v.ExtraText..'</font>\n'
+				backgroundTable[i] = newcolor
+			end
+
+			if TextGUIMode.Value == "Drawing" then
+				for i,v in pairs(TextGUIObjects.Labels) do
+					if backgroundTable[i] then
+						v.Color = backgroundTable[i]
 					end
-					v.Object.BackgroundColor3 = newcolor
 				end
-			elseif v.Type == "ExtrasButton" then
-				if v.Api.Enabled then
-					local rainbowcolor = h + (rainbowGUICheck and (-0.025 * buttonColorIndex) or 0)
+			end
+
+			if TextGUIBackgroundToggle.Enabled then
+				for i, v in pairs(VapeBackgroundTable) do
+					v.ColorFrame.BackgroundColor3 = backgroundTable[v.LayoutOrder] or Color3.new()
+				end
+			end
+			VapeText.Text = newTextGUIText
+
+			if (not GuiLibrary.MainGui.ScaledGui.ClickGui.Visible) and (not GuiLibrary.MainGui.ScaledGui.LegitGui.Visible) and (not bypass) then return end
+			GuiLibrary.MainGui.ScaledGui.ClickGui.SearchBar.LegitMode.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+			local buttonColorIndex = 0
+			for i, v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
+				if v.Type == "TargetFrame" then
+					if v.Object2.Visible then
+						v.Object.TextButton.Frame.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+					end
+				elseif v.Type == "TargetButton" then
+					if v.Api.Enabled then
+						v.Object.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+					end
+				elseif v.Type == "CircleListFrame" then
+					if v.Object2.Visible then
+						v.Object.TextButton.Frame.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+					end
+				elseif v.Type == "LegitModule" then
+					if v.Toggle.Visible and v.Api.Enabled  then
+						v.Toggle.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+					end
+				elseif (v.Type == "Button" or v.Type == "ButtonMain") and v.Api.Enabled then
+					buttonColorIndex = buttonColorIndex + 1
+					local rainbowcolor = h + (rainbowGUICheck and (-0.025 * windowSortOrder[i]) or 0)
 					rainbowcolor = rainbowcolor % 1
 					local newcolor = Color3.fromHSV(rainbowcolor, rainbowGUICheck and getVapeSaturation(rainbowcolor) or mainRainbowSaturation, rainbowGUICheck and 1 or val)
-					v.Object.ImageColor3 = newcolor
+					v.Object.ButtonText.TextColor3 = Color3.new(255, 255, 255)
+					if v.Object:FindFirstChild("ButtonIcon") then
+						v.Object.ButtonIcon.ImageColor3 = Color3.new(255, 255, 255)
+					end
+				elseif v.Type == "OptionsButton" then
+					if v.Api.Enabled then
+						local newcolor = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+						if (not oldrainbow) then
+							local mainRainbowGradient = table.find(windowSortOrder2, v.Object.Parent.Parent.Name)
+							mainRainbowGradient = mainRainbowGradient and (mainRainbowGradient - 1) > 0 and GuiLibrary.ObjectsThatCanBeSaved[windowSortOrder2[mainRainbowGradient - 1].."Window"].SortOrder or 0
+							local rainbowcolor = h + (rainbowGUICheck and (-0.025 * (mainRainbowGradient + v.SortOrder)) or 0)
+							rainbowcolor = rainbowcolor % 1
+							newcolor = Color3.fromHSV(rainbowcolor, rainbowGUICheck and getVapeSaturation(rainbowcolor) or mainRainbowSaturation, rainbowGUICheck and 1 or val)
+						end
+						v.Object.BackgroundColor3 = newcolor
+					end
+				elseif v.Type == "ExtrasButton" then
+					if v.Api.Enabled then
+						local rainbowcolor = h + (rainbowGUICheck and (-0.025 * buttonColorIndex) or 0)
+						rainbowcolor = rainbowcolor % 1
+						local newcolor = Color3.fromHSV(rainbowcolor, rainbowGUICheck and getVapeSaturation(rainbowcolor) or mainRainbowSaturation, rainbowGUICheck and 1 or val)
+						v.Object.ImageColor3 = newcolor
+					end
+				elseif (v.Type == "Toggle" or v.Type == "ToggleMain") and v.Api.Enabled then
+					v.Object.ToggleFrame1.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+				elseif v.Type == "Slider" or v.Type == "SliderMain" then
+					v.Object.Slider.FillSlider.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+					v.Object.Slider.FillSlider.ButtonSlider.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+				elseif v.Type == "TwoSlider" then
+					v.Object.Slider.FillSlider.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+					v.Object.Slider.ButtonSlider.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+					v.Object.Slider.ButtonSlider2.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
 				end
-			elseif (v.Type == "Toggle" or v.Type == "ToggleMain") and v.Api.Enabled then
-				v.Object.ToggleFrame1.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-			elseif v.Type == "Slider" or v.Type == "SliderMain" then
-				v.Object.Slider.FillSlider.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-				v.Object.Slider.FillSlider.ButtonSlider.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-			elseif v.Type == "TwoSlider" then
-				v.Object.Slider.FillSlider.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-				v.Object.Slider.ButtonSlider.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-				v.Object.Slider.ButtonSlider2.ImageColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
 			end
-		end
 
-		local rainbowcolor = h + (rainbowGUICheck and (-0.025 * buttonColorIndex) or 0)
-		rainbowcolor = rainbowcolor % 1
-		GuiLibrary.ObjectsThatCanBeSaved.GUIWindow.Object.Children.Extras.MainButton.ImageColor3 = (GUI.GetVisibleIcons() > 0 and Color3.fromHSV(rainbowcolor, getVapeSaturation(rainbowcolor), 1) or Color3.fromRGB(199, 199, 199))
+			local rainbowcolor = h + (rainbowGUICheck and (-0.025 * buttonColorIndex) or 0)
+			rainbowcolor = rainbowcolor % 1
+			GuiLibrary.ObjectsThatCanBeSaved.GUIWindow.Object.Children.Extras.MainButton.ImageColor3 = (GUI.GetVisibleIcons() > 0 and Color3.fromHSV(rainbowcolor, getVapeSaturation(rainbowcolor), 1) or Color3.fromRGB(199, 199, 199))
 
-		for i, v in pairs(ProfilesTextList.ScrollingObject.ScrollingFrame:GetChildren()) do
-			if v:IsA("TextButton") and v.ItemText.Text == GuiLibrary.CurrentProfile then
-				v.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-				v.ImageButton.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
-				v.ItemText.TextColor3 = Color3.new(1, 1, 1)
-				v.ItemText.TextStrokeTransparency = 0.75
+			for i, v in pairs(ProfilesTextList.ScrollingObject.ScrollingFrame:GetChildren()) do
+				if v:IsA("TextButton") and v.ItemText.Text == GuiLibrary.CurrentProfile then
+					v.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+					v.ImageButton.BackgroundColor3 = Color3.fromHSV(h, mainRainbowSaturation, rainbowGUICheck and 1 or val)
+					v.ItemText.TextColor3 = Color3.new(1, 1, 1)
+					v.ItemText.TextStrokeTransparency = 0.75
+				end
 			end
-		end
-	end)
-	--print("UPDATEUI", suc, err)
+		end)
+		--print("UPDATEUI", suc, err)
+	end
 end
 
 GUISettings.CreateToggle({

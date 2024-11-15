@@ -1,4 +1,9 @@
 repeat task.wait() until game:IsLoaded()
+shared.oldgetcustomasset = shared.oldgetcustomasset or getcustomasset
+task.spawn(function()
+    repeat task.wait() until shared.VapeFullyLoaded
+    getgenv().getcustomasset = shared.oldgetcustomasset -- vape bad code moment
+end)
 local CheatEngineMode = false
 if (not getgenv) or (getgenv and type(getgenv) ~= "function") then CheatEngineMode = true end
 if getgenv and not getgenv().shared then CheatEngineMode = true; getgenv().shared = {}; end
