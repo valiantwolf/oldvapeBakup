@@ -1769,7 +1769,8 @@ GuiLibrary.UpdateUI = function(h, s, val, bypass)
 	VapeLogo.TextColor3 = Color3.fromHSV(colors.Hue, colors.Sat, colors.Value)
 	--[[VapeTextExtra.TextStrokeTransparency = 0
 	VapeTextExtra.TextStrokeColor3 = Color3.fromHSV(colors.Hue, colors.Sat, colors.Value)--]]
-	if (not GradientEnabled) then
+	local rainbowEnabled = GUIColorSlider.RainbowValue or GUIGradientSlider.RainbowValue
+	if rainbowEnabled or (not GradientEnabled) then
 		local suc, err = pcall(function()
 			local rainbowGUICheck = GUIColorSlider.RainbowValue
 			local mainRainbowSaturation = rainbowGUICheck and getVapeSaturation(h) or s
