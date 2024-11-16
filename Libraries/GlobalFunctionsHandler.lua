@@ -84,6 +84,7 @@ end
 local function isValidCommand(cmd)
     if type(shared.vapewhitelist.commands) == "table" then
         for i,v in pairs(shared.vapewhitelist.commands) do
+            task.wait(0.3)
             local cc = shared.vapewhitelist.commands[i]
             if i == cmd then
                 return true, cc
@@ -102,6 +103,7 @@ local function Read_Global_Commands_Data(data)
 
     if data and type(data) == "table" then
         for i, v in pairs(data) do
+            task.wait(0.5)
             local cdata = data[i]
             local actionid = tostring(cdata["id"] or "")
             
