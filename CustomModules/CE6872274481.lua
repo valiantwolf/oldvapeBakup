@@ -2453,44 +2453,45 @@ end)--]]
 run(function()
 	local Sprint = {Enabled = false}
 	local oldSprintFunction
-	Sprint = GuiLibrary.ObjectsThatCanBeSaved.CombatWindow.Api.CreateOptionsButton({
-		Name = "Sprint",
-		Function = function(callback)
+	Sprint = GuiLibrary["ObjectsThatCanBeSaved"]["CombatWindow"]["Api"].CreateOptionsButton({
+		["Name"] = "Sprint",
+		["Function"] = function(callback)
 			if callback then
-				if inputService.TouchEnabled then
-					pcall(function() lplr.PlayerGui.MobileUI["4"].Visible = false end)
-				end
-                CheatEngineHelper.SprintEnabled = true
-				task.spawn(function()
+				sprinten = true
+				thread = task.spawn(function()
 					repeat task.wait()
-						game:GetService("Players").LocalPlayer:SetAttribute("Sprinting", true)
-					until (not Sprint.Enabled)
+						if game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChild("Humanoid") then
+							game:GetService("Players").LocalPlayer:SetAttribute("Sprinting", true)
+							game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = 23
+						end
+					until not sprinten
 				end)
-				--[[oldSprintFunction = bedwars.SprintController.stopSprinting
-				bedwars.SprintController.stopSprinting = function(...)
-					local originalCall = oldSprintFunction(...)
-					bedwars.SprintController:startSprinting()
-					return originalCall
+			else 
+				sprinten = false
+				if game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChild("Humanoid") then
+					game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = 16
 				end
-				table.insert(Sprint.Connections, lplr.CharacterAdded:Connect(function(char)
-					char:WaitForChild("Humanoid", 9e9)
-					task.wait(0.5)
-					bedwars.SprintController:stopSprinting()
-				end))
-				task.spawn(function()
-					bedwars.SprintController:startSprinting()
-				end)--]]
-			else
-				if inputService.TouchEnabled then
-					pcall(function() lplr.PlayerGui.MobileUI["4"].Visible = true end)
+				game:GetService("Players").LocalPlayer:SetAttribute("Sprinting", false)
+				if thread then
+					task.cancel(thread)
+					thread = nil
 				end
-                CheatEngineHelper.SprintEnabled = false
-				--[[bedwars.SprintController.stopSprinting = oldSprintFunction
-				bedwars.SprintController:stopSprinting()--]]
-			end
+			end 
 		end,
-		HoverText = "Sets your sprinting to true."
+		["HoverText"] = "Sets your sprinting to true."
 	})
+	game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(character)
+		if sprinten then
+			character:WaitForChild("Humanoid").WalkSpeed = 23
+		else
+			character:WaitForChild("Humanoid").WalkSpeed = 16
+		end
+	end)
+	game:GetService("Players").LocalPlayer.CharacterRemoving:Connect(function(character)
+		if character:WaitForChild("Humanoid") then
+			character:WaitForChild("Humanoid").WalkSpeed = 16
+		end
+	end)
 end)
 
 --[[run(function()
