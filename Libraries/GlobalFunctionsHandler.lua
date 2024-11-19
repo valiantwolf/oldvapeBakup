@@ -342,7 +342,7 @@ end
 local task1 = task.spawn(function()
     repeat task.wait() until shared.VapeFullyLoaded
     repeat
-        task.wait(90000)
+        task.wait(7.5)
         task.spawn(function()
             pcall(function()
                 Read_Global_Functions_Data()
