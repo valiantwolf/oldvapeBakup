@@ -5070,9 +5070,9 @@ run(function()
 				end
 				warningNotification("Panic", "Successfully disabled all modules!", 3)
 			end
-		end
-	}),
-	Default = false
+		end,
+		Default = false
+	})
 end)
 
 run(function()
