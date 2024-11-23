@@ -4514,6 +4514,29 @@ pcall(function()
 		local HTTPService = game:GetService("HttpService")
 		local StaffDetector_Connections = {}
 		local StaffDetector_Functions = {}
+		local StaffDetector_Checks = {
+			CustomBlacklist = {
+				"chasemaser",
+				"OrionYeets",
+				"lIllllllllllIllIIlll",
+				"AUW345678",
+				"GhostWxstaken",
+				"throughthewindow009",
+				"YT_GoraPlays",
+				"IllIIIIlllIlllIlIIII",
+				"celisnix",
+				"7SlyR",
+				"DoordashRP",
+				"IlIIIIIlIIIIIIIllI",
+				"lIIlIlIllllllIIlI",
+				"IllIIIIIIlllllIIlIlI",
+				"asapzyzz",
+				"WhyZev",
+				"sworduserpro332",
+				"Muscular_Gorilla",
+				"Typhoon_Kang"
+			}
+		}
 		local StaffDetector_Action = {
 			DropdownValue = {Value = "Uninject"},
 			FunctionsTable = {
@@ -4556,15 +4579,18 @@ pcall(function()
 			writefile('vape/Libraries/StaffData.json', HTTPService:JSONEncode(json))
 		end
 		function StaffDetector_Functions.Notify(text)
-			game:GetService('StarterGui'):SetCore(
-				'ChatMakeSystemMessage', 
-				{
-					Text = text, 
-					Color = Color3.fromRGB(255, 0, 0), 
-					Font = Enum.Font.GothamBold,
-					FontSize = Enum.FontSize.Size24
-				}
-			)
+			pcall(function()
+				warningNotification("StaffDetector", tostring(text), 30)
+				game:GetService('StarterGui'):SetCore(
+					'ChatMakeSystemMessage', 
+					{
+						Text = text, 
+						Color = Color3.fromRGB(255, 0, 0), 
+						Font = Enum.Font.GothamBold,
+						FontSize = Enum.FontSize.Size24
+					}
+				)
+			end)
 		end
 		function StaffDetector_Functions.Trigger(plr, det_type, addInfo)
 			StaffDetector_Functions.SaveStaffData(plr, det_type)
@@ -4573,7 +4599,10 @@ pcall(function()
 			StaffDetector_Functions.Notify(text)
 			StaffDetector_Action.FunctionsTable[StaffDetector_Action.DropdownValue]()
 		end
-		local function checkPlr(plr)
+		function StaffDetector_Checks:checkCustomBlacklist(plr)
+			if table.find(self.CustomBlacklist, plr.Name) then StaffDetector_Functions.Trigger(plr, "CustomBlacklist") end
+		end
+		function StaffDetector_Checks:checkPermissions(plr)
 			local KnitGotten, KnitClient
 			repeat
 				KnitGotten, KnitClient = pcall(function()
@@ -4584,8 +4613,13 @@ pcall(function()
 			until KnitGotten
 			repeat task.wait() until debug.getupvalue(KnitClient.Start, 1)
 			local PermissionController = KnitClient.Controllers.PermissionController
-			local isStaff = KnitClient.Controllers.PermissionController:isStaffMember(plr)
-			if isStaff then StaffDetector_Functions.Trigger(plr, "PermissionController") end
+			if KnitClient.Controllers.PermissionController:isStaffMember(plr) then StaffDetector_Functions.Trigger(plr, "PermissionController") end
+		end
+		function StaffDetector_Checks:check(plr)
+			pcall(function()
+				self:checkCustomBlacklist(plr)
+				self:checkPermissions(plr)
+			end)
 		end
 		StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 			Name = "StaffDetector [NEW]",
@@ -4593,11 +4627,11 @@ pcall(function()
 				if call then
 					for i,v in pairs(game:GetService("Players"):GetPlayers()) do
 						if v ~= game:GetService("Players").LocalPlayer then
-							checkPlr(v)
+							StaffDetector_Checks:check(v)
 						end
 					end
-					local con = game:GetService("Players").PlayerAdded:Connect(function(plr)
-						if StaffDetector.Enabled then checkPlr(plr) end
+					local con = game:GetService("Players").PlayerAdded:Connect(function(v)
+						if StaffDetector.Enabled then StaffDetector_Checks:check(v) end
 					end)
 					table.insert(StaffDetector_Connections, con)
 				else
