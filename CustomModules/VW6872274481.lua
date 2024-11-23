@@ -4514,6 +4514,9 @@ pcall(function()
 		local HTTPService = game:GetService("HttpService")
 		local StaffDetector_Connections = {}
 		local StaffDetector_Functions = {}
+		local StaffDetector_Extra = {
+			JoinNotifier = {Enabled = false}
+		}
 		local StaffDetector_Checks = {
 			CustomBlacklist = {
 				"chasemaser",
@@ -4631,7 +4634,12 @@ pcall(function()
 						end
 					end
 					local con = game:GetService("Players").PlayerAdded:Connect(function(v)
-						if StaffDetector.Enabled then StaffDetector_Checks:check(v) end
+						if StaffDetector.Enabled then 
+							StaffDetector_Checks:check(v) 
+							if StaffDetector_Extra.JoinNotifier.Enabled and store.matchState > 0 then
+								warningNotification("StaffDetector", tostring(v.Name).." has joined!", 3)
+							end
+						end
 					end)
 					table.insert(StaffDetector_Connections, con)
 				else
@@ -4642,12 +4650,23 @@ pcall(function()
 				end
 			end
 		})
+		StaffDetector.Restart = function()
+			if StaffDetector.Enabled then
+				StaffDetector.ToggleButton(false)
+				StaffDetector.ToggleButton(false)
+			end
+		end
 		local list = {}
 		for i,v in pairs(StaffDetector_Action.FunctionsTable) do table.insert(list, i) end
 		StaffDetector_Action.DropdownValue = StaffDetector.CreateDropdown({
 			Name = 'Action',
 			List = list,
 			Function = function() end
+		})
+		StaffDetector_Extra.JoinNotifier = StaffDetector.CreateToggle({
+			Name = "Illegal player notifier",
+			Function = StaffDetector.Restart,
+			Default = true
 		})
 	end)
 	
