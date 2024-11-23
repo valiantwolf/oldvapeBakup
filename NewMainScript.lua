@@ -376,6 +376,7 @@ local function vapeGithubRequest(scripturl, isImportant)
         end
         warn("vape/"..scripturl, res)
     end
+    if (not res) then res = "" end
     if scripturl:find(".lua") then res = "--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.\n"..res end
     return res
 end
