@@ -24,6 +24,7 @@ local function checkDebug()
     if (not getgenv().debug) then CheatEngineMode = true else if type(debug) ~= "table" then CheatEngineMode = true; else for i,v in pairs(debug) do if type(v) ~= "function" then else local suc, res = pcall(v); if tostring(res) == "Not Implemented" then CheatEngineMode = true end end end end end
 end
 if (not CheatEngineMode) then checkDebug() end
+local baseDirectory = shared.RiseMode and "rise/" or "vape/"
 shared.CheatEngineMode = shared.CheatEngineMode or CheatEngineMode
 local errorPopupShown = false
 local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
@@ -33,7 +34,7 @@ local isfile = isfile or function(file)
 	return suc and res ~= nil
 end
 local delfile = delfile or function(file) writefile(file, "") end
-if not isfolder('vape') then makefolder('vape') end
+if not isfolder(baseDirectory) then makefolder(baseDirectory) end
 local VWFunctions = {}
 function VWFunctions.CreateID()
     pcall(function()
@@ -53,9 +54,9 @@ function VWFunctions.CreateID()
         })
         
         if a['StatusCode'] == 200 then
-            writefile('vape/id.txt', game:GetService("HttpService"):JSONDecode(a["Body"])["id"])
+            writefile(baseDirectory..'id.txt', game:GetService("HttpService"):JSONDecode(a["Body"])["id"])
         else
-            writefile('vape/id.txt', "discord")
+            writefile(baseDirectory..'id.txt', "discord")
         end
         --[[elseif a['StatusCode'] == 403 then
             game:GetService("Players").LocalPlayer:Kick("Voidware Error]: Error doing step1 Error code: 1986")
@@ -212,13 +213,13 @@ local function install_profiles(num)
     local guiprofiles = {}
     local profilesfetched
     local function vapeGithubRequest(scripturl)
-        if not isfile('vape/'..scripturl) then
+        if not isfile(baseDirectory..scripturl) then
             local suc, res = pcall(function() return game:HttpGet('https://raw.githubusercontent.com/Erchobg/VoidwareProfiles/main/'..scripturl, true) end)
-            if not isfolder("vape/Profiles") then
-                makefolder('vape/Profiles')
+            if not isfolder(baseDirectory.."Profiles") then
+                makefolder(baseDirectory..'Profiles')
             end
-            if not isfolder('vape/ClosetProfiles') then makefolder('vape/ClosetProfiles') end
-            writefile('vape/'..scripturl, res)
+            if not isfolder(baseDirectory..'ClosetProfiles') then makefolder(baseDirectory..'ClosetProfiles') end
+            writefile(baseDirectory..scripturl, res)
             task.wait()
         end
         return print(scripturl)
@@ -278,16 +279,16 @@ local function install_profiles(num)
         downloadVapeProfile(name..guiprofiles[i])
         task.wait()
     end
-    if (not isfolder('vape/Libraries')) then makefolder('vape/Libraries') end
-    if num == 1 then writefile('vape/Libraries/profilesinstalled3.txt', "true") elseif num == 2 then writefile('vape/ClosetProfiles/profilesinstalled3.txt', "true") end 
+    if (not isfolder(baseDirectory..'Libraries')) then makefolder(baseDirectory..'Libraries') end
+    if num == 1 then writefile(baseDirectory..'Libraries/profilesinstalled3.txt', "true") elseif num == 2 then writefile(baseDirectory..'ClosetProfiles/profilesinstalled3.txt', "true") end 
 end
 local function are_installed_1()
-    if not isfolder('vape/Profiles') then makefolder('vape/Profiles') end
-    if isfile('vape/Libraries/profilesinstalled3.txt') then return true else return false end
+    if not isfolder(baseDirectory..'Profiles') then makefolder(baseDirectory..'Profiles') end
+    if isfile(baseDirectory..'Libraries/profilesinstalled3.txt') then return true else return false end
 end
 local function are_installed_2() 
-    if not isfolder('vape/ClosetProfiles') then makefolder('vape/ClosetProfiles') end
-    if isfile('vape/ClosetProfiles/profilesinstalled3.txt') then return true else return false end
+    if not isfolder(baseDirectory..'ClosetProfiles') then makefolder(baseDirectory..'ClosetProfiles') end
+    if isfile(baseDirectory..'ClosetProfiles/profilesinstalled3.txt') then return true else return false end
 end
 if not are_installed_1() then install_profiles(1) end
 if not are_installed_2() then install_profiles(2) end
@@ -301,17 +302,17 @@ if not shared.VapeDeveloper then
 		end
 	end
 	if commit then
-		if isfolder("vape") then 
-			if ((not isfile("vape/commithash.txt")) or (readfile("vape/commithash.txt") ~= commit or commit == "main")) then
-				for i,v in pairs({"vape/Universal.lua", "vape/MainScript.lua", "vape/GuiLibrary.lua"}) do 
+		if isfolder(baseDirectory) then 
+			if ((not isfile(baseDirectory.."commithash.txt")) or (readfile(baseDirectory.."commithash.txt") ~= commit or commit == "main")) then
+				for i,v in pairs({baseDirectory.."Universal.lua", baseDirectory.."MainScript.lua", baseDirectory.."GuiLibrary.lua"}) do 
 					if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
                         if not shared.VoidDev then
 						    delfile(v)
                         end
 					end 
 				end
-				if isfolder("vape/CustomModules") then 
-					for i,v in pairs(listfiles("vape/CustomModules")) do 
+				if isfolder(baseDirectory.."CustomModules") then 
+					for i,v in pairs(listfiles(baseDirectory.."CustomModules")) do 
 						if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
                             if not shared.VoidDev then
 							    delfile(v)
@@ -319,8 +320,8 @@ if not shared.VapeDeveloper then
 						end 
 					end
 				end
-				if isfolder("vape/Libraries") then 
-					for i,v in pairs(listfiles("vape/Libraries")) do 
+				if isfolder(baseDirectory.."Libraries") then 
+					for i,v in pairs(listfiles(baseDirectory.."Libraries")) do 
 						if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
                             if not shared.VoidDev then
 							    delfile(v)
@@ -328,11 +329,11 @@ if not shared.VapeDeveloper then
 						end 
 					end
 				end
-				writefile("vape/commithash2.txt", commit)
+				writefile(baseDirectory.."commithash2.txt", commit)
 			end
 		else
 			makefolder("vape")
-			writefile("vape/commithash2.txt", commit)
+			writefile(baseDirectory.."commithash2.txt", commit)
 		end
 	else
 		error("Failed to connect to github, please try using a VPN.")
@@ -349,34 +350,34 @@ if not shared.VapeDeveloper then
 	end
 	if commit then
 		if isfolder("vape") then 
-			if ((not isfile("vape/commithash.txt")) or (readfile("vape/commithash.txt") ~= commit or commit == "main")) then
-				writefile("vape/commithash.txt", commit)
+			if ((not isfile(baseDirectory.."commithash.txt")) or (readfile(baseDirectory.."commithash.txt") ~= commit or commit == "main")) then
+				writefile(baseDirectory.."commithash.txt", commit)
 			end
 		else
 			makefolder("vape")
-			writefile("vape/commithash.txt", commit)
+			writefile(baseDirectory.."commithash.txt", commit)
 		end
 	else
 		error("Failed to connect to github, please try using a VPN.")
 	end
 end
 local function vapeGithubRequest(scripturl, isImportant)
-    if isfile('vape/'..scripturl) then
+    if isfile(baseDirectory..scripturl) then
         if not shared.VoidDev then
-            pcall(function() delfile('vape/'..scripturl) end)
+            pcall(function() delfile(baseDirectory..scripturl) end)
         else
-            return readfile('vape/'..scripturl) 
+            return readfile(baseDirectory..scripturl) 
         end
     end
     local suc, res
-    suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VoidwareBakup/"..readfile("vape/commithash2.txt").."/"..scripturl, true) end)
+    local url = shared.RiseMode and "" or "https://raw.githubusercontent.com/VapeVoidware/VoidwareBakup/"
+    suc, res = pcall(function() return game:HttpGet(url..readfile(baseDirectory.."commithash2.txt").."/"..scripturl, true) end)
     if not suc or res == "404: Not Found" then
         if isImportant then
-            game:GetService("Players").LocalPlayer:Kick("Failed to connect to github : vape/"..scripturl.." : "..res)
+            game:GetService("Players").LocalPlayer:Kick("Failed to connect to github : "..baseDirectory..scripturl.." : "..res)
         end
-        warn("vape/"..scripturl, res)
+        warn(baseDirectory..scripturl, res)
     end
-    if (not res) then res = "" end
     if scripturl:find(".lua") then res = "--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.\n"..res end
     return res
 end
@@ -393,10 +394,10 @@ local function pload(fileName, isImportant, required)
     end)    
     if err then 
         if isImportant then
-            if (not string.find(string.lower(err), "vape already injected")) then
+            if (not string.find(string.lower(err), "vape already injected")) and (not string.find(string.lower(err), "rise already injected")) then
                 task.spawn(function()
                     repeat task.wait() until errorNotification
-                    errorNotification("Failure loading critical file! : vape/"..tostring(fileName), " : "..tostring(debug.traceback(err)), 10) 
+                    errorNotification("Failure loading critical file! : "..baseDirectory..tostring(fileName), " : "..tostring(debug.traceback(err)), 10) 
                 end)
             end
             --warn("Failure loading critical file! : vape/"..tostring(fileName).." : "..tostring(debug.traceback(err)))
@@ -405,7 +406,7 @@ local function pload(fileName, isImportant, required)
             task.spawn(function()
                 repeat task.wait() until errorNotification
                 if not string.find(res, "404: Not Found") then 
-                    errorNotification('Failure loading: vape/'..tostring(fileName), tostring(debug.traceback(err)), 7)
+                    errorNotification('Failure loading: '..baseDirectory..tostring(fileName), tostring(debug.traceback(err)), 7)
                 end
             end)
         end

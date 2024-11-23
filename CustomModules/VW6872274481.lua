@@ -593,18 +593,36 @@ run(function()
 	local QueueCardGradientToggle = {}
 	local QueueCardGradient = {Hue = 0, Sat = 0, Value = 0}
 	local QueueCardGradient2 = {Hue = 0, Sat = 0, Value = 0}
-	local queuemodsgradients = {}
 	local function patchQueueCard()
 		if lplr.PlayerGui:FindFirstChild('QueueApp') then 
 			if lplr.PlayerGui.QueueApp:WaitForChild('1'):IsA('Frame') then 
-				lplr.PlayerGui.QueueApp['1'].BackgroundColor3 = Color3.fromHSV(QueueCardGradient.Hue, QueueCardGradient.Sat, QueueCardGradient.Value)
+                if shared.RiseMode and GuiLibrary.MainColor then
+                    lplr.PlayerGui.QueueApp['1'].BackgroundColor3 = GuiLibrary.MainColor
+                else
+				    lplr.PlayerGui.QueueApp['1'].BackgroundColor3 = Color3.fromHSV(QueueCardGradient.Hue, QueueCardGradient.Sat, QueueCardGradient.Value)
+                end
 			end
-			if QueueCardGradientToggle.Enabled then 
-				lplr.PlayerGui.QueueApp['1'].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				local gradient = (lplr.PlayerGui.QueueApp['1']:FindFirstChildWhichIsA('UIGradient') or Instance.new('UIGradient', lplr.PlayerGui.QueueApp['1']))
-				gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromHSV(QueueCardGradient.Hue, QueueCardGradient.Sat, QueueCardGradient.Value)), ColorSequenceKeypoint.new(1, Color3.fromHSV(QueueCardGradient2.Hue, QueueCardGradient2.Sat, QueueCardGradient2.Value))})
-				table.insert(queuemodsgradients, gradient)
-			end
+            for i = 1, 3 do
+                if QueueCardGradientToggle.Enabled then 
+                    lplr.PlayerGui.QueueApp['1'].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                    local gradient = (lplr.PlayerGui.QueueApp['1']:FindFirstChildWhichIsA('UIGradient') or Instance.new('UIGradient', lplr.PlayerGui.QueueApp['1']))
+                    if shared.RiseMode and GuiLibrary.MainColor and GuiLibrary.SecondaryColor then
+                        local v = {GuiLibrary.MainColor, GuiLibrary.SecondaryColor, GuiLibrary.ThirdColor}
+                        print(encode(v))
+                        if v[3] then 
+                            gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, v[1]), ColorSequenceKeypoint.new(0.5, v[2]), ColorSequenceKeypoint.new(1, v[3])})
+                        else
+                            gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, v[1]), ColorSequenceKeypoint.new(1, v[2])})
+                        end
+                    else
+                        gradient.Color = ColorSequence.new({
+                            ColorSequenceKeypoint.new(0, Color3.fromHSV(QueueCardGradient.Hue, QueueCardGradient.Sat, QueueCardGradient.Value)), 
+                            ColorSequenceKeypoint.new(1, Color3.fromHSV(QueueCardGradient2.Hue, QueueCardGradient2.Sat, QueueCardGradient2.Value))
+                        })
+                    end
+                end
+                task.wait()
+            end
 		end
 	end
 	QueueCardMods = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
@@ -617,28 +635,34 @@ run(function()
 			end
 		end
 	})
-	QueueCardGradientToggle = QueueCardMods.CreateToggle({
-		Name = 'Gradient',
-		Function = function(calling)
-			pcall(function() QueueCardGradient2.Object.Visible = calling end) 
+    QueueCardGradientToggle = QueueCardMods.CreateToggle({
+        Name = 'Gradient',
+        Function = function(calling)
+            pcall(function() QueueCardGradient2.Object.Visible = calling end) 
+        end
+    })
+    if (not shared.RiseMode) and GuiLibrary.MainColor and GuiLibrary.SecondaryColor then
+        QueueCardGradient = QueueCardMods.CreateColorSlider({
+            Name = 'Color',
+            Function = function()
+                pcall(patchQueueCard)
+            end
+        })
+        QueueCardGradient2 = QueueCardMods.CreateColorSlider({
+            Name = 'Color 2',
+            Function = function()
+                pcall(patchQueueCard)
+            end
+        })
+    else
+		if shared.RiseMode then
+			pcall(function()
+				GuiLibrary.GUIColorChanged.Event:Connect(function()
+					pcall(patchQueueCard)
+				end)
+			end)
 		end
-	})
-	QueueCardGradient = QueueCardMods.CreateColorSlider({
-		Name = 'Color',
-		Function = function()
-			pcall(patchQueueCard)
-		end
-	})
-	QueueCardGradient2 = QueueCardMods.CreateColorSlider({
-		Name = 'Color 2',
-		Function = function()
-			pcall(patchQueueCard)
-		end
-	})
-	Credits = QueueCardMods.CreateCredits({
-		Name = 'CreditsButtonInstance',
-        Credits = 'Render'
-	})
+    end
 end)
 
 run(function()
@@ -1447,11 +1471,6 @@ run(function()
 		Function = function() end
 	})
 	DiamondTPSpeed.Object.Visible = false
-	local Credits
-	Credits = DiamondTP.CreateCredits({
-        Name = 'CreditsButtonInstance',
-        Credits = 'Render'
-    })
 end)
 
 run(function()
@@ -1588,11 +1607,6 @@ run(function()
 		Function = function() end
 	})
 	EmeraldTPSpeed.Object.Visible = false
-	local Credits
-	Credits = EmeraldTP.CreateCredits({
-        Name = 'CreditsButtonInstance',
-        Credits = 'Render'
-    })
 end)
 
 run(function()
@@ -1742,11 +1756,6 @@ run(function()
 		Function = function() end
 	})
 	PlayerTPSpeed.Object.Visible = false
-	local Credits
-	Credits = PlayerTP.CreateCredits({
-        Name = 'CreditsButtonInstance',
-        Credits = 'Render'
-    })
 end)
 
 --[[run(function()
@@ -1984,11 +1993,6 @@ run(function()
 	HotbarColor.Object.Visible = false
 	HotbarRoundRadius.Object.Visible = false
 	HotbarHighlightColor.Object.Visible = false
-	local Credits
-	Credits = HotbarMods.CreateCredits({
-        Name = 'CreditsButtonInstance',
-        Credits = 'Render'
-    })
 end)
 
 run(function()
@@ -2494,7 +2498,7 @@ run(function()
             end
         end,
         Default = false,
-        HoverText = btext('Prevents you from dying.\nMade by Specter Solutions.'),
+        HoverText = btext('Prevents you from dying.'),
         ExtraText = function()
             return antiDeathConfig.Mode.Value
         end
@@ -2502,7 +2506,7 @@ run(function()
 
     antiDeathConfig.Mode = antiDeath.CreateDropdown({
         Name = 'Mode',
-        List = { 'Infinite', 'Boost', 'Sky' },
+        List = {'Infinite', 'Boost', 'Sky' },
         Default = 'Infinite',
         HoverText = btext('Mode to prevent death.'),
         Function = function(val)
@@ -2625,14 +2629,6 @@ run(function()
         Default = true,
         Function = function(callback) end
     })
-
-	local Credits
-	pcall(function()
-		Credits = antiDeath.CreateCredits({
-			Name = 'CreditsButtonInstance',
-			Credits = 'null.wtf#0'
-		})
-	end)
 end)
 
 run(function()
@@ -6628,13 +6624,6 @@ run(function()
 	DamageIndicatorColor.Object.Visible = DamageIndicatorColorToggle.Enabled
 	DamageIndicatorText.Object.Visible = DamageIndicatorTextToggle.Enabled
 	DamageIndicatorFont.Object.Visible = DamageIndicatorFontToggle.Enabled
-	local Credits
-	pcall(function()
-		Credits = DamageIndicator.CreateCredits({
-			Name = 'CreditsButtonInstance',
-			Credits = 'maxlasertech#0'
-		})
-	end)
 end)
 
 task.spawn(function()

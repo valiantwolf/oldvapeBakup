@@ -1227,95 +1227,97 @@ runcode(function()
 	})
 end)
 
-runcode(function()
-	local tpstring = shared.vapeoverlay or nil
-	local origtpstring = tpstring
-	local Overlay = GuiLibrary.CreateCustomWindow({
-		["Name"] = "Overlay",
-		["Icon"] = "vape/assets/TargetIcon1.png",
-		["IconSize"] = 16
-	})
-	local overlayframe = Instance.new("Frame")
-	overlayframe.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	overlayframe.Size = UDim2.new(0, 200, 0, 120)
-	overlayframe.Position = UDim2.new(0, 0, 0, 5)
-	overlayframe.Parent = Overlay.GetCustomChildren()
-	local overlayframe2 = Instance.new("Frame")
-	overlayframe2.Size = UDim2.new(1, 0, 0, 10)
-	overlayframe2.Position = UDim2.new(0, 0, 0, -5)
-	overlayframe2.Parent = overlayframe
-	local overlayframe3 = Instance.new("Frame")
-	overlayframe3.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	overlayframe3.Size = UDim2.new(1, 0, 0, 6)
-	overlayframe3.Position = UDim2.new(0, 0, 0, 6)
-	overlayframe3.BorderSizePixel = 0
-	overlayframe3.Parent = overlayframe2
-	local oldguiupdate = GuiLibrary["UpdateUI"]
-	GuiLibrary["UpdateUI"] = function(h, s, v, ...)
-		overlayframe2.BackgroundColor3 = Color3.fromHSV(h, s, v)
-		return oldguiupdate(h, s, v, ...)
-	end
-	local framecorner1 = Instance.new("UICorner")
-	framecorner1.CornerRadius = UDim.new(0, 5)
-	framecorner1.Parent = overlayframe
-	local framecorner2 = Instance.new("UICorner")
-	framecorner2.CornerRadius = UDim.new(0, 5)
-	framecorner2.Parent = overlayframe2
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, -7, 1, -5)
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.TextYAlignment = Enum.TextYAlignment.Top
-	label.Font = Enum.Font.Arial
-	label.LineHeight = 1.2
-	label.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	label.TextSize = 16
-	label.Text = ""
-	label.BackgroundTransparency = 1
-	label.TextColor3 = Color3.fromRGB(200, 200, 200)
-	label.Position = UDim2.new(0, 7, 0, 5)
-	label.Parent = overlayframe
-	local OverlayFonts = {"Arial"}
-	for i,v in pairs(Enum.Font:GetEnumItems()) do
-		if v.Name ~= "Arial" then
-			table.insert(OverlayFonts, v.Name)
+if (not shared.RiseMode) then
+	runcode(function()
+		local tpstring = shared.vapeoverlay or nil
+		local origtpstring = tpstring
+		local Overlay = GuiLibrary.CreateCustomWindow({
+			["Name"] = "Overlay",
+			["Icon"] = "vape/assets/TargetIcon1.png",
+			["IconSize"] = 16
+		})
+		local overlayframe = Instance.new("Frame")
+		overlayframe.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+		overlayframe.Size = UDim2.new(0, 200, 0, 120)
+		overlayframe.Position = UDim2.new(0, 0, 0, 5)
+		overlayframe.Parent = Overlay.GetCustomChildren()
+		local overlayframe2 = Instance.new("Frame")
+		overlayframe2.Size = UDim2.new(1, 0, 0, 10)
+		overlayframe2.Position = UDim2.new(0, 0, 0, -5)
+		overlayframe2.Parent = overlayframe
+		local overlayframe3 = Instance.new("Frame")
+		overlayframe3.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+		overlayframe3.Size = UDim2.new(1, 0, 0, 6)
+		overlayframe3.Position = UDim2.new(0, 0, 0, 6)
+		overlayframe3.BorderSizePixel = 0
+		overlayframe3.Parent = overlayframe2
+		local oldguiupdate = GuiLibrary["UpdateUI"]
+		GuiLibrary["UpdateUI"] = function(h, s, v, ...)
+			overlayframe2.BackgroundColor3 = Color3.fromHSV(h, s, v)
+			return oldguiupdate(h, s, v, ...)
 		end
-	end
-	local OverlayFont = Overlay.CreateDropdown({
-		Name = "Font",
-		List = OverlayFonts,
-		Function = function(val)
-			label.Font = Enum.Font[val]
-		end
-	})
-	OverlayFont.Bypass = true
-	Overlay.Bypass = true
-	local oldnetworkowner
-	local mapname = "Lobby"
-	GuiLibrary["ObjectsThatCanBeSaved"]["GUIWindow"]["Api"].CreateToggle({
-		["Name"] = "Overlay",
-		["Icon"] = "vape/assets/TargetIcon1.png",
-		["Function"] = function(callback)
-			Overlay.SetVisible(callback)
-			if callback then
-				task.spawn(function()
-					repeat
-						wait(1)
-						if not tpstring then
-							tpstring = tick().."/0/0/0/0/0/0/0"
-							origtpstring = tpstring
-						end
-						local splitted = origtpstring:split("/")
-						label.Text = "Session Info\nTime Played : "..os.date("!%X",math.floor(tick() - splitted[1])).."\nKills : "..(splitted[2]).."\nBeds : "..(splitted[3]).."\nWins : "..(splitted[4]).."\nGames : "..splitted[5].."\nLagbacks : "..(splitted[6]).."\nUniversal Lagbacks : "..(splitted[7]).."\nReported : "..(splitted[8]).."\nMap : "..mapname
-						local textsize = textservice:GetTextSize(label.Text, label.TextSize, label.Font, Vector2.new(100000, 100000))
-						overlayframe.Size = UDim2.new(0, math.max(textsize.X + 19, 200), 0, (textsize.Y * 1.2) + 6)
-						tpstring = splitted[1].."/"..(splitted[2]).."/"..(splitted[3]).."/"..(splitted[4]).."/"..(splitted[5]).."/"..(splitted[6]).."/"..(splitted[7]).."/"..(splitted[8])
-					until (Overlay and Overlay.GetCustomChildren() and Overlay.GetCustomChildren().Parent and Overlay.GetCustomChildren().Parent.Visible == false)
-				end)
+		local framecorner1 = Instance.new("UICorner")
+		framecorner1.CornerRadius = UDim.new(0, 5)
+		framecorner1.Parent = overlayframe
+		local framecorner2 = Instance.new("UICorner")
+		framecorner2.CornerRadius = UDim.new(0, 5)
+		framecorner2.Parent = overlayframe2
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.new(1, -7, 1, -5)
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.TextYAlignment = Enum.TextYAlignment.Top
+		label.Font = Enum.Font.Arial
+		label.LineHeight = 1.2
+		label.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+		label.TextSize = 16
+		label.Text = ""
+		label.BackgroundTransparency = 1
+		label.TextColor3 = Color3.fromRGB(200, 200, 200)
+		label.Position = UDim2.new(0, 7, 0, 5)
+		label.Parent = overlayframe
+		local OverlayFonts = {"Arial"}
+		for i,v in pairs(Enum.Font:GetEnumItems()) do
+			if v.Name ~= "Arial" then
+				table.insert(OverlayFonts, v.Name)
 			end
-		end,
-		["Priority"] = 2
-	}, true)
-end)
+		end
+		local OverlayFont = Overlay.CreateDropdown({
+			Name = "Font",
+			List = OverlayFonts,
+			Function = function(val)
+				label.Font = Enum.Font[val]
+			end
+		})
+		OverlayFont.Bypass = true
+		Overlay.Bypass = true
+		local oldnetworkowner
+		local mapname = "Lobby"
+		GuiLibrary["ObjectsThatCanBeSaved"]["GUIWindow"]["Api"].CreateToggle({
+			["Name"] = "Overlay",
+			["Icon"] = "vape/assets/TargetIcon1.png",
+			["Function"] = function(callback)
+				Overlay.SetVisible(callback)
+				if callback then
+					task.spawn(function()
+						repeat
+							wait(1)
+							if not tpstring then
+								tpstring = tick().."/0/0/0/0/0/0/0"
+								origtpstring = tpstring
+							end
+							local splitted = origtpstring:split("/")
+							label.Text = "Session Info\nTime Played : "..os.date("!%X",math.floor(tick() - splitted[1])).."\nKills : "..(splitted[2]).."\nBeds : "..(splitted[3]).."\nWins : "..(splitted[4]).."\nGames : "..splitted[5].."\nLagbacks : "..(splitted[6]).."\nUniversal Lagbacks : "..(splitted[7]).."\nReported : "..(splitted[8]).."\nMap : "..mapname
+							local textsize = textservice:GetTextSize(label.Text, label.TextSize, label.Font, Vector2.new(100000, 100000))
+							overlayframe.Size = UDim2.new(0, math.max(textsize.X + 19, 200), 0, (textsize.Y * 1.2) + 6)
+							tpstring = splitted[1].."/"..(splitted[2]).."/"..(splitted[3]).."/"..(splitted[4]).."/"..(splitted[5]).."/"..(splitted[6]).."/"..(splitted[7]).."/"..(splitted[8])
+						until (Overlay and Overlay.GetCustomChildren() and Overlay.GetCustomChildren().Parent and Overlay.GetCustomChildren().Parent.Visible == false)
+					end)
+				end
+			end,
+			["Priority"] = 2
+		}, true)
+	end)
+end
 
 task.spawn(function()
 	local function createannouncement(announcetab)

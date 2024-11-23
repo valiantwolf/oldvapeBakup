@@ -6,15 +6,17 @@ local GuiLibrary = shared.GuiLibrary
 local entityLibrary = shared.vapeentity
 local GUI = shared.GUI
 
+local baseDirectory = shared.RiseMode and "rise/" or "vape/"
+
 local function vapeGithubRequest(scripturl)
-	if not isfile("vape/"..scripturl) then
+	if not isfile(baseDirectory..scripturl) then
 		local suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/"..readfile("vape/commithash.txt").."/"..scripturl, true) end)
 		assert(suc, res)
 		assert(res ~= "404: Not Found", res)
 		if scripturl:find(".lua") then res = "--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.\n"..res end
-		writefile("vape/"..scripturl, res)
+		writefile(baseDirectory..scripturl, res)
 	end
-	return readfile("vape/"..scripturl)
+	return readfile(baseDirectory..scripturl)
 end
 local function run(func)
 	local suc, err = pcall(function()
@@ -660,9 +662,9 @@ run(function() local ReinstallProfiles = {}
 			if calling then 
 				ReinstallProfiles["ToggleButton"](false) 
 				GuiLibrary.SelfDestruct()
-				delfile('vape/Libraries/profilesinstalled3.txt')
-				delfolder('vape/Profiles')
-				delfolder('vape/ClosetProfiles')
+				delfile(baseDirectory..'Libraries/profilesinstalled3.txt')
+				delfolder(baseDirectory..'Profiles')
+				delfolder(baseDirectory..'ClosetProfiles')
 				pload('NewMainScript.lua', true)
 			end
 		end

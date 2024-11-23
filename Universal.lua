@@ -1,4 +1,5 @@
 local GuiLibrary = shared.GuiLibrary
+local baseDirectory = shared.RiseMode and "rise/" or "vape/"
 local playersService = game:GetService("Players")
 local coreGui = game:GetService("CoreGui")
 local textService = game:GetService("TextService")
@@ -63,14 +64,14 @@ local function NotifyUser(text, a)
 end
 
 local function vapeGithubRequest(scripturl)
-	if not isfile("vape/"..scripturl) then
+	if not isfile(baseDirectory..scripturl) then
 		local suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/"..readfile("vape/commithash.txt").."/"..scripturl, true) end)
 		assert(suc, res)
 		assert(res ~= "404: Not Found", res)
 		if scripturl:find(".lua") then res = "--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.\n"..res end
-		writefile("vape/"..scripturl, res)
+		writefile(baseDirectory..scripturl, res)
 	end
-	return readfile("vape/"..scripturl)
+	return readfile(baseDirectory..scripturl)
 end
 
 local function downloadVapeAsset(path)
@@ -134,6 +135,7 @@ shared.run = function(func)
 end
 
 local function isFriend(plr, recolor)
+	if shared.RiseMode then return false end
 	if GuiLibrary.ObjectsThatCanBeSaved["Use FriendsToggle"].Api.Enabled then
 		local friend = table.find(GuiLibrary.ObjectsThatCanBeSaved.FriendsListTextCircleList.Api.ObjectList, plr.Name)
 		friend = friend and GuiLibrary.ObjectsThatCanBeSaved.FriendsListTextCircleList.Api.ObjectListEnabled[friend]
@@ -146,6 +148,7 @@ local function isFriend(plr, recolor)
 end
 
 local function isTarget(plr)
+	if shared.RiseMode then return false end
 	local friend = table.find(GuiLibrary.ObjectsThatCanBeSaved.TargetsListTextCircleList.Api.ObjectList, plr.Name)
 	friend = friend and GuiLibrary.ObjectsThatCanBeSaved.TargetsListTextCircleList.Api.ObjectListEnabled[friend]
 	return friend
@@ -168,12 +171,14 @@ if (not entityLibrary) and type(entityLibrary) ~= "table" then entityLibrary = l
 shared.vapeentity = entityLibrary
 do
 	pcall(function() entityLibrary.selfDestruct() end)
-	table.insert(vapeConnections, GuiLibrary.ObjectsThatCanBeSaved.FriendsListTextCircleList.Api.FriendRefresh.Event:Connect(function()
-		entityLibrary.fullEntityRefresh()
-	end))
-	table.insert(vapeConnections, GuiLibrary.ObjectsThatCanBeSaved["Teams by colorToggle"].Api.Refresh.Event:Connect(function()
-		entityLibrary.fullEntityRefresh()
-	end))
+	if (not shared.RiseMode) then
+		table.insert(vapeConnections, GuiLibrary.ObjectsThatCanBeSaved.FriendsListTextCircleList.Api.FriendRefresh.Event:Connect(function()
+			entityLibrary.fullEntityRefresh()
+		end))
+		table.insert(vapeConnections, GuiLibrary.ObjectsThatCanBeSaved["Teams by colorToggle"].Api.Refresh.Event:Connect(function()
+			entityLibrary.fullEntityRefresh()
+		end))
+	end
 	local oldUpdateBehavior = entityLibrary.getUpdateConnections
 	entityLibrary.getUpdateConnections = function(newEntity)
 		local oldUpdateConnections = oldUpdateBehavior(newEntity)
@@ -187,7 +192,7 @@ do
 	entityLibrary.isPlayerTargetable = function(plr)
 		if isFriend(plr) then return false end
 		if not ({whitelist:get(plr)})[2] then return false end
-		if (not GuiLibrary.ObjectsThatCanBeSaved["Teams by colorToggle"].Api.Enabled) then return true end
+		if (not shared.RiseMode) then if (not GuiLibrary.ObjectsThatCanBeSaved["Teams by colorToggle"].Api.Enabled) then return true end end
 		if (not lplr.Team) then return true end
 		if (not plr.Team) then return true end
 		if plr.Team ~= lplr.Team then return true end
@@ -1260,123 +1265,124 @@ do
 		end
 	end
 end
-shared.RunLoops = RunLoops
-getgenv().RunLoops = RunLoops
+VoidwareFunctions.GlobaliseObject("RunLoops", RunLoops)
 
-run(function()
-	local radargameCamera = Instance.new("Camera")
-	radargameCamera.FieldOfView = 45
-	local Radar = GuiLibrary.CreateCustomWindow({
-		Name = "Radar",
-		Icon = "vape/assets/RadarIcon1.png",
-		IconSize = 16
-	})
-	local RadarColor = Radar.CreateColorSlider({
-		Name = "Player Color",
-		Function = function(val) end
-	})
-	local RadarFrame = Instance.new("Frame")
-	RadarFrame.BackgroundColor3 = Color3.new()
-	RadarFrame.BorderSizePixel = 0
-	RadarFrame.BackgroundTransparency = 0.5
-	RadarFrame.Size = UDim2.new(0, 250, 0, 250)
-	RadarFrame.Parent = Radar.GetCustomChildren()
-	local RadarBorder1 = RadarFrame:Clone()
-	RadarBorder1.Size = UDim2.new(0, 6, 0, 250)
-	RadarBorder1.Parent = RadarFrame
-	local RadarBorder2 = RadarBorder1:Clone()
-	RadarBorder2.Position = UDim2.new(0, 6, 0, 0)
-	RadarBorder2.Size = UDim2.new(0, 238, 0, 6)
-	RadarBorder2.Parent = RadarFrame
-	local RadarBorder3 = RadarBorder1:Clone()
-	RadarBorder3.Position = UDim2.new(1, -6, 0, 0)
-	RadarBorder3.Size = UDim2.new(0, 6, 0, 250)
-	RadarBorder3.Parent = RadarFrame
-	local RadarBorder4 = RadarBorder1:Clone()
-	RadarBorder4.Position = UDim2.new(0, 6, 1, -6)
-	RadarBorder4.Size = UDim2.new(0, 238, 0, 6)
-	RadarBorder4.Parent = RadarFrame
-	local RadarBorder5 = RadarBorder1:Clone()
-	RadarBorder5.Position = UDim2.new(0, 0, 0.5, -1)
-	RadarBorder5.BackgroundColor3 = Color3.new(1, 1, 1)
-	RadarBorder5.Size = UDim2.new(0, 250, 0, 2)
-	RadarBorder5.Parent = RadarFrame
-	local RadarBorder6 = RadarBorder1:Clone()
-	RadarBorder6.Position = UDim2.new(0.5, -1, 0, 0)
-	RadarBorder6.BackgroundColor3 = Color3.new(1, 1, 1)
-	RadarBorder6.Size = UDim2.new(0, 2, 0, 124)
-	RadarBorder6.Parent = RadarFrame
-	local RadarBorder7 = RadarBorder1:Clone()
-	RadarBorder7.Position = UDim2.new(0.5, -1, 0, 126)
-	RadarBorder7.BackgroundColor3 = Color3.new(1, 1, 1)
-	RadarBorder7.Size = UDim2.new(0, 2, 0, 124)
-	RadarBorder7.Parent = RadarFrame
-	local RadarMainFrame = Instance.new("Frame")
-	RadarMainFrame.BackgroundTransparency = 1
-	RadarMainFrame.Size = UDim2.new(0, 250, 0, 250)
-	RadarMainFrame.Parent = RadarFrame
-	local radartable = {}
-	table.insert(vapeConnections, Radar.GetCustomChildren().Parent:GetPropertyChangedSignal("Size"):Connect(function()
-		RadarFrame.Position = UDim2.new(0, 0, 0, (Radar.GetCustomChildren().Parent.Size.Y.Offset == 0 and 45 or 0))
-	end))
-	GuiLibrary.ObjectsThatCanBeSaved.GUIWindow.Api.CreateCustomToggle({
-		Name = "Radar",
-		Icon = "vape/assets/RadarIcon2.png",
-		Function = function(callback)
-			Radar.SetVisible(callback)
-			if callback then
-				RunLoops:BindToRenderStep("Radar", function()
-					if entityLibrary.isAlive then
-						local v278 = (CFrame.new(0, 0, 0):inverse() * entityLibrary.character.HumanoidRootPart.CFrame).p * 0.2 * Vector3.new(1, 1, 1);
-						local v279, v280, v281 = gameCamera.CFrame:ToOrientation();
-						local u90 = v280 * 180 / math.pi;
-						local v277 = 0 - u90;
-						local v276 = v278 + Vector3.zero;
-						radargameCamera.CFrame = CFrame.new(v276 + Vector3.new(0, 50, 0)) * CFrame.Angles(0, -v277 * (math.pi / 180), 0) * CFrame.Angles(-90 * (math.pi / 180), 0, 0)
-						local done = {}
-						for i, plr in pairs(entityLibrary.entityList) do
-							table.insert(done, plr)
-							local thing
-							if radartable[plr] then
-								thing = radartable[plr]
-								if thing.Visible then
+--if (not shared.RiseMode) then
+	run(function()
+		local radargameCamera = Instance.new("Camera")
+		radargameCamera.FieldOfView = 45
+		local Radar = GuiLibrary.CreateCustomWindow({
+			Name = "Radar",
+			Icon = "vape/assets/RadarIcon1.png",
+			IconSize = 16
+		})
+		local RadarColor = Radar.CreateColorSlider({
+			Name = "Player Color",
+			Function = function(val) end
+		})
+		local RadarFrame = Instance.new("Frame")
+		RadarFrame.BackgroundColor3 = Color3.new()
+		RadarFrame.BorderSizePixel = 0
+		RadarFrame.BackgroundTransparency = 0.5
+		RadarFrame.Size = UDim2.new(0, 250, 0, 250)
+		RadarFrame.Parent = Radar.GetCustomChildren()
+		local RadarBorder1 = RadarFrame:Clone()
+		RadarBorder1.Size = UDim2.new(0, 6, 0, 250)
+		RadarBorder1.Parent = RadarFrame
+		local RadarBorder2 = RadarBorder1:Clone()
+		RadarBorder2.Position = UDim2.new(0, 6, 0, 0)
+		RadarBorder2.Size = UDim2.new(0, 238, 0, 6)
+		RadarBorder2.Parent = RadarFrame
+		local RadarBorder3 = RadarBorder1:Clone()
+		RadarBorder3.Position = UDim2.new(1, -6, 0, 0)
+		RadarBorder3.Size = UDim2.new(0, 6, 0, 250)
+		RadarBorder3.Parent = RadarFrame
+		local RadarBorder4 = RadarBorder1:Clone()
+		RadarBorder4.Position = UDim2.new(0, 6, 1, -6)
+		RadarBorder4.Size = UDim2.new(0, 238, 0, 6)
+		RadarBorder4.Parent = RadarFrame
+		local RadarBorder5 = RadarBorder1:Clone()
+		RadarBorder5.Position = UDim2.new(0, 0, 0.5, -1)
+		RadarBorder5.BackgroundColor3 = Color3.new(1, 1, 1)
+		RadarBorder5.Size = UDim2.new(0, 250, 0, 2)
+		RadarBorder5.Parent = RadarFrame
+		local RadarBorder6 = RadarBorder1:Clone()
+		RadarBorder6.Position = UDim2.new(0.5, -1, 0, 0)
+		RadarBorder6.BackgroundColor3 = Color3.new(1, 1, 1)
+		RadarBorder6.Size = UDim2.new(0, 2, 0, 124)
+		RadarBorder6.Parent = RadarFrame
+		local RadarBorder7 = RadarBorder1:Clone()
+		RadarBorder7.Position = UDim2.new(0.5, -1, 0, 126)
+		RadarBorder7.BackgroundColor3 = Color3.new(1, 1, 1)
+		RadarBorder7.Size = UDim2.new(0, 2, 0, 124)
+		RadarBorder7.Parent = RadarFrame
+		local RadarMainFrame = Instance.new("Frame")
+		RadarMainFrame.BackgroundTransparency = 1
+		RadarMainFrame.Size = UDim2.new(0, 250, 0, 250)
+		RadarMainFrame.Parent = RadarFrame
+		local radartable = {}
+		table.insert(vapeConnections, Radar.GetCustomChildren().Parent:GetPropertyChangedSignal("Size"):Connect(function()
+			RadarFrame.Position = UDim2.new(0, 0, 0, (Radar.GetCustomChildren().Parent.Size.Y.Offset == 0 and 45 or 0))
+		end))
+		GuiLibrary.ObjectsThatCanBeSaved.GUIWindow.Api.CreateCustomToggle({
+			Name = "Radar",
+			Icon = "vape/assets/RadarIcon2.png",
+			Function = function(callback)
+				Radar.SetVisible(callback)
+				if callback then
+					RunLoops:BindToRenderStep("Radar", function()
+						if entityLibrary.isAlive then
+							local v278 = (CFrame.new(0, 0, 0):inverse() * entityLibrary.character.HumanoidRootPart.CFrame).p * 0.2 * Vector3.new(1, 1, 1);
+							local v279, v280, v281 = gameCamera.CFrame:ToOrientation();
+							local u90 = v280 * 180 / math.pi;
+							local v277 = 0 - u90;
+							local v276 = v278 + Vector3.zero;
+							radargameCamera.CFrame = CFrame.new(v276 + Vector3.new(0, 50, 0)) * CFrame.Angles(0, -v277 * (math.pi / 180), 0) * CFrame.Angles(-90 * (math.pi / 180), 0, 0)
+							local done = {}
+							for i, plr in pairs(entityLibrary.entityList) do
+								table.insert(done, plr)
+								local thing
+								if radartable[plr] then
+									thing = radartable[plr]
+									if thing.Visible then
+										thing.Visible = false
+									end
+								else
+									thing = Instance.new("Frame")
+									thing.BackgroundTransparency = 0
+									thing.Size = UDim2.new(0, 4, 0, 4)
+									thing.BorderSizePixel = 1
+									thing.BorderColor3 = Color3.new()
+									thing.BackgroundColor3 = Color3.new()
 									thing.Visible = false
+									thing.Name = plr.Player.Name
+									thing.Parent = RadarMainFrame
+									radartable[plr] = thing
 								end
-							else
-								thing = Instance.new("Frame")
-								thing.BackgroundTransparency = 0
-								thing.Size = UDim2.new(0, 4, 0, 4)
-								thing.BorderSizePixel = 1
-								thing.BorderColor3 = Color3.new()
-								thing.BackgroundColor3 = Color3.new()
-								thing.Visible = false
-								thing.Name = plr.Player.Name
-								thing.Parent = RadarMainFrame
-								radartable[plr] = thing
-							end
 
-							local v238, v239 = radargameCamera:WorldToViewportPoint((CFrame.new(0, 0, 0):inverse() * plr.RootPart.CFrame).p * 0.2)
-							thing.Visible = true
-							thing.BackgroundColor3 = getPlayerColor(plr.Player) or Color3.fromHSV(RadarColor.Value, 1, 1)
-							thing.Position = UDim2.new(math.clamp(v238.X, 0.03, 0.97), -2, math.clamp(v238.Y, 0.03, 0.97), -2)
-						end
-						for i, v in pairs(radartable) do
-							if not table.find(done, i) then
-								radartable[i] = nil
-								v:Destroy()
+								local v238, v239 = radargameCamera:WorldToViewportPoint((CFrame.new(0, 0, 0):inverse() * plr.RootPart.CFrame).p * 0.2)
+								thing.Visible = true
+								thing.BackgroundColor3 = getPlayerColor(plr.Player) or Color3.fromHSV(RadarColor.Value, 1, 1)
+								thing.Position = UDim2.new(math.clamp(v238.X, 0.03, 0.97), -2, math.clamp(v238.Y, 0.03, 0.97), -2)
+							end
+							for i, v in pairs(radartable) do
+								if not table.find(done, i) then
+									radartable[i] = nil
+									v:Destroy()
+								end
 							end
 						end
-					end
-				end)
-			else
-				RunLoops:UnbindFromRenderStep("Radar")
-				RadarMainFrame:ClearAllChildren()
-				table.clear(radartable)
-			end
-		end,
-		Priority = 1
-	})
-end)
+					end)
+				else
+					RunLoops:UnbindFromRenderStep("Radar")
+					RadarMainFrame:ClearAllChildren()
+					table.clear(radartable)
+				end
+			end,
+			Priority = 1
+		})
+	end)
+--end
 
 run(function()
 	local SilentAimSmartWallTable = {}
@@ -2246,10 +2252,12 @@ run(function()
 			end
 		end,
 		ExtraText = function()
-			if GuiLibrary.ObjectsThatCanBeSaved["Text GUIAlternate TextToggle"].Api.Enabled then
-				return alternatelist[table.find(FlyMethod.List, FlyMethod.Value)]
+			if (not shared.RiseMode) then
+				if GuiLibrary.ObjectsThatCanBeSaved["Text GUIAlternate TextToggle"].Api.Enabled then
+					return alternatelist[table.find(FlyMethod.List, FlyMethod.Value)]
+				end
+				return FlyMethod.Value
 			end
-			return FlyMethod.Value
 		end
 	})
 	FlyMethod = Fly.CreateDropdown({
@@ -6580,164 +6588,165 @@ run(function()
 	})
 end)
 
-run(function()
-	local FPS = {}
-	local FPSLabel
-	FPS = GuiLibrary.CreateLegitModule({
-		Name = "FPS",
-		Function = function(callback)
-			if callback then
-				local frames = {}
-				local framerate = 0
-				local startClock = os.clock()
-				local updateTick = tick()
-				RunLoops:BindToHeartbeat("FPS", function()
-					-- https://devforum.roblox.com/t/get-client-fps-trough-a-script/282631, annoying math, I thought either adding dt to a table or doing 1 / dt would work, but this is just better lol
-					local updateClock = os.clock()
-					for i = #frames, 1, -1 do
-						frames[i + 1] = frames[i] >= updateClock - 1 and frames[i] or nil
-					end
-					frames[1] = updateClock
-					if updateTick < tick() then
-						updateTick = tick() + 1
-						FPSLabel.Text = math.floor(os.clock() - startClock >= 1 and #frames or #frames / (os.clock() - startClock)).." FPS"
-					end
-				end)
-			else
-				RunLoops:UnbindFromHeartbeat("FPS")
+--if (not shared.RiseMode) then
+	run(function()
+		local FPS = {}
+		local FPSLabel
+		FPS = GuiLibrary.CreateLegitModule({
+			Name = "FPS",
+			Function = function(callback)
+				if callback then
+					local frames = {}
+					local framerate = 0
+					local startClock = os.clock()
+					local updateTick = tick()
+					RunLoops:BindToHeartbeat("FPS", function()
+						-- https://devforum.roblox.com/t/get-client-fps-trough-a-script/282631, annoying math, I thought either adding dt to a table or doing 1 / dt would work, but this is just better lol
+						local updateClock = os.clock()
+						for i = #frames, 1, -1 do
+							frames[i + 1] = frames[i] >= updateClock - 1 and frames[i] or nil
+						end
+						frames[1] = updateClock
+						if updateTick < tick() then
+							updateTick = tick() + 1
+							FPSLabel.Text = math.floor(os.clock() - startClock >= 1 and #frames or #frames / (os.clock() - startClock)).." FPS"
+						end
+					end)
+				else
+					RunLoops:UnbindFromHeartbeat("FPS")
+				end
 			end
-		end
-	})
-	FPSLabel = Instance.new("TextLabel")
-	FPSLabel.Size = UDim2.new(0, 100, 0, 41)
-	FPSLabel.BackgroundTransparency = 0.5
-	FPSLabel.TextSize = 15
-	FPSLabel.Font = Enum.Font.Gotham
-	FPSLabel.Text = "inf FPS"
-	FPSLabel.TextColor3 = Color3.new(1, 1, 1)
-	local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
-	FPSLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
-	--Color3.new()
-	VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
-		color = {Hue = h, Sat = s, Value = v}
+		})
+		FPSLabel = Instance.new("TextLabel")
+		FPSLabel.Size = UDim2.new(0, 100, 0, 41)
+		FPSLabel.BackgroundTransparency = 0.5
+		FPSLabel.TextSize = 15
+		FPSLabel.Font = Enum.Font.Gotham
+		FPSLabel.Text = "inf FPS"
+		FPSLabel.TextColor3 = Color3.new(1, 1, 1)
+		local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
 		FPSLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
-	end))
-	FPSLabel.Parent = FPS.GetCustomChildren()
-	local ReachCorner = Instance.new("UICorner")
-	ReachCorner.CornerRadius = UDim.new(0, 4)
-	ReachCorner.Parent = FPSLabel
-end)
+		--Color3.new()
+		VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+			color = {Hue = h, Sat = s, Value = v}
+			FPSLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+		end))
+		FPSLabel.Parent = FPS.GetCustomChildren()
+		local ReachCorner = Instance.new("UICorner")
+		ReachCorner.CornerRadius = UDim.new(0, 4)
+		ReachCorner.Parent = FPSLabel
+	end)
 
-
-run(function()
-	local Ping = {}
-	local PingLabel
-	Ping = GuiLibrary.CreateLegitModule({
-		Name = "Ping",
-		Function = function(callback)
-			if callback then
-				task.spawn(function()
-					repeat
-						PingLabel.Text = math.floor(tonumber(game:GetService("Stats"):FindFirstChild("PerformanceStats").Ping:GetValue())).." ms"
-						task.wait(1)
-					until false
-				end)
+	run(function()
+		local Ping = {}
+		local PingLabel
+		Ping = GuiLibrary.CreateLegitModule({
+			Name = "Ping",
+			Function = function(callback)
+				if callback then
+					task.spawn(function()
+						repeat
+							PingLabel.Text = math.floor(tonumber(game:GetService("Stats"):FindFirstChild("PerformanceStats").Ping:GetValue())).." ms"
+							task.wait(1)
+						until false
+					end)
+				end
 			end
-		end
-	})
-	PingLabel = Instance.new("TextLabel")
-	PingLabel.Size = UDim2.new(0, 100, 0, 41)
-	PingLabel.BackgroundTransparency = 0.5
-	PingLabel.TextSize = 15
-	PingLabel.Font = Enum.Font.Gotham
-	PingLabel.Text = "0 ms"
-	PingLabel.TextColor3 = Color3.new(1, 1, 1)
-	local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
-	PingLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
-	--Color3.new()
-	VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
-		color = {Hue = h, Sat = s, Value = v}
+		})
+		PingLabel = Instance.new("TextLabel")
+		PingLabel.Size = UDim2.new(0, 100, 0, 41)
+		PingLabel.BackgroundTransparency = 0.5
+		PingLabel.TextSize = 15
+		PingLabel.Font = Enum.Font.Gotham
+		PingLabel.Text = "0 ms"
+		PingLabel.TextColor3 = Color3.new(1, 1, 1)
+		local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
 		PingLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
-	end))
-	PingLabel.Parent = Ping.GetCustomChildren()
-	local PingCorner = Instance.new("UICorner")
-	PingCorner.CornerRadius = UDim.new(0, 4)
-	PingCorner.Parent = PingLabel
-end)
+		--Color3.new()
+		VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+			color = {Hue = h, Sat = s, Value = v}
+			PingLabel.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+		end))
+		PingLabel.Parent = Ping.GetCustomChildren()
+		local PingCorner = Instance.new("UICorner")
+		PingCorner.CornerRadius = UDim.new(0, 4)
+		PingCorner.Parent = PingLabel
+	end)
 
-run(function()
-	local Keystrokes = {}
-	local keys = {}
-	local keystrokesframe
-	local keyconnection1
-	local keyconnection2
+	run(function()
+		local Keystrokes = {}
+		local keys = {}
+		local keystrokesframe
+		local keyconnection1
+		local keyconnection2
 
-	local function createKeystroke(keybutton, pos, pos2)
-		local key = Instance.new("Frame")
-		key.Size = keybutton == Enum.KeyCode.Space and UDim2.new(0, 110, 0, 24) or UDim2.new(0, 34, 0, 36)
-		key.BackgroundColor3 = Color3.new()
-		key.BackgroundTransparency = 0.5
-		key.Position = pos
-		key.Name = keybutton.Name
-		key.Parent = keystrokesframe
-		local keytext = Instance.new("TextLabel")
-		keytext.BackgroundTransparency = 1
-		keytext.Size = UDim2.new(1, 0, 1, 0)
-		keytext.Font = Enum.Font.Gotham
-		keytext.Text = keybutton == Enum.KeyCode.Space and "______" or keybutton.Name
-		keytext.TextXAlignment = Enum.TextXAlignment.Left
-		keytext.TextYAlignment = Enum.TextYAlignment.Top
-		keytext.Position = pos2
-		keytext.TextSize = keybutton == Enum.KeyCode.Space and 18 or 15
-		keytext.TextColor3 = Color3.new(1, 1, 1)
-		keytext.Parent = key
-		local keycorner = Instance.new("UICorner")
-		keycorner.CornerRadius = UDim.new(0, 4)
-		keycorner.Parent = key
-		keys[keybutton] = {Key = key}
-	end
-
-	Keystrokes = GuiLibrary.CreateLegitModule({
-		Name = "Keystrokes",
-		Function = function(callback)
-			if callback then
-				keyconnection1 = inputService.InputBegan:Connect(function(inputType)
-					local key = keys[inputType.KeyCode]
-					if key then
-						if key.Tween then key.Tween:Cancel() end
-						if key.Tween2 then key.Tween2:Cancel() end
-						key.Tween = tweenService:Create(key.Key, TweenInfo.new(0.1), {BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0})
-						key.Tween:Play()
-						key.Tween2 = tweenService:Create(key.Key.TextLabel, TweenInfo.new(0.1), {TextColor3 = Color3.new()})
-						key.Tween2:Play()
-					end
-				end)
-				keyconnection2 = inputService.InputEnded:Connect(function(inputType)
-					local key = keys[inputType.KeyCode]
-					if key then
-						if key.Tween then key.Tween:Cancel() end
-						if key.Tween2 then key.Tween2:Cancel() end
-						key.Tween = tweenService:Create(key.Key, TweenInfo.new(0.1), {BackgroundColor3 = Color3.new(), BackgroundTransparency = 0.5})
-						key.Tween:Play()
-						key.Tween2 = tweenService:Create(key.Key.TextLabel, TweenInfo.new(0.1), {TextColor3 = Color3.new(1, 1, 1)})
-						key.Tween2:Play()
-					end
-				end)
-			else
-				if keyconnection1 then keyconnection1:Disconnect() end
-				if keyconnection2 then keyconnection2:Disconnect() end
-			end
+		local function createKeystroke(keybutton, pos, pos2)
+			local key = Instance.new("Frame")
+			key.Size = keybutton == Enum.KeyCode.Space and UDim2.new(0, 110, 0, 24) or UDim2.new(0, 34, 0, 36)
+			key.BackgroundColor3 = Color3.new()
+			key.BackgroundTransparency = 0.5
+			key.Position = pos
+			key.Name = keybutton.Name
+			key.Parent = keystrokesframe
+			local keytext = Instance.new("TextLabel")
+			keytext.BackgroundTransparency = 1
+			keytext.Size = UDim2.new(1, 0, 1, 0)
+			keytext.Font = Enum.Font.Gotham
+			keytext.Text = keybutton == Enum.KeyCode.Space and "______" or keybutton.Name
+			keytext.TextXAlignment = Enum.TextXAlignment.Left
+			keytext.TextYAlignment = Enum.TextYAlignment.Top
+			keytext.Position = pos2
+			keytext.TextSize = keybutton == Enum.KeyCode.Space and 18 or 15
+			keytext.TextColor3 = Color3.new(1, 1, 1)
+			keytext.Parent = key
+			local keycorner = Instance.new("UICorner")
+			keycorner.CornerRadius = UDim.new(0, 4)
+			keycorner.Parent = key
+			keys[keybutton] = {Key = key}
 		end
-	})
-	keystrokesframe = Instance.new("Frame")
-	keystrokesframe.Size = UDim2.new(0, 110, 0, 176)
-	keystrokesframe.BackgroundTransparency = 1
-	keystrokesframe.Parent = Keystrokes.GetCustomChildren()
-	createKeystroke(Enum.KeyCode.W, UDim2.new(0, 38, 0, 0), UDim2.new(0, 6, 0, 5))
-	createKeystroke(Enum.KeyCode.S, UDim2.new(0, 38, 0, 42), UDim2.new(0, 8, 0, 5))
-	createKeystroke(Enum.KeyCode.A, UDim2.new(0, 0, 0, 42), UDim2.new(0, 7, 0, 5))
-	createKeystroke(Enum.KeyCode.D, UDim2.new(0, 76, 0, 42), UDim2.new(0, 8, 0, 5))
-	createKeystroke(Enum.KeyCode.Space, UDim2.new(0, 0, 0, 83), UDim2.new(0, 25, 0, -10))
-end)
+
+		Keystrokes = GuiLibrary.CreateLegitModule({
+			Name = "Keystrokes",
+			Function = function(callback)
+				if callback then
+					keyconnection1 = inputService.InputBegan:Connect(function(inputType)
+						local key = keys[inputType.KeyCode]
+						if key then
+							if key.Tween then key.Tween:Cancel() end
+							if key.Tween2 then key.Tween2:Cancel() end
+							key.Tween = tweenService:Create(key.Key, TweenInfo.new(0.1), {BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0})
+							key.Tween:Play()
+							key.Tween2 = tweenService:Create(key.Key.TextLabel, TweenInfo.new(0.1), {TextColor3 = Color3.new()})
+							key.Tween2:Play()
+						end
+					end)
+					keyconnection2 = inputService.InputEnded:Connect(function(inputType)
+						local key = keys[inputType.KeyCode]
+						if key then
+							if key.Tween then key.Tween:Cancel() end
+							if key.Tween2 then key.Tween2:Cancel() end
+							key.Tween = tweenService:Create(key.Key, TweenInfo.new(0.1), {BackgroundColor3 = Color3.new(), BackgroundTransparency = 0.5})
+							key.Tween:Play()
+							key.Tween2 = tweenService:Create(key.Key.TextLabel, TweenInfo.new(0.1), {TextColor3 = Color3.new(1, 1, 1)})
+							key.Tween2:Play()
+						end
+					end)
+				else
+					if keyconnection1 then keyconnection1:Disconnect() end
+					if keyconnection2 then keyconnection2:Disconnect() end
+				end
+			end
+		})
+		keystrokesframe = Instance.new("Frame")
+		keystrokesframe.Size = UDim2.new(0, 110, 0, 176)
+		keystrokesframe.BackgroundTransparency = 1
+		keystrokesframe.Parent = Keystrokes.GetCustomChildren()
+		createKeystroke(Enum.KeyCode.W, UDim2.new(0, 38, 0, 0), UDim2.new(0, 6, 0, 5))
+		createKeystroke(Enum.KeyCode.S, UDim2.new(0, 38, 0, 42), UDim2.new(0, 8, 0, 5))
+		createKeystroke(Enum.KeyCode.A, UDim2.new(0, 0, 0, 42), UDim2.new(0, 7, 0, 5))
+		createKeystroke(Enum.KeyCode.D, UDim2.new(0, 76, 0, 42), UDim2.new(0, 8, 0, 5))
+		createKeystroke(Enum.KeyCode.Space, UDim2.new(0, 0, 0, 83), UDim2.new(0, 25, 0, -10))
+	end)
+--end
 
 shared.VapeUniversalLoaded = true
