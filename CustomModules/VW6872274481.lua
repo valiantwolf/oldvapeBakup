@@ -13,6 +13,9 @@ local bedwars = shared.GlobalBedwars
 local playersService = game:GetService("Players")
 if (not shared.GlobalBedwars) or (shared.GlobalBedwars and type(shared.GlobalBedwars) ~= "table") or (not shared.GlobalStore) or (shared.GlobalStore and type(shared.GlobalStore) ~= "table") then
 	errorNotification("VW-BEDWARS", "Critical! Important connection is missing! Please report this bug to erchodev#0", 10)
+	pcall(function()
+		GuiLibrary.SaveSettings = function() warningNotification("GuiLibrary.SaveSettings", "Profiles saving is disabled due to error in the code!") end
+	end)
 	local delfile = delfile or function(file) writefile(file, "") end
 	if isfile('vape/CustomModules/6872274481.lua') then delfile('vape/CustomModules/6872274481.lua') end
 end
