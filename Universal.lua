@@ -5053,10 +5053,14 @@ run(function()
 end)
 
 run(function()
-	local Panic = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+	local Panic = {Enabled = false}
+	Panic = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 		Name = "Panic",
 		Function = function(callback)
 			if callback then
+				Panic.ToggleButton(false)
+				GuiLibrary.SaveSettings()
+				GuiLibrary.SaveSettings = function() return warningNotification("Panic - SaveSettings", "Profiles Saving is disabled! \n To fix this reinject.", 3) end
 				for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
 					if v.Type == "OptionsButton" then
 						if v.Api.Enabled then
@@ -5064,9 +5068,11 @@ run(function()
 						end
 					end
 				end
+				warningNotification("Panic", "Successfully disabled all modules!", 3)
 			end
 		end
-	})
+	}),
+	Default = false
 end)
 
 run(function()
