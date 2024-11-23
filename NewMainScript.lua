@@ -20,10 +20,10 @@ local debugChecks = {
     }
 }
 if identifyexecutor and type(identifyexecutor) == "function" and tostring(identifyexecutor()):lower() == "appleware" then CheatEngineMode = true end
-local function checkDebug(tbl)
-    if tbl and type(tbl) == "table" then for i,v in pairs(debugChecks.Functions) do if (not tbl[v]) or (tbl[v] and type(tbl[v]) ~= "function") or (tbl[v] and type(tbl[v]) == "function" and identifyexecutor and type(identifyexecutor) == "function" and identifyexecutor() == "Salad" and tbl[v]() == "Not Implemented") then CheatEngineMode = true; break end end else CheatEngineMode = true end
+local function checkDebug()
+    if (not getgenv().debug) then CheatEngineMode = true else if type(debug) ~= "table" then CheatEngineMode = true; else for i,v in pairs(debug) do if type(v) ~= "function" then else local suc, res = pcall(v); if tostring(res) == "Not Implemented" then CheatEngineMode = true end end end end end
 end
-if getgenv and getgenv().debug and type(getgenv().debug) == debugChecks.Type and (not CheatEngineMode) then checkDebug(getgenv().debug) end
+if (not CheatEngineMode) then checkDebug() end
 shared.CheatEngineMode = shared.CheatEngineMode or CheatEngineMode
 local errorPopupShown = false
 local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
