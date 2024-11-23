@@ -1260,7 +1260,8 @@ do
 		end
 	end
 end
-VoidwareFunctions.GlobaliseObject("RunLoops", RunLoops)
+shared.RunLoops = RunLoops
+getgenv().RunLoops = RunLoops
 
 run(function()
 	local radargameCamera = Instance.new("Camera")
