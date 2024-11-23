@@ -5057,8 +5057,6 @@ run(function()
 		Name = "Panic",
 		Function = function(callback)
 			if callback then
-				GuiLibrary.SaveSettings()
-				GuiLibrary.SaveSettings = function() return warningNotification("GuiLibrary.SaveSettings", "Profiles Saving is disabled!", 3) end
 				for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
 					if v.Type == "OptionsButton" then
 						if v.Api.Enabled then
@@ -5066,7 +5064,6 @@ run(function()
 						end
 					end
 				end
-				warningNotification("Panic", "Successfully disabled all modules!", 3)
 			end
 		end
 	})
