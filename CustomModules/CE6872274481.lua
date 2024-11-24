@@ -2210,7 +2210,7 @@ pcall(function()
         "ReachOptionsButton",
         "MouseTPOptionsButton",
         "PhaseOptionsButton",
-        "AutoClickerOptionsButton",
+        --"AutoClickerOptionsButton",
         "SpiderOptionsButton",
         "LongJumpOptionsButton",
         "HitBoxesOptionsButton",
