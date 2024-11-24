@@ -24,6 +24,12 @@ local function decode(tbl)
     return game:GetService("HttpService"):JSONDecode(tbl)
 end
 VoidwareFunctions.GlobaliseObject("decode", decode)
+local function cprint(tbl)
+	for i, v in pairs(tbl) do
+		print(tostring(tbl), tostring(i), tostring(v))
+	end
+end
+VoidwareFunctions.GlobaliseObject("cprint", cprint)
 local vapeEvents = setmetatable({}, {
 	__index = function(self, index)
 		self[index] = Instance.new("BindableEvent")
@@ -1035,6 +1041,22 @@ function bedwars.GrimReaperController:fetchSoulsByPosition()
 		end
 	end
 	return souls
+end
+bedwars.SpiritAssassinController = {}
+function bedwars.SpiritAssassinController:fetchSpiritOrbs()
+	local orbs = {}
+	for i,v in pairs(game.Workspace:GetChildren()) do
+		if v.Name == "SpiritOrb" and v.ClassName == "Model" and v:GetAttribute("SpiritSecret") then
+			table.insert(orbs, v)
+		end
+	end
+	return orbs
+end
+function bedwars.SpiritAssassinController:activateOrb(orb)
+	bedwars.Client:GetNamespace("UseSpirit", {"SpiritAssassinWinEffectUseSpirit", "SpiritAssassinUseSpirit"}):Get("UseSpirit"):InvokeServer({["secret"] = tostring(orb:GetAttribute("SpiritSecret"))})
+end
+function bedwars.SpiritAssassinController:Invoke()
+	for i,v in pairs(self:fetchSpiritOrbs()) do self:activateOrb(v) end
 end
 bedwars.StoreController = {}
 function bedwars.StoreController:fetchLocalHand()
@@ -7493,6 +7515,12 @@ run(function()
 	end
 
 	local AutoKit_Functions = {
+		["spirit_assassin"] = function()
+			repeat
+				task.wait()
+				bedwars.SpiritAssassinController:Invoke()
+			until (not AutoKit.Enabled)
+		end,
 		["alchemist"] = function()
 			table.insert(AutoKit.Connections, game:GetService("Players").LocalPlayer.Chatted:Connect(function(msg)
 				if AutoKit.Enabled then
