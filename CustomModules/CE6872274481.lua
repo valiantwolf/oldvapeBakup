@@ -8998,7 +8998,7 @@ run(function()
 										if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - obj.Position).magnitude <= nukerrange.Value then
 											if tool and bedwars.ItemTable[tool.Name].breakBlock then
 												bedwars.breakBlock2(obj, nukeranimation.Enabled)
-												task.wait(nukerslowmode.Value)
+												task.wait(nukerslowmode.Value/10)
 												break
 											end
 										end
@@ -9031,14 +9031,14 @@ run(function()
 	})
 	local NukerSlowmode = Nuker.CreateTextLabel({
 		Name = "BreakSlowmode",
-		Text = "BreakSlowmode: "..tostring(nukerslowmode.Value)
+		Text = "BreakSlowmode: "..tostring(nukerslowmode.Value/10)
 	})
 	nukerslowmode = Nuker.CreateSlider({
 		Name = "Break Slowmode",
-		Min = 0,
-		Max = 1,
+		Min = 1,
+		Max = 10,
 		Function = function(val) NukerSlowmode.EditText("BreakSlowmode: "..tostring(val)) end,
-		Default = 0.2
+		Default = 2
 	})
 	nukerrange = Nuker.CreateSlider({
 		Name = "Break range",
