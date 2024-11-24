@@ -8120,6 +8120,14 @@ run(function()
 	local rendermessages = {
 		[1] = {'cry me a river <name>', 'boo hooo <name>', 'womp womp <name>', 'I could care less <name>.'}
 	}
+	local AutoToxicPhrases6 = {ObjectList = {}}
+	local AutoToxicPhrases5 = {ObjectList = {}}
+	local AutoToxicPhrases7 = {ObjectList = {}}
+	local AutoToxicPhrases3 = {ObjectList = {}}
+	local AutoToxicPhrases2 = {ObjectList = {}}
+	local AutoToxicPhrases = {ObjectList = {}}
+	local AutoToxicPhrases4 = {ObjectList = {}}
+	local AutoToxicPhrases8 = {ObjectList = {}}
 	local function findreport(msg)
 		local checkstr = removerepeat(msg:gsub('%W+', ''):lower())
 		for i,v in next, (reporttable) do 
