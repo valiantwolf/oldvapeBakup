@@ -517,61 +517,64 @@ if shared.VapeExecuted then
 		writefile(baseDirectory..profilesDirectory..(shared.CustomSaveVape or game.PlaceId)..".vapeprofiles.txt", httpService:JSONEncode(GuiLibrary.Profiles))
 		local WindowTable = {}
 		for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
-			if v.Type == "Window" then
-				WindowTable[i] = {["Type"] = "Window", ["Visible"] = v.Object.Visible, ["Expanded"] = v["ChildrenObject"].Visible, ["Position"] = {v.Object.Position.X.Scale, v.Object.Position.X.Offset, v.Object.Position.Y.Scale, v.Object.Position.Y.Offset}}
-			end
-			local bypass = v.Api.Bypass and GuiLibrary.Settings or WindowTable
-			if v.Type == "CustomWindow" then
-				bypass[i] = {["Type"] = "CustomWindow", ["Visible"] = v.Object.Visible, ["Pinned"] = v["Api"]["Pinned"], ["Position"] = {v.Object.Position.X.Scale, v.Object.Position.X.Offset, v.Object.Position.Y.Scale, v.Object.Position.Y.Offset}}
-			end
-			if (v.Type == "ButtonMain" or v.Type == "ToggleMain") then
-				bypass[i] = {["Type"] = "ButtonMain", ["Enabled"] = v["Api"]["Enabled"], ["Keybind"] = v["Api"]["Keybind"]}
-			end
-			if v.Type == "ColorSliderMain" then
-				bypass[i] = {["Type"] = "ColorSliderMain", ["Hue"] = v["Api"]["Hue"], ["Sat"] = v["Api"]["Sat"], ["Value"] = v["Api"]["Value"], ["RainbowValue"] = v["Api"]["RainbowValue"], ["Custom"] = v["Api"]["Custom"]}
-			end
-			if v.Type == "ColorSliderGUI" then
-				bypass[i] = {["Type"] = "ColorSliderGUI", ["Hue"] = v["Api"]["Custom"] and v["Api"]["Hue"] or v["Api"]["Saved"], ["Sat"] = v["Api"]["Sat"], ["Value"] = v["Api"]["Value"], ["RainbowValue"] = v["Api"]["RainbowValue"], ["Custom"] = v["Api"]["Custom"]}
-			end
-			if v.Type == "SliderMain" then
-				bypass[i] = {["Type"] = "SliderMain", ["Value"] = v["Api"]["Value"]}
-			end
-			if v.Type == "DropdownMain" then
-				bypass[i] = {["Type"] = "DropdownMain", ["Value"] = v["Api"]["Value"]}
-			end
-			if v.Type == "TextBoxMain" then
-				bypass[i] = {["Type"] = "TextBoxMain", ["Value"] = v["Api"]["Value"]}
-			end
-			if (v.Type == "Button" or v.Type == "Toggle" or v.Type == "ExtrasButton" or v.Type == "TargetButton") then
-				GuiLibrary.Settings[i] = {["Type"] = "Button", ["Enabled"] = v["Api"]["Enabled"], ["Keybind"] = v["Api"]["Keybind"]}
-			end
-			if (v.Type == "OptionsButton" or v.Type == "ExtrasButton") then
-				GuiLibrary.Settings[i] = {["Type"] = "OptionsButton", ["Enabled"] = v["Api"]["Enabled"], ["Keybind"] = v["Api"]["Keybind"]}
-			end
-			if v.Type == "TextList" then
-				GuiLibrary.Settings[i] = {["Type"] = "TextList", ["ObjectTable"] = v["Api"]["ObjectList"]}
-			end
-			if v.Type == "TextCircleList" then
-				GuiLibrary.Settings[i] = {["Type"] = "TextCircleList", ["ObjectTable"] = v["Api"]["ObjectList"], ["ObjectTableEnabled"] = v["Api"]["ObjectListEnabled"]}
-			end
-			if v.Type == "TextBox" then
-				GuiLibrary.Settings[i] = {["Type"] = "TextBox", ["Value"] = v["Api"]["Value"]}
-			end
-			if v.Type == "Dropdown" then
-				GuiLibrary.Settings[i] = {["Type"] = "Dropdown", ["Value"] = v["Api"]["Value"]}
-			end
-			if v.Type == "Slider" then
-				GuiLibrary.Settings[i] = {["Type"] = "Slider", ["Value"] = v["Api"]["Value"], ["OldMax"] = v["Api"]["Max"], ["OldDefault"] = v["Api"]["Default"]}
-			end
-			if v.Type == "TwoSlider" then
-				GuiLibrary.Settings[i] = {["Type"] = "TwoSlider", ["Value"] = v["Api"]["Value"], ["Value2"] = v["Api"]["Value2"], ["SliderPos1"] = (v.Object:FindFirstChild("Slider") and v.Object.Slider.ButtonSlider.Position.X.Scale or 0), ["SliderPos2"] = (v.Object:FindFirstChild("Slider") and v.Object.Slider.ButtonSlider2.Position.X.Scale or 0)}
-			end
-			if v.Type == "ColorSlider" then
-				GuiLibrary.Settings[i] = {["Type"] = "ColorSlider", ["Hue"] = v["Api"]["Hue"], ["Sat"] = v["Api"]["Sat"], ["Value"] = v["Api"]["Value"], ["RainbowValue"] = v["Api"]["RainbowValue"]}
-			end
-			if v.Type == "LegitModule" then
-				GuiLibrary.Settings[i] = {["Type"] = "LegitModule", ["Enabled"] = v["Api"]["Enabled"], ["Position"] = {v.Object.Position.X.Scale, v.Object.Position.X.Offset, v.Object.Position.Y.Scale, v.Object.Position.Y.Offset}}
-			end
+			local suc, err = pcall(function()
+				if v.Type == "Window" then
+					WindowTable[i] = {["Type"] = "Window", ["Visible"] = v.Object.Visible, ["Expanded"] = v["ChildrenObject"].Visible, ["Position"] = {v.Object.Position.X.Scale, v.Object.Position.X.Offset, v.Object.Position.Y.Scale, v.Object.Position.Y.Offset}}
+				end
+				local bypass = v.Api.Bypass and GuiLibrary.Settings or WindowTable
+				if v.Type == "CustomWindow" then
+					bypass[i] = {["Type"] = "CustomWindow", ["Visible"] = v.Object.Visible, ["Pinned"] = v["Api"]["Pinned"], ["Position"] = {v.Object.Position.X.Scale, v.Object.Position.X.Offset, v.Object.Position.Y.Scale, v.Object.Position.Y.Offset}}
+				end
+				if (v.Type == "ButtonMain" or v.Type == "ToggleMain") then
+					bypass[i] = {["Type"] = "ButtonMain", ["Enabled"] = v["Api"]["Enabled"], ["Keybind"] = v["Api"]["Keybind"]}
+				end
+				if v.Type == "ColorSliderMain" then
+					bypass[i] = {["Type"] = "ColorSliderMain", ["Hue"] = v["Api"]["Hue"], ["Sat"] = v["Api"]["Sat"], ["Value"] = v["Api"]["Value"], ["RainbowValue"] = v["Api"]["RainbowValue"], ["Custom"] = v["Api"]["Custom"]}
+				end
+				if v.Type == "ColorSliderGUI" then
+					bypass[i] = {["Type"] = "ColorSliderGUI", ["Hue"] = v["Api"]["Custom"] and v["Api"]["Hue"] or v["Api"]["Saved"], ["Sat"] = v["Api"]["Sat"], ["Value"] = v["Api"]["Value"], ["RainbowValue"] = v["Api"]["RainbowValue"], ["Custom"] = v["Api"]["Custom"]}
+				end
+				if v.Type == "SliderMain" then
+					bypass[i] = {["Type"] = "SliderMain", ["Value"] = v["Api"]["Value"]}
+				end
+				if v.Type == "DropdownMain" then
+					bypass[i] = {["Type"] = "DropdownMain", ["Value"] = v["Api"]["Value"]}
+				end
+				if v.Type == "TextBoxMain" then
+					bypass[i] = {["Type"] = "TextBoxMain", ["Value"] = v["Api"]["Value"]}
+				end
+				if (v.Type == "Button" or v.Type == "Toggle" or v.Type == "ExtrasButton" or v.Type == "TargetButton") then
+					GuiLibrary.Settings[i] = {["Type"] = "Button", ["Enabled"] = v["Api"]["Enabled"], ["Keybind"] = v["Api"]["Keybind"]}
+				end
+				if (v.Type == "OptionsButton" or v.Type == "ExtrasButton") then
+					GuiLibrary.Settings[i] = {["Type"] = "OptionsButton", ["Enabled"] = v["Api"]["Enabled"], ["Keybind"] = v["Api"]["Keybind"]}
+				end
+				if v.Type == "TextList" then
+					GuiLibrary.Settings[i] = {["Type"] = "TextList", ["ObjectTable"] = v["Api"]["ObjectList"]}
+				end
+				if v.Type == "TextCircleList" then
+					GuiLibrary.Settings[i] = {["Type"] = "TextCircleList", ["ObjectTable"] = v["Api"]["ObjectList"], ["ObjectTableEnabled"] = v["Api"]["ObjectListEnabled"]}
+				end
+				if v.Type == "TextBox" then
+					GuiLibrary.Settings[i] = {["Type"] = "TextBox", ["Value"] = v["Api"]["Value"]}
+				end
+				if v.Type == "Dropdown" then
+					GuiLibrary.Settings[i] = {["Type"] = "Dropdown", ["Value"] = v["Api"]["Value"]}
+				end
+				if v.Type == "Slider" then
+					GuiLibrary.Settings[i] = {["Type"] = "Slider", ["Value"] = v["Api"]["Value"], ["OldMax"] = v["Api"]["Max"], ["OldDefault"] = v["Api"]["Default"]}
+				end
+				if v.Type == "TwoSlider" then
+					GuiLibrary.Settings[i] = {["Type"] = "TwoSlider", ["Value"] = v["Api"]["Value"], ["Value2"] = v["Api"]["Value2"], ["SliderPos1"] = (v.Object:FindFirstChild("Slider") and v.Object.Slider.ButtonSlider.Position.X.Scale or 0), ["SliderPos2"] = (v.Object:FindFirstChild("Slider") and v.Object.Slider.ButtonSlider2.Position.X.Scale or 0)}
+				end
+				if v.Type == "ColorSlider" then
+					GuiLibrary.Settings[i] = {["Type"] = "ColorSlider", ["Hue"] = v["Api"]["Hue"], ["Sat"] = v["Api"]["Sat"], ["Value"] = v["Api"]["Value"], ["RainbowValue"] = v["Api"]["RainbowValue"]}
+				end
+				if v.Type == "LegitModule" then
+					GuiLibrary.Settings[i] = {["Type"] = "LegitModule", ["Enabled"] = v["Api"]["Enabled"], ["Position"] = {v.Object.Position.X.Scale, v.Object.Position.X.Offset, v.Object.Position.Y.Scale, v.Object.Position.Y.Offset}}
+				end
+			end)
+			if (not suc) then warn("[Voidware Profile Saving]: Error! "..debug.traceback(tostring(err))) end
 		end
 		local mobileButtonSaving = {}
 		for _, mobileButton in pairs(GuiLibrary.MobileButtons) do
