@@ -1113,20 +1113,20 @@ bedwars.StoreController:registerUpdateIndex(function() bedwars.StoreController:e
 bedwars.StoreController:registerUpdateIndex(function() if store.equippedKit == "wind_walker" then bedwars.StoreController:updateZephyrOrbe() end end, 0.5)--]]
 
 function bedwars.StoreController:updateStore()
-	task.spawn(function() pcall(function() bedwars.StoreController:updateLocalHand() end) end)
+	task.spawn(function() pcall(function() self:updateLocalHand() end) end)
 	task.wait(0.1)
-	task.spawn(function() pcall(function() bedwars.StoreController:updateLocalInventory() end) end)
+	task.spawn(function() pcall(function() self:updateLocalInventory() end) end)
 	task.wait(0.1)
-	task.spawn(function() pcall(function() bedwars.StoreController:updateEquippedKit() end) end)
+	task.spawn(function() pcall(function() self:updateEquippedKit() end) end)
 	task.wait(0.1)
-	task.spawn(function() pcall(function() bedwars.StoreController:updateMatchState() end) end)
+	task.spawn(function() pcall(function() self:updateMatchState() end) end)
 	task.wait(0.1)
-	task.spawn(function() pcall(function() bedwars.StoreController:updateStoreBlocks() end) end)
+	task.spawn(function() pcall(function() self:updateStoreBlocks() end) end)
 	task.wait(0.1)
-	task.spawn(function() pcall(function() bedwars.StoreController:executeStoreTable() end) end)
+	task.spawn(function() pcall(function() self:executeStoreTable() end) end)
 	if store.equippedKit == "wind_walker" then
 		task.wait(0.1)
-		task.spawn(function() pcall(function() bedwars.StoreController:updateZephyrOrb() end) end)
+		task.spawn(function() pcall(function() self:updateZephyrOrb() end) end)
 	end
 end
 
