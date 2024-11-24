@@ -1397,6 +1397,23 @@ local function getHotbarSlot(itemName)
 end
 VoidwareFunctions.GlobaliseObject("getHotbarSlot", getHotbarSlot)
 
+local function getNearbyObjects(origin, distance)
+    assert(typeof(origin) == "Vector3", "Origin must be a Vector3")
+    assert(typeof(distance) == "number" and distance > 0, "Distance must be a positive number")
+    local minBound = origin - Vector3.new(distance, distance, distance)
+    local maxBound = origin + Vector3.new(distance, distance, distance)
+    local region = Region3.new(minBound, maxBound)
+    local workspaceObjects = game.Workspace:FindPartsInRegion3WithIgnoreList(region, {}, math.huge)
+    local nearbyObjects = {}
+    for _, part in pairs(workspaceObjects) do
+        if (part.Position - origin).Magnitude <= distance then
+            table.insert(nearbyObjects, part)
+        end
+    end
+    return nearbyObjects
+end
+VoidwareFunctions.GlobaliseObject("getNearyObjects", getNearbyObjects)
+
 local function getShieldAttribute(char)
 	local returnedShield = 0
 	for attributeName, attributeValue in pairs(char:GetAttributes()) do
@@ -6072,18 +6089,36 @@ run(function()
 		espobjs[v] = billboard
 	end
 
-	local function addKit(tag, icon)
-		table.insert(KitESP.Connections, collectionService:GetInstanceAddedSignal(tag):Connect(function(v)
-			espadd(v.PrimaryPart, icon)
-		end))
-		table.insert(KitESP.Connections, collectionService:GetInstanceRemovedSignal(tag):Connect(function(v)
-			if espobjs[v.PrimaryPart] then
-				espobjs[v.PrimaryPart]:Destroy()
-				espobjs[v.PrimaryPart] = nil
+	local function addKit(tag, icon, custom)
+		if (not custom) then
+			table.insert(KitESP.Connections, collectionService:GetInstanceAddedSignal(tag):Connect(function(v)
+				espadd(v.PrimaryPart, icon)
+			end))
+			table.insert(KitESP.Connections, collectionService:GetInstanceRemovedSignal(tag):Connect(function(v)
+				if espobjs[v.PrimaryPart] then
+					espobjs[v.PrimaryPart]:Destroy()
+					espobjs[v.PrimaryPart] = nil
+				end
+			end))
+			for i,v in pairs(collectionService:GetTagged(tag)) do
+				espadd(v.PrimaryPart, icon)
 			end
-		end))
-		for i,v in pairs(collectionService:GetTagged(tag)) do
-			espadd(v.PrimaryPart, icon)
+		else
+			local function check(v)
+				if v.Name == tag and v.ClassName == "Model" then
+					espadd(v.PrimaryPart, icon)
+				end
+			end
+			table.insert(KitESP.Connections, game.Workspace.ChildAdded:Connect(check))
+			table.insert(KitESP.Connections, game.Workspace.ChildRemoved:Connect(function(v)
+				if espobjs[v.PrimaryPart] then
+					espobjs[v.PrimaryPart]:Destroy()
+					espobjs[v.PrimaryPart] = nil
+				end
+			end))
+			for i,v in pairs(game.Workspace:GetChildren()) do
+				check(v)
+			end
 		end
 	end
 
@@ -6100,6 +6135,10 @@ run(function()
 							addKit("bee", "bee")
 						elseif store.equippedKit == "bigman" then
 							addKit("treeOrb", "natures_essence_1")
+						elseif store.equippedKit == "alchemist" then
+							addKit("Thorns", "thorns", true)
+							addKit("Mushrooms", "mushrooms", true)
+							addKit("Flower", "wild_flower", true)
 						end
 					end
 				end)
@@ -7375,8 +7414,34 @@ run(function()
 	end
 
 	local AutoKit_Functions = {
-		["owl"] = function()
-
+		["alchemist"] = function()
+			local function fetchItem(obj)
+				local args = {
+					[1] = {
+						["id"] = obj:GetAttribute("Id"),
+						["collectableName"] = obj.Name
+					}
+				}
+				local res = bedwars.Client:Get("CollectCollectableEntity"):FireServer(unpack(args))
+			end
+			local allowedNames = {"Thorns", "Mushrooms", "Flower"}
+			task.spawn(function()
+				repeat
+					task.wait()
+					if entityLibrary.isAlive then 
+						local maxDistance = 30
+						for i,v in pairs(game.Workspace:GetChildren()) do
+							if v.Parent and v.ClassName == "Model" and table.find(allowedNames, v.Name) and game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+								local pos1 = game:GetService("Players").LocalPlayer.Character:FindFirstChild("HumanoidRootPart").Position
+								local pos2 = v.PrimaryPart.Position
+								if (pos1 - pos2).Magnitude <= maxDistance then
+									fetchItem(v)
+								end
+							end
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
 		end,
 		["melody"] = function()
 			task.spawn(function()
@@ -9733,7 +9798,6 @@ run(function()
 		Default = 50
 	})
 end)
-
 
 VoidwareFunctions.GlobaliseObject("store", store)
 VoidwareFunctions.GlobaliseObject("GlobalStore", store)
