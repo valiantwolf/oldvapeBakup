@@ -574,7 +574,7 @@ if shared.VapeExecuted then
 					GuiLibrary.Settings[i] = {["Type"] = "LegitModule", ["Enabled"] = v["Api"]["Enabled"], ["Position"] = {v.Object.Position.X.Scale, v.Object.Position.X.Offset, v.Object.Position.Y.Scale, v.Object.Position.Y.Offset}}
 				end
 			end)
-			if (not suc) then warn("[Voidware Profile Saving]: Error! "..debug.traceback(tostring(err))) end
+			if (not suc) and shared.VoidDev and shared.ProfilesDebug then warn("[Voidware Profile Saving]: Error! "..debug.traceback(tostring(err))) end
 		end
 		local mobileButtonSaving = {}
 		for _, mobileButton in pairs(GuiLibrary.MobileButtons) do
@@ -690,7 +690,7 @@ if shared.VapeExecuted then
 						GuiLibrary["GUIKeybind"] = v["Value"]
 					end
 				end)
-				if (not suc) then warn("[Voidware Profile Loading | result3]: Error! "..debug.traceback(tostring(err))) end
+				if (not suc) and shared.VoidDev and shared.ProfilesDebug then warn("[Voidware Profile Loading | result3]: Error! "..debug.traceback(tostring(err))) end
 			end
 		end
 		local success, result = pcall(function()
@@ -811,7 +811,7 @@ if shared.VapeExecuted then
 						end
 					end
 				end)
-				if (not suc) then warn("[Voidware Profile Loading | result]: Error! "..debug,traceback(tostring(err))) end
+				if (not suc) and shared.VoidDev and shared.ProfilesDebug then warn("[Voidware Profile Loading | result]: Error! "..debug,traceback(tostring(err))) end
 			end
 			for i,v in pairs(result) do
 				local suc, err = pcall(function()
@@ -824,7 +824,7 @@ if shared.VapeExecuted then
 						end
 					end
 				end)
-				if (not suc) then warn("[Voidware Profile Loading | MobileButtons]: Error! "..debug,traceback(tostring(err))) end
+				if (not suc) and shared.VoidDev and shared.ProfilesDebug then warn("[Voidware Profile Loading | MobileButtons]: Error! "..debug,traceback(tostring(err))) end
 			end
 			local tbl = {6872274481, 6872265039, 8560631822, 8444591321}
 			if table.find(tbl, game.PlaceId) then repeat task.wait() until game:GetService("Players").LocalPlayer.Character end
@@ -846,7 +846,7 @@ if shared.VapeExecuted then
 						end
 					end
 				end)
-				if (not suc) then warn("[Voidware Profile Loading | OptionsButton]: Error! "..debug,traceback(tostring(err))) end
+				if (not suc) and shared.VoidDev and shared.ProfilesDebug then warn("[Voidware Profile Loading | OptionsButton]: Error! "..debug,traceback(tostring(err))) end
 			end
 		end
 		loadedsuccessfully = true
