@@ -625,69 +625,72 @@ if shared.VapeExecuted then
 		end)
 		if success3 and type(result3) == "table" then
 			for i,v in pairs(result3) do
-				local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
-				if obj then
-					if v.Type == "Window" then
-						obj.Object.Position = UDim2.new(v["Position"][1], v["Position"][2], v["Position"][3], v["Position"][4])
-						obj.Object.Visible = v["Visible"]
-						if v["Expanded"] then
-							obj["Api"]["ExpandToggle"]()
-						end
-					end
-					if v.Type == "CustomWindow" then
-						obj.Object.Position = UDim2.new(v["Position"][1], v["Position"][2], v["Position"][3], v["Position"][4])
-						obj.Object.Visible = v["Visible"]
-						if v["Pinned"] then
-							obj["Api"]["PinnedToggle"]()
-						end
-						obj["Api"]["CheckVis"]()
-					end
-					if v.Type == "ButtonMain" then
-						if obj["Type"] == "ToggleMain" then
-							obj["Api"]["ToggleButton"](v["Enabled"], true)
-							if v["Keybind"] ~= "" then
-								obj["Api"]["Keybind"] = v["Keybind"]
+				local suc, err = pcall(function()
+					local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
+					if obj then
+						if v.Type == "Window" then
+							obj.Object.Position = UDim2.new(v["Position"][1], v["Position"][2], v["Position"][3], v["Position"][4])
+							obj.Object.Visible = v["Visible"]
+							if v["Expanded"] then
+								obj["Api"]["ExpandToggle"]()
 							end
-						else
-							if v["Enabled"] then
-								obj["Api"]["ToggleButton"](false, true)
+						end
+						if v.Type == "CustomWindow" then
+							obj.Object.Position = UDim2.new(v["Position"][1], v["Position"][2], v["Position"][3], v["Position"][4])
+							obj.Object.Visible = v["Visible"]
+							if v["Pinned"] then
+								obj["Api"]["PinnedToggle"]()
+							end
+							obj["Api"]["CheckVis"]()
+						end
+						if v.Type == "ButtonMain" then
+							if obj["Type"] == "ToggleMain" then
+								obj["Api"]["ToggleButton"](v["Enabled"], true)
 								if v["Keybind"] ~= "" then
-									obj["Api"]["SetKeybind"](v["Keybind"])
+									obj["Api"]["Keybind"] = v["Keybind"]
+								end
+							else
+								if v["Enabled"] then
+									obj["Api"]["ToggleButton"](false, true)
+									if v["Keybind"] ~= "" then
+										obj["Api"]["SetKeybind"](v["Keybind"])
+									end
 								end
 							end
 						end
-					end
-					if v.Type == "DropdownMain" then
-						obj["Api"]["SetValue"](v["Value"])
-					end
-					if v.Type == "ColorSliderMain" then
-						local valcheck = v["Hue"] ~= nil
-						obj["Api"]["SetValue"](valcheck and v["Hue"] or v["Value"] or 0.44, valcheck or v["Sat"] or 1, valcheck and v["Value"] or 1)
-						if v["RainbowValue"] then obj["Api"]["SetRainbow"](v["RainbowValue"]) end
-					end
-					if v.Type == "ColorSliderGUI" then
-						local valcheck = v["Hue"] ~= nil
-						obj["Api"]["Custom"] = v["Custom"]
-						if v["Custom"] then
-							obj["Api"]["SetValue"](v["Hue"], v["Sat"], v["Value"])
-						else
-							obj["Api"]["SetValue"](valcheck and v["Hue"] and (v["Hue"] / 7) - 0.1 or v["Value"] or 0.44, valcheck and v["Sat"] or 1, valcheck and v["Value"] or 1)
+						if v.Type == "DropdownMain" then
+							obj["Api"]["SetValue"](v["Value"])
 						end
-						if v["RainbowValue"] then obj["Api"]["SetRainbow"](v["RainbowValue"]) end
+						if v.Type == "ColorSliderMain" then
+							local valcheck = v["Hue"] ~= nil
+							obj["Api"]["SetValue"](valcheck and v["Hue"] or v["Value"] or 0.44, valcheck or v["Sat"] or 1, valcheck and v["Value"] or 1)
+							if v["RainbowValue"] then obj["Api"]["SetRainbow"](v["RainbowValue"]) end
+						end
+						if v.Type == "ColorSliderGUI" then
+							local valcheck = v["Hue"] ~= nil
+							obj["Api"]["Custom"] = v["Custom"]
+							if v["Custom"] then
+								obj["Api"]["SetValue"](v["Hue"], v["Sat"], v["Value"])
+							else
+								obj["Api"]["SetValue"](valcheck and v["Hue"] and (v["Hue"] / 7) - 0.1 or v["Value"] or 0.44, valcheck and v["Sat"] or 1, valcheck and v["Value"] or 1)
+							end
+							if v["RainbowValue"] then obj["Api"]["SetRainbow"](v["RainbowValue"]) end
+						end
+						if v.Type == "SliderMain" then
+							obj["Api"]["SetValue"](v["Value"])
+						end
+						if v.Type == "TextBoxMain" then
+							obj["Api"]["SetValue"](v["Value"])
+						end
 					end
-					if v.Type == "SliderMain" then
-						obj["Api"]["SetValue"](v["Value"])
+					if v.Type == "GUIKeybind" then
+						if (v.Value and v.Value ~= "RightShift") then
+							--if shared.VapeButton then shared.VapeButton:Destroy() end
+						end
+						GuiLibrary["GUIKeybind"] = v["Value"]
 					end
-					if v.Type == "TextBoxMain" then
-						obj["Api"]["SetValue"](v["Value"])
-					end
-				end
-				if v.Type == "GUIKeybind" then
-					if (v.Value and v.Value ~= "RightShift") then
-						--if shared.VapeButton then shared.VapeButton:Destroy() end
-					end
-					GuiLibrary["GUIKeybind"] = v["Value"]
-				end
+				end)
+				if (not suc) then warn("[Voidware Profile Loading | result3]: Error! "..debug.traceback(tostring(err))) end
 			end
 		end
 		local success, result = pcall(function()
@@ -696,145 +699,154 @@ if shared.VapeExecuted then
 		if success and type(result) == "table" then
 			GuiLibrary["LoadSettingsEvent"]:Fire(result)
 			for i,v in pairs(result) do
-				if v.Type == "Custom" and GuiLibrary.Settings[i] then
-					GuiLibrary.Settings[i] = v
-				end
-				local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
-				if obj then
-					local starttick = tick()
-					if v.Type == "Dropdown" then
-						obj["Api"]["SetValue"](v["Value"])
+				local suc, err = pcall(function()
+					if v.Type == "Custom" and GuiLibrary.Settings[i] then
+						GuiLibrary.Settings[i] = v
 					end
-					if v.Type == "CustomWindow" then
-						obj.Object.Position = UDim2.new(v["Position"][1], v["Position"][2], v["Position"][3], v["Position"][4])
-						obj.Object.Visible = v["Visible"]
-						if v["Pinned"] then
-							obj["Api"]["PinnedToggle"]()
+					local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
+					if obj then
+						local starttick = tick()
+						if v.Type == "Dropdown" then
+							obj["Api"]["SetValue"](v["Value"])
 						end
-						obj["Api"]["CheckVis"]()
-					end
-					if v.Type == "ButtonMain" then
-						if obj["Type"] == "ToggleMain" then
-							obj["Api"]["ToggleButton"](v["Enabled"], true)
-							if v["Keybind"] ~= "" then
-								obj["Api"]["Keybind"] = v["Keybind"]
+						if v.Type == "CustomWindow" then
+							obj.Object.Position = UDim2.new(v["Position"][1], v["Position"][2], v["Position"][3], v["Position"][4])
+							obj.Object.Visible = v["Visible"]
+							if v["Pinned"] then
+								obj["Api"]["PinnedToggle"]()
 							end
-						else
-							if v["Enabled"] then
-								obj["Api"]["ToggleButton"](false, true)
+							obj["Api"]["CheckVis"]()
+						end
+						if v.Type == "ButtonMain" then
+							if obj["Type"] == "ToggleMain" then
+								obj["Api"]["ToggleButton"](v["Enabled"], true)
 								if v["Keybind"] ~= "" then
-									obj["Api"]["SetKeybind"](v["Keybind"])
-								end
-							end
-						end
-					end
-					if v.Type == "DropdownMain" then
-						obj["Api"]["SetValue"](v["Value"])
-					end
-					if v.Type == "ColorSliderMain" then
-						local valcheck = v["Hue"] ~= nil
-						warn(i, valcheck and v["Hue"] or v["Value"] or 0.44, valcheck or v["Sat"] or 1, valcheck and v["Value"] or 1)
-						obj["Api"]["SetValue"](valcheck and v["Hue"] or v["Value"] or 0.44, valcheck or v["Sat"] or 1, valcheck and v["Value"] or 1)
-						if v["RainbowValue"] then obj["Api"]["SetRainbow"](v["RainbowValue"]) end
-					end
-					if v.Type == "Button" then
-						if obj["Type"] == "Toggle" then
-							if obj["Api"]["Default"] then
-								if not v["Enabled"] then
-									obj["Api"]["ToggleButton"](v["Enabled"], true)
+									obj["Api"]["Keybind"] = v["Keybind"]
 								end
 							else
-								obj["Api"]["ToggleButton"](v["Enabled"], true)
-							end
-							if v["Keybind"] ~= "" then
-								obj["Api"]["Keybind"] = v["Keybind"]
-							end
-						elseif obj["Type"] == "TargetButton" then
-							obj["Api"]["ToggleButton"](v["Enabled"], true)
-						else
-							if v["Enabled"] then
-								obj["Api"]["ToggleButton"](false)
-								if v["Keybind"] ~= "" then
-									obj["Api"]["SetKeybind"](v["Keybind"])
+								if v["Enabled"] then
+									obj["Api"]["ToggleButton"](false, true)
+									if v["Keybind"] ~= "" then
+										obj["Api"]["SetKeybind"](v["Keybind"])
+									end
 								end
 							end
 						end
-					end
-					if v.Type == "NewToggle" then
-						obj["Api"]["ToggleButton"](v["Enabled"], true)
-						if v["Keybind"] ~= "" then
-							obj["Api"]["Keybind"] = v["Keybind"]
+						if v.Type == "DropdownMain" then
+							obj["Api"]["SetValue"](v["Value"])
+						end
+						if v.Type == "ColorSliderMain" then
+							local valcheck = v["Hue"] ~= nil
+							warn(i, valcheck and v["Hue"] or v["Value"] or 0.44, valcheck or v["Sat"] or 1, valcheck and v["Value"] or 1)
+							obj["Api"]["SetValue"](valcheck and v["Hue"] or v["Value"] or 0.44, valcheck or v["Sat"] or 1, valcheck and v["Value"] or 1)
+							if v["RainbowValue"] then obj["Api"]["SetRainbow"](v["RainbowValue"]) end
+						end
+						if v.Type == "Button" then
+							if obj["Type"] == "Toggle" then
+								if obj["Api"]["Default"] then
+									if not v["Enabled"] then
+										obj["Api"]["ToggleButton"](v["Enabled"], true)
+									end
+								else
+									obj["Api"]["ToggleButton"](v["Enabled"], true)
+								end
+								if v["Keybind"] ~= "" then
+									obj["Api"]["Keybind"] = v["Keybind"]
+								end
+							elseif obj["Type"] == "TargetButton" then
+								obj["Api"]["ToggleButton"](v["Enabled"], true)
+							else
+								if v["Enabled"] then
+									obj["Api"]["ToggleButton"](false)
+									if v["Keybind"] ~= "" then
+										obj["Api"]["SetKeybind"](v["Keybind"])
+									end
+								end
+							end
+						end
+						if v.Type == "NewToggle" then
+							obj["Api"]["ToggleButton"](v["Enabled"], true)
+							if v["Keybind"] ~= "" then
+								obj["Api"]["Keybind"] = v["Keybind"]
+							end
+						end
+						if v.Type == "Slider" then
+							obj["Api"]["SetValue"](v["OldMax"] ~= obj["Api"]["Max"] and v["Value"] > obj["Api"]["Max"] and obj["Api"]["Max"] or (v["OldDefault"] ~= obj["Api"]["Default"] and v["Value"] == v["OldDefault"] and obj["Api"]["Default"] or v["Value"]))
+						end
+						if v.Type == "TextBox" then
+							obj["Api"]["SetValue"](v["Value"])
+						end
+						if v.Type == "TextList" then
+							obj["Api"]["RefreshValues"]((v["ObjectTable"] or {}))
+						end
+						if v.Type == "TextCircleList" then
+							obj["Api"]["RefreshValues"]((v["ObjectTable"] or {}), (v["ObjectTableEnabled"] or {}))
+						end
+						if v.Type == "TwoSlider" then
+							obj["Api"]["SetValue"](v["Value"] == obj["Api"]["Min"] and 0 or v["Value"])
+							obj["Api"]["SetValue2"](v["Value2"])
+							obj.Object.Slider.ButtonSlider.Position = UDim2.new(v["SliderPos1"], -8, 1, -9)
+							obj.Object.Slider.ButtonSlider2.Position = UDim2.new(v["SliderPos2"], -8, 1, -9)
+							obj.Object.Slider.FillSlider.Size = UDim2.new(0, obj.Object.Slider.ButtonSlider2.AbsolutePosition.X - obj.Object.Slider.ButtonSlider.AbsolutePosition.X, 1, 0)
+							obj.Object.Slider.FillSlider.Position = UDim2.new(obj.Object.Slider.ButtonSlider.Position.X.Scale, 0, 0, 0)
+							--obj.Object.Slider.FillSlider.Size = UDim2.new((v["Value"] < obj["Api"]["Max"] and v["Value"] or obj["Api"]["Max"]) / obj["Api"]["Max"], 0, 1, 0)
+						end
+						if v.Type == "ColorSlider" then
+							v["Hue"] = v["Hue"] or 0.44
+							v["Sat"] = v["Sat"] or 1
+							v["Value"] = v["Value"] or 1
+							obj["Api"]["SetValue"](v["Hue"], v["Sat"], v["Value"])
+							if v["RainbowValue"] then obj["Api"]["SetRainbow"](v["RainbowValue"]) end
+							obj.Object.Slider.ButtonSlider.Position = UDim2.new(math.clamp(v["Hue"], 0.02, 0.95), -9, 0, -7)
+							pcall(function()
+								obj["Object2"].Slider.ButtonSlider.Position = UDim2.new(math.clamp(v["Sat"], 0.02, 0.95), -9, 0, -7)
+								obj["Object3"].Slider.ButtonSlider.Position = UDim2.new(math.clamp(v["Value"], 0.02, 0.95), -9, 0, -7)
+							end)
+						end
+						if v.Type == "LegitModule" then
+							obj.Object.Position = UDim2.new(v["Position"][1], v["Position"][2], v["Position"][3], v["Position"][4])
+							if v["Enabled"] then
+								obj["Api"]["ToggleButton"](true)
+							end
 						end
 					end
-					if v.Type == "Slider" then
-						obj["Api"]["SetValue"](v["OldMax"] ~= obj["Api"]["Max"] and v["Value"] > obj["Api"]["Max"] and obj["Api"]["Max"] or (v["OldDefault"] ~= obj["Api"]["Default"] and v["Value"] == v["OldDefault"] and obj["Api"]["Default"] or v["Value"]))
-					end
-					if v.Type == "TextBox" then
-						obj["Api"]["SetValue"](v["Value"])
-					end
-					if v.Type == "TextList" then
-						obj["Api"]["RefreshValues"]((v["ObjectTable"] or {}))
-					end
-					if v.Type == "TextCircleList" then
-						obj["Api"]["RefreshValues"]((v["ObjectTable"] or {}), (v["ObjectTableEnabled"] or {}))
-					end
-					if v.Type == "TwoSlider" then
-						obj["Api"]["SetValue"](v["Value"] == obj["Api"]["Min"] and 0 or v["Value"])
-						obj["Api"]["SetValue2"](v["Value2"])
-						obj.Object.Slider.ButtonSlider.Position = UDim2.new(v["SliderPos1"], -8, 1, -9)
-						obj.Object.Slider.ButtonSlider2.Position = UDim2.new(v["SliderPos2"], -8, 1, -9)
-						obj.Object.Slider.FillSlider.Size = UDim2.new(0, obj.Object.Slider.ButtonSlider2.AbsolutePosition.X - obj.Object.Slider.ButtonSlider.AbsolutePosition.X, 1, 0)
-						obj.Object.Slider.FillSlider.Position = UDim2.new(obj.Object.Slider.ButtonSlider.Position.X.Scale, 0, 0, 0)
-						--obj.Object.Slider.FillSlider.Size = UDim2.new((v["Value"] < obj["Api"]["Max"] and v["Value"] or obj["Api"]["Max"]) / obj["Api"]["Max"], 0, 1, 0)
-					end
-					if v.Type == "ColorSlider" then
-						v["Hue"] = v["Hue"] or 0.44
-						v["Sat"] = v["Sat"] or 1
-						v["Value"] = v["Value"] or 1
-						obj["Api"]["SetValue"](v["Hue"], v["Sat"], v["Value"])
-						if v["RainbowValue"] then obj["Api"]["SetRainbow"](v["RainbowValue"]) end
-						obj.Object.Slider.ButtonSlider.Position = UDim2.new(math.clamp(v["Hue"], 0.02, 0.95), -9, 0, -7)
-						pcall(function()
-							obj["Object2"].Slider.ButtonSlider.Position = UDim2.new(math.clamp(v["Sat"], 0.02, 0.95), -9, 0, -7)
-							obj["Object3"].Slider.ButtonSlider.Position = UDim2.new(math.clamp(v["Value"], 0.02, 0.95), -9, 0, -7)
-						end)
-					end
-					if v.Type == "LegitModule" then
-						obj.Object.Position = UDim2.new(v["Position"][1], v["Position"][2], v["Position"][3], v["Position"][4])
-						if v["Enabled"] then
-							obj["Api"]["ToggleButton"](true)
-						end
-					end
-				end
+				end)
+				if (not suc) then warn("[Voidware Profile Loading | result]: Error! "..debug,traceback(tostring(err))) end
 			end
 			for i,v in pairs(result) do
-				if v.Type == "MobileButtons" then
-					for _, mobileButton in pairs(v.Buttons) do
-						local module = GuiLibrary.ObjectsThatCanBeSaved[mobileButton.Module]
-						if module then
-							createMobileButton(module.Api, Vector2.new(mobileButton.Position[1], mobileButton.Position[2]))
+				local suc, err = pcall(function()
+					if v.Type == "MobileButtons" then
+						for _, mobileButton in pairs(v.Buttons) do
+							local module = GuiLibrary.ObjectsThatCanBeSaved[mobileButton.Module]
+							if module then
+								createMobileButton(module.Api, Vector2.new(mobileButton.Position[1], mobileButton.Position[2]))
+							end
 						end
 					end
-				end
+				end)
+				if (not suc) then warn("[Voidware Profile Loading | MobileButtons]: Error! "..debug,traceback(tostring(err))) end
 			end
 			local tbl = {6872274481, 6872265039, 8560631822, 8444591321}
 			if table.find(tbl, game.PlaceId) then repeat task.wait() until game:GetService("Players").LocalPlayer.Character end
 			for i,v in pairs(result) do
-				local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
-				if obj then
-					if v.Type == "OptionsButton" then
-						if v["Enabled"] and not obj["Api"]["Enabled"] then
-							task.wait(shared.LoadSlowmode or 0.03)
-							task.spawn(function()
-								local suc, res = pcall(function() obj["Api"]["ToggleButton"](false) end)
-								if not suc then warn("FAILURE ENABLING OPTIONS BUTTON! ", debug.traceback(tostring(res))) end
-							end)
-						end
-						if v["Keybind"] ~= "" then
-							obj["Api"]["SetKeybind"](v["Keybind"])
+				local suc, err = pcall(function()
+					local obj = GuiLibrary.ObjectsThatCanBeSaved[i]
+					if obj then
+						if v.Type == "OptionsButton" then
+							if v["Enabled"] and not obj["Api"]["Enabled"] then
+								task.wait(shared.LoadSlowmode or 0.03)
+								task.spawn(function()
+									local suc, res = pcall(function() obj["Api"]["ToggleButton"](false) end)
+									if not suc then warn("FAILURE ENABLING OPTIONS BUTTON! ", debug.traceback(tostring(res))) end
+								end)
+							end
+							if v["Keybind"] ~= "" then
+								obj["Api"]["SetKeybind"](v["Keybind"])
+							end
 						end
 					end
-				end
+				end)
+				if (not suc) then warn("[Voidware Profile Loading | OptionsButton]: Error! "..debug,traceback(tostring(err))) end
 			end
 		end
 		loadedsuccessfully = true
