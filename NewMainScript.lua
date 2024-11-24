@@ -21,7 +21,24 @@ local debugChecks = {
 }
 if identifyexecutor and type(identifyexecutor) == "function" and tostring(identifyexecutor()):lower() == "appleware" then CheatEngineMode = true end
 local function checkDebug()
-    if (not getgenv().debug) then CheatEngineMode = true else if type(debug) ~= "table" then CheatEngineMode = true; else for i,v in pairs(debug) do if type(v) ~= "function" then else local suc, res = pcall(v); if tostring(res) == "Not Implemented" then CheatEngineMode = true end end end end end
+    if not getgenv().debug then 
+        CheatEngineMode = true 
+    else 
+        if type(debug) ~= debugChecks.Type then 
+            CheatEngineMode = true
+        else 
+            for i, v in pairs(debugChecks.Functions) do
+                if not debug[v] or (debug[v] and type(debug[v]) ~= "function") then 
+                    CheatEngineMode = true 
+                else
+                    local suc, res = pcall(debug[v]) 
+                    if tostring(res) == "Not Implemented" then 
+                        CheatEngineMode = true 
+                    end
+                end
+            end
+        end
+    end
 end
 if (not CheatEngineMode) then checkDebug() end
 local baseDirectory = shared.RiseMode and "rise/" or "vape/"
