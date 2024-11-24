@@ -1520,7 +1520,7 @@ local isZephyr = false
 shared.zephyrActive = false
 shared.scytheActive = false
 shared.scytheSpeed = 5
-local function getSpeed()
+local function getSpeed(reduce)
 	local speed = 0
 	if lplr.Character then
 		local SpeedDamageBoost = lplr.Character:GetAttribute("SpeedBoost")
@@ -1536,7 +1536,6 @@ local function getSpeed()
 		if lplr.Character:GetAttribute("GrimReaperChannel") then
 			speed = speed + 20
 		end
-		--if store.desyncing and desyncboost.Enabled and not vape.istoggled('LongJump') then speed += 2.3 end
 		local armor = store.localInventory.inventory.armor[3]
 		if type(armor) ~= "table" then armor = {itemType = ""} end
 		if armor.itemType == "speed_boots" then
@@ -1554,7 +1553,7 @@ local function getSpeed()
 	pcall(function()
 		--speed = speed + (CheatEngineHelper.SprintEnabled and 23 - game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed or 0)
 	end)
-	return speed
+	return reduce and speed ~= 1 and math.max(speed * (0.8 - (0.3 * math.floor(speed))), 1) or speed
 end
 
 local Reach = {Enabled = false}
@@ -5148,6 +5147,69 @@ run(function()
 end)
 
 local antivoidvelo
+--[[run(function()
+    local Speed = {Enabled = false}
+	local SpeedMode = {Value = "CFrame"}
+	local SpeedValue = {Value = 1}
+    local SpeedDamageBoost = {Enabled = false}
+    local raycastparameters = RaycastParams.new()
+    local damagetick = tick()
+
+    Speed = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+		Name = "Speed",
+		Function = function(callback)
+			if callback then
+				table.insert(Speed.Connections, vapeEvents.EntityDamageEvent.Event:Connect(function(damageTable)
+					if damageTable.entityInstance == lplr.Character and (damageTable.damageType ~= 0 or damageTable.extra and damageTable.extra.chargeRatio ~= nil) and (not (damageTable.knockbackMultiplier and damageTable.knockbackMultiplier.disabled or damageTable.knockbackMultiplier and damageTable.knockbackMultiplier.horizontal == 0)) and SpeedDamageBoost.Enabled then 
+						damagetick = tick() + 0.4
+					end
+				end))
+				RunLoops:BindToHeartbeat("Speed", function(delta)
+					if entityLibrary.isAlive then
+						if GuiLibrary.ObjectsThatCanBeSaved["FlyOptionsButton"] and GuiLibrary.ObjectsThatCanBeSaved["FlyOptionsButton"].Api and GuiLibrary.ObjectsThatCanBeSaved["FlyOptionsButton"].Api.Enabled or GuiLibrary.ObjectsThatCanBeSaved["InfiniteFlyOptionsButton"] and GuiLibrary.ObjectsThatCanBeSaved["InfiniteFlyOptionsButton"].Api and GuiLibrary.ObjectsThatCanBeSaved["InfiniteFlyOptionsButton"].Api.Enabled or GuiLibrary.ObjectsThatCanBeSaved["LongJumpOptionsButton"] and GuiLibrary.ObjectsThatCanBeSaved["LongJumpOptionsButton"].Api and GuiLibrary.ObjectsThatCanBeSaved["LongJumpOptionsButton"].Api.Enabled then return end
+						local speedValue = ((damagetick > tick() and SpeedValue.Value * 2.25 or SpeedValue.Value) * getSpeed(true))
+						local speedVelocity = entityLibrary.character.Humanoid.MoveDirection * (SpeedMode.Value == "Normal" and speedValue or (20 * getSpeed()))
+						entityLibrary.character.HumanoidRootPart.Velocity = antivoidvelo or Vector3.new(speedVelocity.X, entityLibrary.character.HumanoidRootPart.Velocity.Y, speedVelocity.Z)
+						if SpeedMode.Value ~= "Normal" then 
+							if SpeedMode.Value == "Heatseeker" then 
+								speedValue = tick() % 1 < 0.6 and 5 or (20 * getSpeed(true)) / 0.4
+							end
+							local speedCFrame = entityLibrary.character.Humanoid.MoveDirection * (speedValue - 20) * delta
+							raycastparameters.FilterDescendantsInstances = {lplr.Character}
+							local ray = workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, speedCFrame, raycastparameters)
+							if ray then speedCFrame = (ray.Position - entityLibrary.character.HumanoidRootPart.Position) end
+							entityLibrary.character.HumanoidRootPart.CFrame = entityLibrary.character.HumanoidRootPart.CFrame + speedCFrame
+						end
+					end
+				end)
+			else
+				RunLoops:UnbindFromHeartbeat("Speed")
+			end
+		end,
+		HoverText = "Increases your movement speed",
+		ExtraText = function() return SpeedMode.Value end
+	})
+	Speed.Restart = function()
+		if Speed.Enabled then Speed.ToggleButton(false); Speed.ToggleButton(false) end
+	end
+	SpeedMode = Speed.CreateDropdown({
+		Name = "Mode",
+		Function = Speed.Restart,
+		List = {"CFrame", "Normal", "Heatseeker"}
+	})
+	SpeedValue = Speed.CreateSlider({
+		Name = "Speed",
+		Function = function() end,
+		Min = 1,
+		Max = 23,
+		Default = 23
+	})
+    SpeedDamageBoost = Speed.CreateToggle({
+		Name = "Damage Boost",
+		Function = Speed.Restart,
+		Default = true
+	})
+end)--]]
 run(function()
 	local Speed = {Enabled = false}
 	local SpeedMode = {Value = "CFrame"}
@@ -5159,13 +5221,20 @@ run(function()
 	local SpeedJumpSound = {Enabled = false}
 	local SpeedJumpVanilla = {Enabled = false}
 	local SpeedAnimation = {Enabled = false}
+	local SpeedDamageBoost = {Enabled = false}
 	local raycastparameters = RaycastParams.new()
+	local damagetick = tick()
 
 	local alternatelist = {"Normal", "AntiCheat A", "AntiCheat B"}
 	Speed = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = "Speed",
 		Function = function(callback)
 			if callback then
+				table.insert(Speed.Connections, vapeEvents.EntityDamageEvent.Event:Connect(function(damageTable)
+					if damageTable.entityInstance == lplr.Character and (damageTable.damageType ~= 0 or damageTable.extra and damageTable.extra.chargeRatio ~= nil) and (not (damageTable.knockbackMultiplier and damageTable.knockbackMultiplier.disabled or damageTable.knockbackMultiplier and damageTable.knockbackMultiplier.horizontal == 0)) and SpeedDamageBoost.Enabled then 
+						damagetick = tick() + 0.4
+					end
+				end))
 				RunLoops:BindToHeartbeat("Speed", function(delta)
 					if GuiLibrary.ObjectsThatCanBeSaved["Lobby CheckToggle"].Api.Enabled then
 						if store.matchState == 0 then return end
@@ -5182,7 +5251,7 @@ run(function()
 							end
 						end
 
-						local speedValue = SpeedValue.Value + getSpeed()
+						local speedValue = damagetick > tick() and SpeedValue.Value * 2.25 or SpeedValue.Value + getSpeed() - 1
 						local speedVelocity = entityLibrary.character.Humanoid.MoveDirection * (SpeedMode.Value == "Normal" and SpeedValue.Value or 20)
 						entityLibrary.character.HumanoidRootPart.Velocity = antivoidvelo or Vector3.new(speedVelocity.X, entityLibrary.character.HumanoidRootPart.Velocity.Y, speedVelocity.Z)
 						if SpeedMode.Value ~= "Normal" then
@@ -5215,6 +5284,14 @@ run(function()
 		ExtraText = function()
 			return "Heatseeker"
 		end
+	})
+	Speed.Restart = function()
+		if Speed.Enabled then Speed.ToggleButton(false); Speed.ToggleButton(false) end
+	end
+	SpeedDamageBoost = Speed.CreateToggle({
+		Name = "Damage Boost",
+		Function = Speed.Restart,
+		Default = true
 	})
 	SpeedValue = Speed.CreateSlider({
 		Name = "Speed",
