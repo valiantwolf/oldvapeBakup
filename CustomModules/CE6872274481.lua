@@ -5158,9 +5158,10 @@ run(function()
 		HoverText = "Shows the amount of blocks in the middle."
 	})
 	ScaffoldHandCheck = Scaffold.CreateToggle({
-		Name = "Whitelist Only",
+		Name = "Hand Check",
 		Function = function() end,
-		HoverText = "Only builds with blocks in your hand."
+		HoverText = "Only builds with blocks in your hand.",
+		Default = false
 	})
 	ScaffoldAnimation = Scaffold.CreateToggle({
 		Name = "Animation",
