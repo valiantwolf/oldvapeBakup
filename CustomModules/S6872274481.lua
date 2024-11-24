@@ -28,6 +28,8 @@ GuiLibrary.SelfDestructEvent.Event:Connect(function()
 end)
 
 local store = shared.GlobalStore
+store.blockRaycast = RaycastParams.new()
+store.blockRaycast.FilterType = Enum.RaycastFilterType.Include
 
 local function run(func)
 	local suc, err = pcall(function()
