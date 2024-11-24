@@ -6111,10 +6111,12 @@ run(function()
 			end
 			table.insert(KitESP.Connections, game.Workspace.ChildAdded:Connect(check))
 			table.insert(KitESP.Connections, game.Workspace.ChildRemoved:Connect(function(v)
-				if espobjs[v.PrimaryPart] then
-					espobjs[v.PrimaryPart]:Destroy()
-					espobjs[v.PrimaryPart] = nil
-				end
+				pcall(function()
+					if espobjs[v.PrimaryPart] then
+						espobjs[v.PrimaryPart]:Destroy()
+						espobjs[v.PrimaryPart] = nil
+					end
+				end)
 			end))
 			for i,v in pairs(game.Workspace:GetChildren()) do
 				check(v)
@@ -7396,7 +7398,7 @@ end)
 end)--]]
 
 run(function()
-	local AutoKit = {Enabled = false}
+	local AutoKit = {Enabled = false, Connections = {}}
 	local AutoKitTrinity = {Value = "Void"}
 	local oldfish
 	local function GetTeammateThatNeedsMost()
@@ -7415,6 +7417,40 @@ run(function()
 
 	local AutoKit_Functions = {
 		["alchemist"] = function()
+			table.insert(AutoKit.Connections, game:GetService("Players").LocalPlayer.Chatted:Connect(function(msg)
+				if AutoKit.Enabled then
+					local parts = string.split(msg, " ")
+					if parts[1] and (parts[1] == "/recipes" or parts[1] == "/potions") then
+						local potions = bedwars.ItemTable["brewing_cauldron"].crafting.recipes
+						local function resolvePotionsData(data)
+							local finalData = {}
+							for i,v in pairs(data) do
+								local result = v.result
+								local brewingTime = v.timeToCraft
+								local recipe = ""
+								for i2, v2 in pairs(v.ingredients) do
+									recipe = recipe ~= "" and recipe.." + "..tostring(v2) or recipe == "" and recipe..tostring(v2)
+								end
+								table.insert(finalData, {
+									Result = result, 
+									BrewingTime = brewingTime,
+									Recipe = recipe
+								})
+							end
+							return finalData
+						end
+						for i,v in pairs(resolvePotionsData(potions)) do
+							local text = v.Result..": "..v.Recipe.." ("..tostring(v.BrewingTime).."seconds)"
+							game:GetService("StarterGui"):SetCore("ChatMakeSystemMessage", {
+								Text = text,
+								Color = Color3.new(255, 255, 255),
+								Font = Enum.Font.SourceSans,
+								FontSize = Enum.FontSize.Size36
+							})
+						end
+					end
+				end
+			end))
 			local function fetchItem(obj)
 				local args = {
 					[1] = {
