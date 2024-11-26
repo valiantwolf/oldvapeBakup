@@ -4033,6 +4033,15 @@ run(function()
 									weapon = getItemNear('infernal_saber')
 								})
 							end
+							pcall(function()
+								if getItemNear('summoner_claw') then
+									bedwars.Client:Get("SummonerClawAttackRequest"):FireServer({
+										["clientTime"] = tick(),
+										["direction"] = (plrs[1]:FindFirstChild("HumanoidRootPart") and plrs[1]:FindFirstChild("HumanoidRootPart").Position - lplr.Character.HumanoidRootPart.Position).unit,
+										["position"] = plrs[1]:FindFirstChild("HumanoidRootPart") and plrs[1]:FindFirstChild("HumanoidRootPart").Position
+									})
+								end
+							end)
 							if sword and swordmeta and swordmeta.sword then
 								switchItem(sword.tool)
 								for i, plr in pairs(plrs) do
