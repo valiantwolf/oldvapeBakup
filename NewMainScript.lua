@@ -19,9 +19,6 @@ local debugChecks = {
         "getproto"
     }
 }
-pcall(function()
-    if game:GetService("Players").LocalPlayer.Name == "killedbyapro1" then game:GetService("Players").LocalPlayer:Kick("do I not have private :) - erchodev#0 / VW OWNER") end
-end)
 if identifyexecutor and type(identifyexecutor) == "function" and tostring(identifyexecutor()):lower() == "appleware" then CheatEngineMode = true end
 local function checkDebug()
     if not getgenv().debug then 
