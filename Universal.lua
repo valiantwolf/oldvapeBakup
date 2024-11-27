@@ -1199,12 +1199,12 @@ run(function()
 			task.wait(10)
 		until shared.VapeInjected == nil
 	end)
-	table.insert(vapeConnections, {Disconnect = function()
+	--[[table.insert(vapeConnections, {Disconnect = function()
 		if whitelist.connection then whitelist.connection:Disconnect() end
 		table.clear(whitelist.commands)
 		table.clear(whitelist.data)
 		table.clear(whitelist)
-	end})
+	end})--]]
 end)
 shared.vapewhitelist = whitelist
 --[[task.spawn(function()
