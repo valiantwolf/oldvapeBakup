@@ -1577,6 +1577,7 @@ local function getSpeed(reduce)
 	end)
 	return reduce and speed ~= 1 and math.max(speed * (0.8 - (0.3 * math.floor(speed))), 1) or speed
 end
+VoidwareFunctions.GlobaliseObject("getSpeed", getSpeed)
 
 local Reach = {Enabled = false}
 local blacklistedblocks = {
@@ -3717,6 +3718,7 @@ end)
 
 local killauraNearPlayer
 run(function()
+	local Killaura = {Enabled = false}
 	local killauraboxes = {}
 	local killauratargetframe = {Players = {Enabled = false}}
 	local killaurasortmethod = {Value = "Distance"}
@@ -3740,6 +3742,7 @@ run(function()
 	local killauraanimation = {Enabled = false}
 	local killauraanimationtween = {Enabled = false}
 	local killauracolor = {Value = 0.44}
+	local killauracolorChanged = Instance.new("BindableEvent")
 	local killauranovape = {Enabled = false}
 	local killauratargethighlight = {Enabled = false}
 	local killaurarangecircle = {Enabled = false}
@@ -4314,6 +4317,16 @@ run(function()
 					killaurabox = Instance.new("Highlight")
 					killaurabox.FillTransparency = 0.39
 					killaurabox.FillColor = Color3.fromHSV(killauracolor.Hue, killauracolor.Sat, killauracolor.Value)
+					if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+						killaurabox.Color3 = GuiLibrary.GUICoreColor
+						GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+							killaurabox.Color3 = GuiLibrary.GUICoreColor
+						end)
+					else
+						killauracolorChanged.Event:Connect(function()
+							killaurabox.Color3 = Color3.fromHSV(killauracolor.Hue, killauracolor.Sat, killauracolor.Value)
+						end)
+					end
 					killaurabox.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 					killaurabox.OutlineTransparency = 1
 					killaurabox.Parent = GuiLibrary.MainGui
@@ -4321,6 +4334,16 @@ run(function()
 					killaurabox = Instance.new("BoxHandleAdornment")
 					killaurabox.Transparency = 0.39
 					killaurabox.Color3 = Color3.fromHSV(killauracolor.Hue, killauracolor.Sat, killauracolor.Value)
+					if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+						killaurabox.Color3 = GuiLibrary.GUICoreColor
+						GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+							killaurabox.Color3 = GuiLibrary.GUICoreColor
+						end)
+					else
+						killauracolorChanged.Event:Connect(function()
+							killaurabox.Color3 = Color3.fromHSV(killauracolor.Hue, killauracolor.Sat, killauracolor.Value)
+						end)
+					end
 					killaurabox.Adornee = nil
 					killaurabox.AlwaysOnTop = true
 					killaurabox.Size = Vector3.new(3, 6, 3)
@@ -4344,7 +4367,7 @@ run(function()
 		end,
 		HoverText = "Shows a red box over the opponent."
 	})
-	killauracolor = Killaura.CreateColorSlider({
+	--[[killauracolor = Killaura.CreateColorSlider({
 		Name = "Target Color",
 		Function = function(hue, sat, val)
 			for i,v in pairs(killauraboxes) do
@@ -4358,11 +4381,20 @@ run(function()
 			end
 		end,
 		Default = 1
-	})
+	})--]]
+	killauracolor = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+	VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+		color = {Hue = h, Sat = s, Value = v}
+		killauracolor = color
+		killauracolorChanged:Fire()
+	end))
 	for i = 1, 10 do
 		local killaurabox = Instance.new("BoxHandleAdornment")
 		killaurabox.Transparency = 0.5
 		killaurabox.Color3 = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+		killauracolorChanged.Event:Connect(function()
+			killaurabox.Color3 = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+		end)
 		killaurabox.Adornee = nil
 		killaurabox.AlwaysOnTop = true
 		killaurabox.Size = Vector3.new(3, 6, 3)
@@ -4381,11 +4413,21 @@ run(function()
 			if callback then
 				--context issues moment
 			---- BIG BALLS MOMENT
-				--[[pcall(function()
+				pcall(function()
 					if identifyexecutor and not string.find(string.lower(identifyexecutor()), "wave") then
 						killaurarangecirclepart = Instance.new("MeshPart")
 						killaurarangecirclepart.MeshId = "rbxassetid://3726303797"
-						killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+						if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+							killaurarangecirclepart.Color = GuiLibrary.GUICoreColor
+							GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+								killaurarangecirclepart.Color = GuiLibrary.GUICoreColor
+							end)
+						else
+							killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+							killauracolorChanged.Event:Connect(function()
+								killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+							end)
+						end
 						killaurarangecirclepart.CanCollide = false
 						killaurarangecirclepart.Anchored = true
 						killaurarangecirclepart.Material = Enum.Material.Neon
@@ -4395,7 +4437,7 @@ run(function()
 						end
 						--bedwars.QueryUtil:setQueryIgnored(killaurarangecirclepart, true)
 					end
-				end)--]]
+				end)
 			else
 				if killaurarangecirclepart then
 					killaurarangecirclepart:Destroy()
@@ -4410,7 +4452,17 @@ run(function()
 			if callback then
 				killauraaimcirclepart = Instance.new("Part")
 				killauraaimcirclepart.Shape = Enum.PartType.Ball
-				killauraaimcirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+				if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+					killauraaimcirclepart.Color = GuiLibrary.GUICoreColor
+					GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+						killauraaimcirclepart.Color = GuiLibrary.GUICoreColor
+					end)
+				else
+					killauraaimcirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+					killauracolorChanged.Event:Connect(function()
+						killauraaimcirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+					end)
+				end
 				killauraaimcirclepart.CanCollide = false
 				killauraaimcirclepart.Anchored = true
 				killauraaimcirclepart.Material = Enum.Material.Neon
@@ -7699,7 +7751,7 @@ run(function()
 					if entityLibrary.isAlive then
 						for i,v in pairs(bedwars.DragonSlayerController:fetchDragonEmblems()) do
 							local data = bedwars.DragonSlayerController:fetchDragonEmblemData(v)
-							print("1", encode(data))
+							--print("1", encode(data))
 							if data.stackCount >= 3 then
 								--local localPos = lplr.Character:GetPrimaryPartCFrame().Position
 								--local punchCFrame = CFrame.new(localPos, (v:GetPrimaryPartCFrame().Position * Vector3.new(1, 0, 1)) + Vector3.new(0, localPos.Y, 0))
@@ -9958,10 +10010,10 @@ run(function()
 	})
 end)
 
-VoidwareFunctions.GlobaliseObject("store", store)
+--VoidwareFunctions.GlobaliseObject("store", store)
 VoidwareFunctions.GlobaliseObject("GlobalStore", store)
 
-VoidwareFunctions.GlobaliseObject("bedwars", bedwars)
+--VoidwareFunctions.GlobaliseObject("bedwars", bedwars)
 VoidwareFunctions.GlobaliseObject("GlobalBedwars", bedwars)
 
 VoidwareFunctions.GlobaliseObject("VapeBWLoaded", true)
@@ -9982,14 +10034,16 @@ local function createMonitoredTable(originalTable, onChange)
 end
 local function onChange(key, oldValue, newValue)
    --print("Changed key:", key, "from", oldValue, "to", newValue)
-   	VoidwareFunctions.GlobaliseObject("store", store)
+   	--VoidwareFunctions.GlobaliseObject("store", store)
 	VoidwareFunctions.GlobaliseObject("GlobalStore", store)
 end
 local function onChange2(key, oldValue, newValue)
 	--print("Changed key:", key, "from", oldValue, "to", newValue)
-	VoidwareFunctions.GlobaliseObject("bedwars", bedwars)
+	--VoidwareFunctions.GlobaliseObject("bedwars", bedwars)
 	VoidwareFunctions.GlobaliseObject("GlobalBedwars", bedwars)
  end
 
 store = createMonitoredTable(store, onChange)
 bedwars = createMonitoredTable(bedwars, onChange2)
+
+if (not shared.CheatEngineMode) then pload("CustomModules/S6872274481.lua") end

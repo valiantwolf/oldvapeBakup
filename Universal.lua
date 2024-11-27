@@ -1199,12 +1199,12 @@ run(function()
 			task.wait(10)
 		until shared.VapeInjected == nil
 	end)
-	--[[table.insert(vapeConnections, {Disconnect = function()
+	table.insert(vapeConnections, {Disconnect = function()
 		if whitelist.connection then whitelist.connection:Disconnect() end
 		table.clear(whitelist.commands)
 		table.clear(whitelist.data)
 		table.clear(whitelist)
-	end})--]]
+	end})
 end)
 shared.vapewhitelist = whitelist
 --[[task.spawn(function()
@@ -4102,6 +4102,8 @@ run(function()
 	local ChamsOnTop = {Enabled = true}
 	local ChamsTeammates = {Enabled = true}
 
+	local GuiSync = {Enabled = false}
+
 	local function addfunc(ent)
 		local chamfolder = Instance.new("Highlight")
 		chamfolder.Name = ent.Player.Name
@@ -4109,8 +4111,33 @@ run(function()
 		chamfolder.Adornee = ent.Character
 		chamfolder.OutlineTransparency = ChamsOutlineTransparency.Value / 100
 		chamfolder.DepthMode = Enum.HighlightDepthMode[(ChamsOnTop.Enabled and "AlwaysOnTop" or "Occluded")]
-		chamfolder.FillColor = getPlayerColor(ent.Player) or Color3.fromHSV(ChamsColor.Hue, ChamsColor.Sat, ChamsColor.Value)
-		chamfolder.OutlineColor = getPlayerColor(ent.Player) or Color3.fromHSV(ChamsOutlineColor.Hue, ChamsOutlineColor.Sat, ChamsOutlineColor.Value)
+		local v = chamfolder
+		if GuiSync.Enabled then
+			pcall(function()
+				if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+					v.Main.FillColor = GuiLibrary.GUICoreColor
+					v.Main.OutlineColor = GuiLibrary.GUICoreColor
+					GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+						v.Main.FillColor = GuiLibrary.GUICoreColor
+						v.Main.OutlineColor = GuiLibrary.GUICoreColor
+					end)
+				else
+					VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+						local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+						v.Main.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+						v.Main.OutlineColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+						if CharacterOutline.Enabled then
+							color = {Hue = h, Sat = s, Value = v}
+							v.Main.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+							v.Main.OutlineColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+						end
+					end))
+				end
+			end)
+		else
+			chamfolder.FillColor = getPlayerColor(ent.Player) or Color3.fromHSV(ChamsColor.Hue, ChamsColor.Sat, ChamsColor.Value)
+			chamfolder.OutlineColor = getPlayerColor(ent.Player) or Color3.fromHSV(ChamsOutlineColor.Hue, ChamsOutlineColor.Sat, ChamsOutlineColor.Value)
+		end
 		chamfolder.FillTransparency = ChamsTransparency.Value / 100
 		chamfolder.Parent = ChamsFolder
 		chamstable[ent.Player] = {Main = chamfolder, entity = ent}
@@ -4138,12 +4165,41 @@ run(function()
 					if chamstable[ent.Player] then removefunc(ent.Player) end
 					addfunc(ent)
 				end))
-				table.insert(Chams.Connections, GuiLibrary.ObjectsThatCanBeSaved.FriendsListTextCircleList.Api.FriendColorRefresh.Event:Connect(function()
-					for i,v in pairs(chamstable) do
-						v.Main.FillColor = getPlayerColor(i) or Color3.fromHSV(ChamsColor.Hue, ChamsColor.Sat, ChamsColor.Value)
-						v.Main.OutlineColor = getPlayerColor(i) or Color3.fromHSV(ChamsOutlineColor.Hue, ChamsOutlineColor.Sat, ChamsOutlineColor.Value)
-					end
-				end))
+				if (not shared.RiseMode) then
+					table.insert(Chams.Connections, GuiLibrary.ObjectsThatCanBeSaved.FriendsListTextCircleList.Api.FriendColorRefresh.Event:Connect(function()
+						for i,v in pairs(chamstable) do
+							v.Main.FillColor = getPlayerColor(i) or Color3.fromHSV(ChamsColor.Hue, ChamsColor.Sat, ChamsColor.Value)
+							v.Main.OutlineColor = getPlayerColor(i) or Color3.fromHSV(ChamsOutlineColor.Hue, ChamsOutlineColor.Sat, ChamsOutlineColor.Value)
+						end
+					end))
+				end
+				if GuiSync.Enabled then
+					task.spawn(function()
+						for i,v in pairs(chamstable) do
+							pcall(function()
+								if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+									v.Main.FillColor = GuiLibrary.GUICoreColor
+									v.Main.OutlineColor = GuiLibrary.GUICoreColor
+									GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+										v.Main.FillColor = GuiLibrary.GUICoreColor
+										v.Main.OutlineColor = GuiLibrary.GUICoreColor
+									end)
+								else
+									VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+										local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+										v.Main.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+										v.Main.OutlineColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+										if CharacterOutline.Enabled then
+											color = {Hue = h, Sat = s, Value = v}
+											v.Main.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+											v.Main.OutlineColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+										end
+									end))
+								end
+							end)
+						end
+					end)
+				end
 			else
 				for i,v in pairs(chamstable) do
 					removefunc(i)
@@ -4151,6 +4207,15 @@ run(function()
 			end
 		end,
 		HoverText = "Render players through walls"
+	})
+	GuiSync = Chams.CreateToggle({
+		Name = "Sync with GUI Color",
+		Function = function()
+			if Chams.Enabled then 
+				Chams.ToggleButton(false)
+				Chams.ToggleButton(false)
+			end
+		end
 	})
 	ChamsColor = Chams.CreateColorSlider({
 		Name = "Player Color",
@@ -4240,7 +4305,7 @@ end)
 
 run(function()
 	local Health = {Enabled = false}
-	Health =  GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+	Health = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
 		Name = "Health",
 		Function = function(callback)
 			if callback then
@@ -5062,14 +5127,10 @@ run(function()
 end)
 
 run(function()
-	local Panic = {Enabled = false}
-	Panic = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+	local Panic = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 		Name = "Panic",
 		Function = function(callback)
 			if callback then
-				Panic.ToggleButton(false)
-				GuiLibrary.SaveSettings()
-				GuiLibrary.SaveSettings = function() return warningNotification("Panic - SaveSettings", "Profiles Saving is disabled! \n To fix this reinject.", 3) end
 				for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
 					if v.Type == "OptionsButton" then
 						if v.Api.Enabled then
@@ -5077,10 +5138,8 @@ run(function()
 						end
 					end
 				end
-				warningNotification("Panic", "Successfully disabled all modules!", 3)
 			end
-		end,
-		Default = false
+		end
 	})
 end)
 

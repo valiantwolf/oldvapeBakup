@@ -2249,7 +2249,7 @@ local function loadVape()
 			if game.PlaceId ~= 6872274481 then shared.CustomSaveVape = 6872274481 end
 			fileName1 = "CustomModules/CE6872274481.lua"
 			fileName2 = "CustomModules/VW6872274481.lua"
-			if (not shared.CheatEngineMode) then fileName3 = "CustomModules/S6872274481.lua" end
+			--if (not shared.CheatEngineMode) then fileName3 = "CustomModules/S6872274481.lua" end
 		end
 		if isLobby then
 			fileName1 = "CustomModules/"..CE.."6872265039.lua"
@@ -2263,7 +2263,7 @@ local function loadVape()
 		if shared.VoidDev then InfoNotification(fileName1, fileName2, 100) end
 		pload(fileName1)
 		pload(fileName2)
-		if fileName3 then pload(fileName3) end
+		--if fileName3 then pload(fileName3) end
 	else
 		repeat task.wait() until shared.VapeManualLoad
 	end
