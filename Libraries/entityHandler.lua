@@ -57,6 +57,9 @@ do
         if (not lplr.Team) then return true end
         if (not plr.Team) then return true end
         if plr.Team ~= lplr.Team then return true end
+        pcall(function()
+            if shared.vapewhitelist then if shared.vapewhitelist:get(plr) > shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) then return false end end
+        end)
         return #plr.Team:GetPlayers() == #players:GetPlayers()
     end
 
