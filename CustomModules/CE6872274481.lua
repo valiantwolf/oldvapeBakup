@@ -4414,7 +4414,7 @@ run(function()
 				--context issues moment
 			---- BIG BALLS MOMENT
 				pcall(function()
-					if identifyexecutor and not string.find(string.lower(identifyexecutor()), "wave") then
+					if identifyexecutor and not string.find(string.lower(identifyexecutor()), "wave") and not shared.CheatEngineMode then
 						killaurarangecirclepart = Instance.new("MeshPart")
 						killaurarangecirclepart.MeshId = "rbxassetid://3726303797"
 						if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
