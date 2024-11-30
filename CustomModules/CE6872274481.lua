@@ -6302,6 +6302,9 @@ run(function()
 							addKit("Thorns", "thorns", true)
 							addKit("Mushrooms", "mushrooms", true)
 							addKit("Flower", "wild_flower", true)
+						elseif store.equippedKit == "star_collector" then
+							addKit("CritStar", "crit_star", true)
+							addKit("VitalityStar", "vitality_star", true)
 						end
 					end
 				end)
@@ -7330,6 +7333,7 @@ end)
 
 run(function()
 	local AutoConsume = {Enabled = false}
+	local AutoConsumeStar = {Enabled = false}
 	local AutoConsumeHealth = {Value = 100}
 	local AutoConsumeSpeed = {Enabled = true}
 	local AutoConsumeDelay = tick()
@@ -7356,6 +7360,12 @@ run(function()
 				end
 			else
 				autobankapple = false
+			end
+			local starItem = AutoConsumeStar.Enabled and (getItem("vitality_star") or getItem("crit_star"))
+			if starItem then
+				bedwars.Client:Get(bedwars.EatRemote):InvokeServer({
+					item = starItem.tool
+				})
 			end
 			if speedpotion and (not lplr.Character:GetAttribute("StatusEffect_speed")) and AutoConsumeSpeed.Enabled then
 				bedwars.Client:Get(bedwars.EatRemote):InvokeServer({
@@ -7393,6 +7403,13 @@ run(function()
 		end,
 		HoverText = "Automatically heals for you when health or shield is under threshold."
 	})
+	AutoConsume.Restart = function() if AutoConsume.Enabled then AutoConsume.ToggleButton(false); AutoConsume.ToggleButton(false) end end
+	AutoConsumeStar = AutoConsume.CreateToggle({
+		Name = "Auto Consume Stars",
+		Function = AutoConsumeStar.Restart,
+		Default = true
+	})
+	AutoConsumeStar.Object.Visible = (store.equippedKit == "star_collector")
 	AutoConsumeHealth = AutoConsume.CreateSlider({
 		Name = "Health",
 		Min = 1,
@@ -7577,6 +7594,35 @@ run(function()
 	end
 
 	local AutoKit_Functions = {
+		["star_collector"] = function()
+			local function fetchItem(obj)
+				local args = {
+					[1] = {
+						["id"] = obj:GetAttribute("Id"),
+						["collectableName"] = obj.Name
+					}
+				}
+				local res = bedwars.Client:Get("CollectCollectableEntity"):FireServer(unpack(args))
+			end
+			local allowedNames = {"CritStar", "VitalityStar"}
+			task.spawn(function()
+				repeat
+					task.wait()
+					if entityLibrary.isAlive then 
+						local maxDistance = 30
+						for i,v in pairs(game.Workspace:GetChildren()) do
+							if v.Parent and v.ClassName == "Model" and table.find(allowedNames, v.Name) and game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+								local pos1 = game:GetService("Players").LocalPlayer.Character:FindFirstChild("HumanoidRootPart").Position
+								local pos2 = v.PrimaryPart.Position
+								if (pos1 - pos2).Magnitude <= maxDistance then
+									fetchItem(v)
+								end
+							end
+						end
+					end
+				until (not AutoKit.Enabled)
+			end)
+		end,
 		["spirit_assassin"] = function()
 			repeat
 				task.wait()
@@ -8027,8 +8073,7 @@ run(function()
 		List = {"Void", "Light"},
 		Function = function() end
 	})
-	AutoKitTrinity.Object.Visible = false
-	if store.equippedKit == "angel" then AutoKitTrinity.Object.Visible = true end
+	AutoKitTrinity.Object.Visible = (store.equippedKit == "angel")
 end)
 
 run(function()
