@@ -1110,7 +1110,7 @@ run(function()
 		Function = function(call)
 			if call then
 				pcall(function()
-					debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, call and 'raycast' or 'Raycast')
+					--debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, call and 'raycast' or 'Raycast')
 					debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, call and bedwars.QueryUtil or game.Workspace)
 				end)
 			end
