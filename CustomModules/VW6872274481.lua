@@ -1815,6 +1815,7 @@ run(function()
 	local hotbarcoloricons = {}
 	local HotbarModsGradient = {}
 	local hotbarslotgradients = {}
+	local GuiSync = {Enabled = false}
 	local HotbarModsGradientColor = {Hue = 0, Sat = 0, Value = 0}
 	local HotbarModsGradientColor2 = {Hue = 0, Sat = 0, Value = 0}
 	local function hotbarFunction()
@@ -1829,7 +1830,24 @@ run(function()
 					sloticon.Parent.BackgroundColor3 = Color3.fromHSV(HotbarColor.Hue, HotbarColor.Sat, HotbarColor.Value)
 					table.insert(hotbarcoloricons, sloticon.Parent) 
 				end
-				if HotbarModsGradient.Enabled then 
+				if GuiSync.Enabled then 
+					if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+						sloticon.Parent.BackgroundColor3 = GuiLibrary.GUICoreColor
+						GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+							pcall(function()
+								sloticon.Parent.BackgroundColor3 = GuiLibrary.GUICoreColor
+							end)
+						end)
+					else
+						local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+						sloticon.Parent.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+						VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+							color = {Hue = h, Sat = s, Value = v}
+							sloticon.Parent.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+						end))
+					end
+				end
+				if HotbarModsGradient.Enabled and not GuiSync.Enabled then 
 					sloticon.Parent.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 					if sloticon.Parent:FindFirstChildWhichIsA('UIGradient') == nil then 
 						local gradient = Instance.new('UIGradient') 
@@ -1849,7 +1867,23 @@ run(function()
 				end
 				if HotbarHighlight.Enabled then
 					local highlight = Instance.new('UIStroke')
-					highlight.Color = Color3.fromHSV(HotbarHighlightColor.Hue, HotbarHighlightColor.Sat, HotbarHighlightColor.Value)
+					if GuiSync.Enabled then
+						if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+							highlight.Color = GuiLibrary.GUICoreColor
+							GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+								highlight.Color = GuiLibrary.GUICoreColor
+							end)
+						else
+							local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+							highlight.Color = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+							VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+								color = {Hue = h, Sat = s, Value = v}
+								highlight.Color = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+							end))
+						end
+					else
+						highlight.Color = Color3.fromHSV(HotbarHighlightColor.Hue, HotbarHighlightColor.Sat, HotbarHighlightColor.Value)
+					end
 					highlight.Thickness = 1.3 
 					highlight.Parent = sloticon.Parent
 					table.insert(hotbarobjects, highlight)
@@ -1890,6 +1924,15 @@ run(function()
 				table.clear(hotbarobjects)
 				table.clear(hotbarsloticons)
 				table.clear(hotbarcoloricons)
+			end
+		end
+	})
+	GuiSync = HotbarMods.CreateToggle({
+		Name = "Sync with GUI Color",
+		Function = function()
+			if HotbarMods.Enabled then 
+				HotbarMods.ToggleButton(false)
+				HotbarMods.ToggleButton(false)
 			end
 		end
 	})
