@@ -3332,7 +3332,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local insta = {Enabled = false}
 	insta = GuiLibrary.ObjectsThatCanBeSaved.ExploitsWindow.Api.CreateOptionsButton({
 		Name = "EmberInstakill",
@@ -3359,7 +3359,7 @@ run(function()
 		end, 
 		HoverText = "🔥ember"
 	})
-end)
+end)--]]
 
 task.spawn(function()
     local tweenmodules = {"BedTP", "EmeraldTP", "DiamondTP", "MiddleTP", "Autowin", "PlayerTP"}
