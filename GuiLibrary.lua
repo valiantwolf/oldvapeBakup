@@ -517,7 +517,7 @@ if shared.VapeExecuted then
 		writefile(baseDirectory..profilesDirectory..(shared.CustomSaveVape or game.PlaceId)..".vapeprofiles.txt", httpService:JSONEncode(GuiLibrary.Profiles))
 		local WindowTable = {}
 		for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
-			local suc, err = pcall(function()
+			pcall(function()
 				if v.Type == "Window" then
 					WindowTable[i] = {["Type"] = "Window", ["Visible"] = v.Object.Visible, ["Expanded"] = v["ChildrenObject"].Visible, ["Position"] = {v.Object.Position.X.Scale, v.Object.Position.X.Offset, v.Object.Position.Y.Scale, v.Object.Position.Y.Offset}}
 				end
@@ -574,7 +574,6 @@ if shared.VapeExecuted then
 					GuiLibrary.Settings[i] = {["Type"] = "LegitModule", ["Enabled"] = v["Api"]["Enabled"], ["Position"] = {v.Object.Position.X.Scale, v.Object.Position.X.Offset, v.Object.Position.Y.Scale, v.Object.Position.Y.Offset}}
 				end
 			end)
-			if (not suc) and shared.VoidDev and shared.ProfilesDebug then warn("[Voidware Profile Saving]: Error! "..debug.traceback(tostring(err))) end
 		end
 		local mobileButtonSaving = {}
 		for _, mobileButton in pairs(GuiLibrary.MobileButtons) do
@@ -685,12 +684,11 @@ if shared.VapeExecuted then
 					end
 					if v.Type == "GUIKeybind" then
 						if (v.Value and v.Value ~= "RightShift") then
-							--if shared.VapeButton then shared.VapeButton:Destroy() end
+							if shared.VapeButton then shared.VapeButton:Destroy() end
 						end
 						GuiLibrary["GUIKeybind"] = v["Value"]
 					end
 				end)
-				if (not suc) and shared.VoidDev and shared.ProfilesDebug then warn("[Voidware Profile Loading | result3]: Error! "..debug.traceback(tostring(err))) end
 			end
 		end
 		local success, result = pcall(function()
@@ -811,7 +809,6 @@ if shared.VapeExecuted then
 						end
 					end
 				end)
-				if (not suc) and shared.VoidDev and shared.ProfilesDebug then warn("[Voidware Profile Loading | result]: Error! "..debug,traceback(tostring(err))) end
 			end
 			for i,v in pairs(result) do
 				local suc, err = pcall(function()
@@ -824,7 +821,6 @@ if shared.VapeExecuted then
 						end
 					end
 				end)
-				if (not suc) and shared.VoidDev and shared.ProfilesDebug then warn("[Voidware Profile Loading | MobileButtons]: Error! "..debug,traceback(tostring(err))) end
 			end
 			local tbl = {6872274481, 6872265039, 8560631822, 8444591321}
 			if table.find(tbl, game.PlaceId) then repeat task.wait() until game:GetService("Players").LocalPlayer.Character end
@@ -846,7 +842,6 @@ if shared.VapeExecuted then
 						end
 					end
 				end)
-				if (not suc) and shared.VoidDev and shared.ProfilesDebug then warn("[Voidware Profile Loading | OptionsButton]: Error! "..debug,traceback(tostring(err))) end
 			end
 		end
 		loadedsuccessfully = true
@@ -1815,6 +1810,179 @@ if shared.VapeExecuted then
 					return buttonapi
 				end
 
+				windowapi3["CreateDropdown"] = function(argstable)
+					local dropGuiLibrary = {}
+					local list = argstable["List"]
+					local amount2 = #children3:GetChildren()
+					local frame = Instance.new("Frame")
+					frame.Size = UDim2.new(0, 220, 0, 40)
+					frame.BackgroundTransparency = 1
+					frame.LayoutOrder = amount2
+					frame.Name = argstable["Name"]
+					frame.Parent = children3
+					local drop1 = Instance.new("TextButton")
+					drop1.AutoButtonColor = false
+					drop1.Size = UDim2.new(0, 198, 0, 29)
+					drop1.Position = UDim2.new(0, 11, 0, 5)
+					drop1.Parent = frame
+					drop1.BorderSizePixel = 0
+					drop1.ZIndex = 2
+					drop1.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
+					drop1.TextSize = 14
+					drop1.TextXAlignment = Enum.TextXAlignment.Left
+					drop1.TextColor3 = Color3.fromRGB(160, 160, 160)
+					drop1.Text = "         "..(translations[argstable["Name"]] ~= nil and translations[argstable["Name"]] or argstable["Name"]).." - "..(list ~= {} and list[1] or "")
+					drop1.TextTruncate = Enum.TextTruncate.AtEnd
+					drop1.Font = Enum.Font.Arial
+					local expandbutton2 = Instance.new("ImageLabel")
+					expandbutton2.Active = false
+					expandbutton2.Size = UDim2.new(0, 9, 0, 4)
+					expandbutton2.Image = downloadVapeAsset("vape/assets/DownArrow.png")
+					expandbutton2.ZIndex = 5
+					expandbutton2.Position = UDim2.new(1, -19, 1, -16)
+					expandbutton2.Name = "ExpandButton2"
+					expandbutton2.BackgroundTransparency = 0
+					expandbutton2.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
+					expandbutton2.BorderSizePixel = 0
+					expandbutton2.Parent = drop1
+					local drop2 = drop1:Clone()
+					drop2.Name = "MainButton"
+					drop2.Position = UDim2.new(0, 0, 0, 0)
+					drop2.ZIndex = 4
+					drop2.BackgroundTransparency = 1
+					drop1:GetPropertyChangedSignal("Text"):Connect(function()
+						drop2.Text = drop1.Text
+					end)
+					drop2.ExpandButton2.Image = downloadVapeAsset("vape/assets/UpArrow.png")
+					local thing = Instance.new("Frame")
+					thing.Size = UDim2.new(1, 2, 1, 2)
+					thing.BorderSizePixel = 0
+					thing.Position = UDim2.new(0, -1, 0, -1)
+					thing.ZIndex = 1
+					thing.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
+					thing.Parent = drop1
+					local uicorner = Instance.new("UICorner")
+					uicorner.CornerRadius = UDim.new(0, 6)
+					uicorner.Parent = drop1
+					local uicorner2 = Instance.new("UICorner")
+					uicorner2.CornerRadius = UDim.new(0, 6)
+					uicorner2.Parent = thing
+					local dropframe = Instance.new("Frame")
+					dropframe.ZIndex = 3
+					dropframe.Parent = drop1
+					dropframe.Active = true
+					dropframe.Position = UDim2.new(0, 0, 0, 0)
+					dropframe.Size = UDim2.new(1, 0, 0, 0)
+					dropframe.BackgroundTransparency = 0
+					dropframe.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
+					dropframe.Visible = false
+					local uicorner3 = Instance.new("UICorner")
+					uicorner3.CornerRadius = UDim.new(0, 6)
+					uicorner3.Parent = dropframe
+					local thing2 = thing:Clone()
+					thing2.BackgroundColor3 = Color3.fromRGB(53, 52, 53)
+					thing2.Parent = dropframe
+					drop2.Parent = dropframe
+					drop2.MouseButton1Click:Connect(function()
+						dropframe.Visible = not dropframe.Visible
+						hoverbox.TextSize = (dropframe.Visible and 0 or 15)
+						--children.CanvasSize = UDim2.new(0, 0, 0, uilistlayout2.AbsoluteContentSize.Y + (dropframe.Visible and #dropframe:GetChildren() * 12 or 0) + 10)
+					end)
+					drop1.MouseButton1Click:Connect(function()
+						dropframe.Visible = not dropframe.Visible
+						hoverbox.TextSize = (dropframe.Visible and 0 or 15)
+						--children.CanvasSize = UDim2.new(0, 0, 0, uilistlayout2.AbsoluteContentSize.Y + (dropframe.Visible and #dropframe:GetChildren() * 12 or 0) + 10)
+					end)
+					drop1.MouseEnter:Connect(function()
+						thing.BackgroundColor3 = Color3.fromRGB(49, 48, 49)
+					end)
+					drop1.MouseLeave:Connect(function()
+						thing.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
+					end)
+					frame.MouseEnter:Connect(function()
+						if argstable["HoverText"] and type(argstable["HoverText"]) == "string" then
+							hoverbox.Visible = (GuiLibrary["ToggleTooltips"] and hoverbox.TextSize ~= 1)
+							local textsize = textService:GetTextSize(argstable["HoverText"], hoverbox.TextSize, hoverbox.Font, Vector2.new(99999, 99999))
+							hoverbox.Text = " "..argstable["HoverText"]:gsub("\n", "\n ")
+							hoverbox.Size = UDim2.new(0, 8 + textsize.X, 0, textsize.Y + 5)
+						end
+					end)
+					if argstable["HoverText"] and type(argstable["HoverText"]) == "string" then
+						frame.MouseMoved:Connect(function(x, y)
+							hoverbox.Visible = (GuiLibrary["ToggleTooltips"] and hoverbox.TextSize ~= 1)
+							hoverbox.Position = UDim2.new(0, (x + 16) * (1 / GuiLibrary["MainRescale"].Scale), 0,	(y - (hoverbox.Size.Y.Offset / 2) - 26) * (1 / GuiLibrary["MainRescale"].Scale))
+						end)
+					end
+					frame.MouseLeave:Connect(function()
+						hoverbox.Visible = false
+					end)
+					local placeholder = 0
+					dropGuiLibrary["Value"] = (list ~= {} and list[1] or "")
+					dropGuiLibrary["Default"] = dropGuiLibrary["Value"]
+					dropGuiLibrary["Object"] = frame
+					dropGuiLibrary["List"] = list
+					dropGuiLibrary["UpdateList"] = function(val)
+						placeholder = 25
+						list = val
+						dropGuiLibrary["List"] = val
+						if not table.find(list, dropGuiLibrary["Value"]) then
+							dropGuiLibrary["Value"] = list[1]
+							drop1.Text = "         "..(translations[argstable["Name"]] ~= nil and translations[argstable["Name"]] or argstable["Name"]).." - "..list[1]
+							dropframe.Visible = false
+							argstable["Function"](list[1])
+						end
+						for del1, del2 in pairs(dropframe:GetChildren()) do if del2:IsA("TextButton") and del2.Name ~= "MainButton" then del2:Remove() end end
+						for numbe, listobj in pairs(val) do
+							if listobj == dropGuiLibrary["Value"] then continue end
+							local drop2 = Instance.new("TextButton")
+							dropframe.Size = UDim2.new(0, 198, 0, placeholder + 23)
+							drop2.Text = "   "..listobj
+							drop2.LayoutOrder = numbe
+							drop2.TextColor3 = Color3.fromRGB(160, 160, 160)
+							drop2.AutoButtonColor = false
+							drop2.TextXAlignment = Enum.TextXAlignment.Left
+							drop2.TextYAlignment = Enum.TextYAlignment.Top
+							drop2.Size = UDim2.new(0, 198, 0, 19)
+							drop2.Position = UDim2.new(0, 0, 0, placeholder)
+							drop2.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
+							drop2.Font = Enum.Font.SourceSans
+							drop2.TextSize = 17
+							drop2.ZIndex = 4
+							drop2.BorderSizePixel = 0
+							drop2.Name = listobj
+							drop2.Parent = dropframe
+							drop2.MouseButton1Click:Connect(function()
+								hoverbox.TextSize = 15
+								dropGuiLibrary["Value"] = listobj
+								drop1.Text = "         "..(translations[argstable["Name"]] ~= nil and translations[argstable["Name"]] or argstable["Name"]).." - "..listobj
+								dropframe.Visible = false
+								--children.CanvasSize = UDim2.new(0, 0, 0, uilistlayout2.AbsoluteContentSize.Y + (dropframe.Visible and #dropframe:GetChildren() * 12 or 0) + 10)
+								argstable["Function"](listobj)
+								dropGuiLibrary["UpdateList"](list)
+								GuiLibrary["UpdateHudEvent"]:Fire()
+							end)
+							drop2.MouseEnter:Connect(function()
+								drop2.BackgroundColor3 = Color3.fromRGB(31, 30, 31)
+							end)
+							drop2.MouseLeave:Connect(function()
+								drop2.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
+							end)
+							placeholder = placeholder + 19
+						end
+					end
+					dropGuiLibrary["SetValue"] = function(listobj)
+						dropGuiLibrary["Value"] = listobj
+						drop1.Text = "         "..(translations[argstable["Name"]] ~= nil and translations[argstable["Name"]] or argstable["Name"]).." - "..listobj
+						dropframe.Visible = false
+						argstable["Function"](listobj)
+						dropGuiLibrary["UpdateList"](list)
+					end
+					dropGuiLibrary["UpdateList"](list)
+					GuiLibrary.ObjectsThatCanBeSaved[argstable["Name"].."Dropdown"] = {["Type"] = "DropdownMain", ["Object"] = frame, ["Api"] = dropGuiLibrary}
+		
+					return dropGuiLibrary
+				end
+
 				return windowapi3
 			else
 				local divider = Instance.new("Frame")
@@ -2489,6 +2657,179 @@ if shared.VapeExecuted then
 			GuiLibrary.ObjectsThatCanBeSaved[argstable["Name"].."Button"] = {["Name"] = argstable["Name"] or "Unknown", ["Type"] = "ButtonMain", ["Object"] = button, ["Api"] = buttonapi}
 
 			return buttonapi
+		end
+
+		windowapi["CreateDropdown"] = function(argstable)
+			local dropGuiLibrary = {}
+			local list = argstable["List"]
+			local amount2 = #children2:GetChildren()
+			local frame = Instance.new("Frame")
+			frame.Size = UDim2.new(0, 220, 0, 40)
+			frame.BackgroundTransparency = 1
+			frame.LayoutOrder = amount2
+			frame.Name = argstable["Name"]
+			frame.Parent = children2
+			local drop1 = Instance.new("TextButton")
+			drop1.AutoButtonColor = false
+			drop1.Size = UDim2.new(0, 198, 0, 29)
+			drop1.Position = UDim2.new(0, 11, 0, 5)
+			drop1.Parent = frame
+			drop1.BorderSizePixel = 0
+			drop1.ZIndex = 2
+			drop1.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
+			drop1.TextSize = 14
+			drop1.TextXAlignment = Enum.TextXAlignment.Left
+			drop1.TextColor3 = Color3.fromRGB(160, 160, 160)
+			drop1.Text = "         "..(translations[argstable["Name"]] ~= nil and translations[argstable["Name"]] or argstable["Name"]).." - "..(list ~= {} and list[1] or "")
+			drop1.TextTruncate = Enum.TextTruncate.AtEnd
+			drop1.Font = Enum.Font.Arial
+			local expandbutton2 = Instance.new("ImageLabel")
+			expandbutton2.Active = false
+			expandbutton2.Size = UDim2.new(0, 9, 0, 4)
+			expandbutton2.Image = downloadVapeAsset("vape/assets/DownArrow.png")
+			expandbutton2.ZIndex = 5
+			expandbutton2.Position = UDim2.new(1, -19, 1, -16)
+			expandbutton2.Name = "ExpandButton2"
+			expandbutton2.BackgroundTransparency = 0
+			expandbutton2.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
+			expandbutton2.BorderSizePixel = 0
+			expandbutton2.Parent = drop1
+			local drop2 = drop1:Clone()
+			drop2.Name = "MainButton"
+			drop2.Position = UDim2.new(0, 0, 0, 0)
+			drop2.ZIndex = 4
+			drop2.BackgroundTransparency = 1
+			drop1:GetPropertyChangedSignal("Text"):Connect(function()
+				drop2.Text = drop1.Text
+			end)
+			drop2.ExpandButton2.Image = downloadVapeAsset("vape/assets/UpArrow.png")
+			local thing = Instance.new("Frame")
+			thing.Size = UDim2.new(1, 2, 1, 2)
+			thing.BorderSizePixel = 0
+			thing.Position = UDim2.new(0, -1, 0, -1)
+			thing.ZIndex = 1
+			thing.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
+			thing.Parent = drop1
+			local uicorner = Instance.new("UICorner")
+			uicorner.CornerRadius = UDim.new(0, 6)
+			uicorner.Parent = drop1
+			local uicorner2 = Instance.new("UICorner")
+			uicorner2.CornerRadius = UDim.new(0, 6)
+			uicorner2.Parent = thing
+			local dropframe = Instance.new("Frame")
+			dropframe.ZIndex = 3
+			dropframe.Parent = drop1
+			dropframe.Active = true
+			dropframe.Position = UDim2.new(0, 0, 0, 0)
+			dropframe.Size = UDim2.new(1, 0, 0, 0)
+			dropframe.BackgroundTransparency = 0
+			dropframe.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
+			dropframe.Visible = false
+			local uicorner3 = Instance.new("UICorner")
+			uicorner3.CornerRadius = UDim.new(0, 6)
+			uicorner3.Parent = dropframe
+			local thing2 = thing:Clone()
+			thing2.BackgroundColor3 = Color3.fromRGB(53, 52, 53)
+			thing2.Parent = dropframe
+			drop2.Parent = dropframe
+			drop2.MouseButton1Click:Connect(function()
+				dropframe.Visible = not dropframe.Visible
+				hoverbox.TextSize = (dropframe.Visible and 0 or 15)
+				--children.CanvasSize = UDim2.new(0, 0, 0, uilistlayout2.AbsoluteContentSize.Y + (dropframe.Visible and #dropframe:GetChildren() * 12 or 0) + 10)
+			end)
+			drop1.MouseButton1Click:Connect(function()
+				dropframe.Visible = not dropframe.Visible
+				hoverbox.TextSize = (dropframe.Visible and 0 or 15)
+				--children.CanvasSize = UDim2.new(0, 0, 0, uilistlayout2.AbsoluteContentSize.Y + (dropframe.Visible and #dropframe:GetChildren() * 12 or 0) + 10)
+			end)
+			drop1.MouseEnter:Connect(function()
+				thing.BackgroundColor3 = Color3.fromRGB(49, 48, 49)
+			end)
+			drop1.MouseLeave:Connect(function()
+				thing.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
+			end)
+			frame.MouseEnter:Connect(function()
+				if argstable["HoverText"] and type(argstable["HoverText"]) == "string" then
+					hoverbox.Visible = (GuiLibrary["ToggleTooltips"] and hoverbox.TextSize ~= 1)
+					local textsize = textService:GetTextSize(argstable["HoverText"], hoverbox.TextSize, hoverbox.Font, Vector2.new(99999, 99999))
+					hoverbox.Text = " "..argstable["HoverText"]:gsub("\n", "\n ")
+					hoverbox.Size = UDim2.new(0, 8 + textsize.X, 0, textsize.Y + 5)
+				end
+			end)
+			if argstable["HoverText"] and type(argstable["HoverText"]) == "string" then
+				frame.MouseMoved:Connect(function(x, y)
+					hoverbox.Visible = (GuiLibrary["ToggleTooltips"] and hoverbox.TextSize ~= 1)
+					hoverbox.Position = UDim2.new(0, (x + 16) * (1 / GuiLibrary["MainRescale"].Scale), 0,	(y - (hoverbox.Size.Y.Offset / 2) - 26) * (1 / GuiLibrary["MainRescale"].Scale))
+				end)
+			end
+			frame.MouseLeave:Connect(function()
+				hoverbox.Visible = false
+			end)
+			local placeholder = 0
+			dropGuiLibrary["Value"] = (list ~= {} and list[1] or "")
+			dropGuiLibrary["Default"] = dropGuiLibrary["Value"]
+			dropGuiLibrary["Object"] = frame
+			dropGuiLibrary["List"] = list
+			dropGuiLibrary["UpdateList"] = function(val)
+				placeholder = 25
+				list = val
+				dropGuiLibrary["List"] = val
+				if not table.find(list, dropGuiLibrary["Value"]) then
+					dropGuiLibrary["Value"] = list[1]
+					drop1.Text = "         "..(translations[argstable["Name"]] ~= nil and translations[argstable["Name"]] or argstable["Name"]).." - "..list[1]
+					dropframe.Visible = false
+					argstable["Function"](list[1])
+				end
+				for del1, del2 in pairs(dropframe:GetChildren()) do if del2:IsA("TextButton") and del2.Name ~= "MainButton" then del2:Remove() end end
+				for numbe, listobj in pairs(val) do
+					if listobj == dropGuiLibrary["Value"] then continue end
+					local drop2 = Instance.new("TextButton")
+					dropframe.Size = UDim2.new(0, 198, 0, placeholder + 23)
+					drop2.Text = "   "..listobj
+					drop2.LayoutOrder = numbe
+					drop2.TextColor3 = Color3.fromRGB(160, 160, 160)
+					drop2.AutoButtonColor = false
+					drop2.TextXAlignment = Enum.TextXAlignment.Left
+					drop2.TextYAlignment = Enum.TextYAlignment.Top
+					drop2.Size = UDim2.new(0, 198, 0, 19)
+					drop2.Position = UDim2.new(0, 0, 0, placeholder)
+					drop2.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
+					drop2.Font = Enum.Font.SourceSans
+					drop2.TextSize = 17
+					drop2.ZIndex = 4
+					drop2.BorderSizePixel = 0
+					drop2.Name = listobj
+					drop2.Parent = dropframe
+					drop2.MouseButton1Click:Connect(function()
+						hoverbox.TextSize = 15
+						dropGuiLibrary["Value"] = listobj
+						drop1.Text = "         "..(translations[argstable["Name"]] ~= nil and translations[argstable["Name"]] or argstable["Name"]).." - "..listobj
+						dropframe.Visible = false
+						--children.CanvasSize = UDim2.new(0, 0, 0, uilistlayout2.AbsoluteContentSize.Y + (dropframe.Visible and #dropframe:GetChildren() * 12 or 0) + 10)
+						argstable["Function"](listobj)
+						dropGuiLibrary["UpdateList"](list)
+						GuiLibrary["UpdateHudEvent"]:Fire()
+					end)
+					drop2.MouseEnter:Connect(function()
+						drop2.BackgroundColor3 = Color3.fromRGB(31, 30, 31)
+					end)
+					drop2.MouseLeave:Connect(function()
+						drop2.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
+					end)
+					placeholder = placeholder + 19
+				end
+			end
+			dropGuiLibrary["SetValue"] = function(listobj)
+				dropGuiLibrary["Value"] = listobj
+				drop1.Text = "         "..(translations[argstable["Name"]] ~= nil and translations[argstable["Name"]] or argstable["Name"]).." - "..listobj
+				dropframe.Visible = false
+				argstable["Function"](listobj)
+				dropGuiLibrary["UpdateList"](list)
+			end
+			dropGuiLibrary["UpdateList"](list)
+			GuiLibrary.ObjectsThatCanBeSaved[argstable["Name"].."Dropdown"] = {["Type"] = "DropdownMain", ["Object"] = frame, ["Api"] = dropGuiLibrary}
+
+			return dropGuiLibrary
 		end
 
 		return windowapi
