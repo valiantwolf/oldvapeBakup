@@ -1420,13 +1420,24 @@ local function getItem(itemName, inv)
 end
 VoidwareFunctions.GlobaliseObject("getItem", getItem)
 
+local cache = {}
 local function getItemNear(itemName, inv)
-	for slot, item in pairs(inv or store.localInventory.inventory.items) do
-		if item.itemType == itemName or item.itemType:find(itemName) then
-			return item, slot
-		end
-	end
-	return nil
+    inv = inv or store.localInventory.inventory.items
+    if cache[itemName] then
+        local cachedItem, cachedSlot = cache[itemName].item, cache[itemName].slot
+        if inv[cachedSlot] and inv[cachedSlot].itemType == cachedItem.itemType then
+            return cachedItem, cachedSlot
+        else
+            cache[itemName] = nil
+        end
+    end
+    for slot, item in pairs(inv) do
+        if item.itemType == itemName or item.itemType:find(itemName) then
+            cache[itemName] = { item = item, slot = slot }
+            return item, slot
+        end
+    end
+    return nil
 end
 VoidwareFunctions.GlobaliseObject("getItemNear", getItemNear)
 
