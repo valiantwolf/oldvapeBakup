@@ -1058,6 +1058,27 @@ end
 function bedwars.SpiritAssassinController:Invoke()
 	for i,v in pairs(self:fetchSpiritOrbs()) do self:activateOrb(v) end
 end
+bedwars.WarlockController = {cooldown = 3, last = 0}
+function bedwars.WarlockController:link(target)
+	if target then
+		local current = tick()
+		if current - self.last < self.cooldown then return end
+		self.last = current
+		return bedwars.Client:Get("WarlockLinkTarget"):InvokeServer({["target"] = target})
+	else return nil end
+end
+bedwars.EmberController = {}
+function bedwars.EmberController:BladeRelease(blade)
+	if blade then
+		return bedwars.Client:Get('HellBladeRelease'):FireServer({chargeTime = 1, player = lplr, weapon = blade})
+	else return nil end
+end
+bedwars.KaidaController = {}
+function bedwars.KaidaController:request(target)
+	if target then 
+		return bedwars.Client:Get("SummonerClawAttackRequest"):FireServer({["clientTime"] = tick(), ["direction"] = (target:FindFirstChild("HumanoidRootPart") and target.Character:FindFirstChild("HumanoidRootPart").Position - lplr.Character.HumanoidRootPart.Position).unit, ["position"] = target.Character:FindFirstChild("HumanoidRootPart") and target.Character:FindFirstChild("HumanoidRootPart").Position})
+	else return nil end
+end
 bedwars.StoreController = {}
 function bedwars.StoreController:fetchLocalHand()
 	repeat task.wait() until game:GetService("Players").LocalPlayer.Character
@@ -1682,6 +1703,19 @@ local function EntityNearPosition(distance, ignore, overridepos)
 			end
 		end
 		if not ignore then
+			for i, v in pairs(game.Workspace:GetChildren()) do
+				if v.Name == "Void Enemy Dummy" or v.Name == "Emerald Enemy Dummy" or v.Name == "Diamond Enemy Dummy" or v.Name == "Leather Enemy Dummy" or v.Name == "Regular Enemy Dummy" or v.Name == "Iron Enemy Dummy" then
+					if v.PrimaryPart then
+						local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+						if overridepos and mag > distance then
+							mag = (overridepos - v2.PrimaryPart.Position).magnitude
+						end
+						if mag <= closestMagnitude then
+							closestEntity, closestMagnitude = {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645)}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+						end
+					end
+				end
+			end
 			for i, v in pairs(collectionService:GetTagged("Monster")) do
 				if v.PrimaryPart and v:GetAttribute("Team") ~= lplr:GetAttribute("Team") then
 					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
@@ -1734,7 +1768,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 					if overridepos and mag > distance then
 						mag = (overridepos - v.PrimaryPart.Position).magnitude
 					end
-					if mag <= closestMagnitude then -- magcheck
+					if mag <= closestMagnitude then
 						closestEntity, closestMagnitude = {Player = {Name = "Drone", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
 					end
 				end
@@ -4027,24 +4061,12 @@ run(function()
 						local plrs = {EntityNearPosition(killaurarange.Value, false)}
 						local firstPlayerNear
 						if #plrs > 0 then
-							local sword, swordmeta = getAttackData()
-							--print("3", tostring(sword), tostring(swordmeta))
-							if getItemNear('infernal_saber') then
-								bedwars.Client:Get('HellBladeRelease'):FireServer({
-									chargeTime = 1,
-									player = lplr,
-									weapon = getItemNear('infernal_saber')
-								})
-							end
 							pcall(function()
-								if getItemNear('summoner_claw') then
-									bedwars.Client:Get("SummonerClawAttackRequest"):FireServer({
-										["clientTime"] = tick(),
-										["direction"] = (plrs[1]:FindFirstChild("HumanoidRootPart") and plrs[1]:FindFirstChild("HumanoidRootPart").Position - lplr.Character.HumanoidRootPart.Position).unit,
-										["position"] = plrs[1]:FindFirstChild("HumanoidRootPart") and plrs[1]:FindFirstChild("HumanoidRootPart").Position
-									})
-								end
+								--if getItemNear('warlock_staff') then bedwars.WarlockController:link(plrs[1].Character) end
+								if getItemNear('infernal_saber') then bedwars.EmberController:BladeRelease(getItemNear('infernal_saber')) end
+								if getItemNear('summoner_claw') then bedwars.KaidaController:request(plrs[1].Character) end
 							end)
+							local sword, swordmeta = getAttackData()
 							if sword and swordmeta and swordmeta.sword then
 								switchItem(sword.tool)
 								for i, plr in pairs(plrs) do
