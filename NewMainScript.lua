@@ -213,7 +213,6 @@ end
     VWFunctions.CreateID()
     VWFunctions.LogStats()
 end)--]]
-
 shared.VWFunctions = VWFunctions
 getgenv().VWFunctions = VWFunctions
 local blacklistedexecutors = {"solara", "celery", "appleware"}
@@ -230,9 +229,10 @@ local function install_profiles(num)
     local httpservice = game:GetService('HttpService')
     local guiprofiles = {}
     local profilesfetched
+    local repoOwner = shared.RiseMode and "VapeVoidware/RiseProfiles" or "Erchobg/VoidwareProfiles"
     local function vapeGithubRequest(scripturl)
         if not isfile(baseDirectory..scripturl) then
-            local suc, res = pcall(function() return game:HttpGet('https://raw.githubusercontent.com/Erchobg/VoidwareProfiles/main/'..scripturl, true) end)
+            local suc, res = pcall(function() return game:HttpGet('https://raw.githubusercontent.com/'..repoOwner..'/main/'..scripturl, true) end)
             if not isfolder(baseDirectory.."Profiles") then
                 makefolder(baseDirectory..'Profiles')
             end
@@ -276,7 +276,7 @@ local function install_profiles(num)
     task.spawn(function()
         local res1
         if num == 1 then
-            res1 = "https://api.github.com/repos/Erchobg/VoidwareProfiles/contents/Profiles"
+            res1 = "https://api.github.com/repos/"..repoOwner.."/contents/Profiles"
         elseif num == 2 then
             res1 = "https://api.github.com/repos/Erchobg/VoidwareProfiles/contents/ClosetProfiles"
         end
