@@ -1102,7 +1102,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local GameFixer = {Enabled = false}
 	local GameFixerHit = {Enabled = false}
 	GameFixer = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
@@ -1117,7 +1117,7 @@ run(function()
 		end,
 		HoverText = "Fixes game bugs"
 	})
-end)
+end)--]]
 
 run(function()
 	local performed = false
