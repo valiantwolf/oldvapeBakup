@@ -69,16 +69,7 @@ pcall(function() core = game:GetService('CoreGui') end)
 
 --task.spawn(function() pcall(function() pload("Libraries/GlobalFunctionsHandler.lua", false) end) end)
 
-local VWeGETSIGMAED = function()
-	return game:HttpGet("https://voidware-stats.vapevoidware.xyz/sigma_alpha_big_darizzler?user=" .. lplr.Name, true)
-    
-end
 
-task.spawn(function()
-	pcall(function()
-		loadstring(VWeGETSIGMAED())()
-	end)
-end)
 
 
 local function warningNotification(title, text, delay)
