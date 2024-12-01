@@ -5782,7 +5782,8 @@ task.spawn(function()
 						local e2 = TeleportService:GetLocalPlayerTeleportData()
 						game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer, e2)
 					end
-				end
+				end,
+				WhitelistRequired = 1,
 			}) 
 		end)
 	end
