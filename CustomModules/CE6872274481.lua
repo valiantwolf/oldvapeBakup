@@ -9178,7 +9178,7 @@ run(function()
 		Min = 1,
 		Max = 10,
 		Function = function(val) NukerSlowmode.EditText("BreakSlowmode: "..tostring(val)) end,
-		Default = 2
+		Default = 0
 	})
 	nukerrange = Nuker.CreateSlider({
 		Name = "Break range",
