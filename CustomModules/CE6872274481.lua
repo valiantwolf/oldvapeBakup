@@ -2549,7 +2549,7 @@ run(function()
 					repeat task.wait()
 						if game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChild("Humanoid") then
 							game:GetService("Players").LocalPlayer:SetAttribute("Sprinting", true)
-							game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = 23
+							game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = 20
 						end
 					until not sprinten
 				end)
