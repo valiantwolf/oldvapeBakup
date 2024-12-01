@@ -1371,7 +1371,7 @@ run(function()
 										print("[EditWL-Response_Handler Error]: "..text)
 									end
 									printError("StatusCode = "..tostring(response["StatusCode"]))
-									printError("Body = "..tostring(game:GetService("HttpService"):JSONDecode(response["Body"])))
+									printError("Body = "..tostring(response["Body"]))
 								end
 							end
 						else
