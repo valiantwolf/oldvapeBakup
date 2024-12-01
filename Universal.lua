@@ -32,6 +32,7 @@ local isnetworkowner = function(part)
 	return networkownerswitch <= tick()
 end
 local vapeAssetTable = {["vape/assets/VapeCape.png"] = "rbxassetid://18341361652", ["vape/assets/ArrowIndicator.png"] = "rbxassetid://13350766521"}
+if shared.RiseMode then vapeAssetTable["vape/assets/VapeCape.png"] = "rbxassetid://119886186375437" end
 local getcustomasset = getsynasset or getcustomasset or function(location) return vapeAssetTable[location] or "" end
 local queueonteleport = syn and syn.queue_on_teleport or queue_on_teleport or function() end
 local synapsev3 = syn and syn.toast_notification and "V3" or ""
@@ -74,7 +75,8 @@ local function vapeGithubRequest(scripturl)
 	return readfile(baseDirectory..scripturl)
 end
 
-local function downloadVapeAsset(path)
+local function downloadVapeAsset(path, ignore)
+	if ignore and vapeAssetTable[path] then return vapeAssetTable[path] end
 	local executor = (identifyexecutor and identifyexecutor() or "Unknown")
 	if string.find(string.lower(executor), "wave") or shared.CheatEngineMode then
 		return vapeAssetTable[path] or ""
@@ -6024,14 +6026,14 @@ run(function()
 				table.insert(Cape.Connections, lplr.CharacterAdded:Connect(function(char)
 					task.spawn(function()
 						pcall(function()
-							capeFunction(char, (successfulcustom or downloadVapeAsset("vape/assets/VapeCape.png")))
+							capeFunction(char, (successfulcustom or downloadVapeAsset("vape/assets/VapeCape.png", true)))
 						end)
 					end)
 				end))
 				if lplr.Character then
 					task.spawn(function()
 						pcall(function()
-							capeFunction(lplr.Character, (successfulcustom or downloadVapeAsset("vape/assets/VapeCape.png")))
+							capeFunction(lplr.Character, (successfulcustom or downloadVapeAsset("vape/assets/VapeCape.png", true)))
 						end)
 					end)
 				end
