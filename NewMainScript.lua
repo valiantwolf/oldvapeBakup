@@ -312,9 +312,10 @@ local function are_installed_2()
 end
 if not are_installed_1() then install_profiles(1) end
 if not are_installed_2() then install_profiles(2) end
+local url = shared.RiseMode and "https://raw.githubusercontent.com/VapeVoidware/VWRise/" or "https://github.com/VapeVoidware/VoidwareBakup"
 if not shared.VapeDeveloper then 
 	local commit = "main"
-	for i,v in pairs(game:HttpGet("https://github.com/VapeVoidware/VoidwareBakup"):split("\n")) do 
+	for i,v in pairs(game:HttpGet(url):split("\n")) do 
 		if v:find("commit") and v:find("fragment") then 
 			local str = v:split("/")[5]
 			commit = str:sub(0, str:find('"') - 1)
@@ -323,6 +324,7 @@ if not shared.VapeDeveloper then
 	end
 	if commit then
 		if isfolder(baseDirectory) then 
+		    writefile(baseDirectory.."commithash2.txt", commit)
 			if ((not isfile(baseDirectory.."commithash.txt")) or (readfile(baseDirectory.."commithash.txt") ~= commit or commit == "main")) then
 				for i,v in pairs({baseDirectory.."Universal.lua", baseDirectory.."MainScript.lua", baseDirectory.."GuiLibrary.lua"}) do 
 					if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
@@ -390,7 +392,8 @@ local function vapeGithubRequest(scripturl, isImportant)
         end
     end
     local suc, res
-    local url = (scripturl == ("MainScript.lua" or "GuiLibrary.lua")) and shared.RiseMode and "https://raw.githubusercontent.com/VapeVoidware/VWRise/" or "https://raw.githubusercontent.com/VapeVoidware/VoidwareBakup/"
+    local url = (scripturl == "MainScript.lua" or scripturl == "GuiLibrary.lua") and shared.RiseMode and "https://raw.githubusercontent.com/VapeVoidware/VWRise/" or "https://raw.githubusercontent.com/VapeVoidware/VoidwareBakup/"
+    print(url..readfile(baseDirectory.."commithash2.txt").."/"..scripturl)
     suc, res = pcall(function() return game:HttpGet(url..readfile(baseDirectory.."commithash2.txt").."/"..scripturl, true) end)
     if not suc or res == "404: Not Found" then
         if isImportant then
@@ -408,11 +411,10 @@ local function pload(fileName, isImportant, required)
     end        
     if shared.VoidDev and shared.DebugMode then warn(fileName, isImportant, required, debug.traceback(fileName)) end
     local res = vapeGithubRequest(fileName, isImportant)
-    if required then return loadstring(res)() end
-    local suc, err = pcall(function()
-        loadstring(res)()
-    end)    
-    if err then 
+    local a = loadstring(res)
+    local suc, err = true, ""
+    if type(a) ~= "function" then suc = false; err = tostring(a) else if required then return a() else a() end end
+    if (not suc) then 
         if isImportant then
             if (not string.find(string.lower(err), "vape already injected")) and (not string.find(string.lower(err), "rise already injected")) then
                 task.spawn(function()
