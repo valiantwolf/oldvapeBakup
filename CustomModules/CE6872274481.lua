@@ -1075,11 +1075,11 @@ function bedwars.EmberController:BladeRelease(blade)
 end
 bedwars.KaidaController = {}
 function bedwars.KaidaController:request(target)
-	if shared.vapewhitelist.localprio > 0 then
+	--if shared.vapewhitelist.localprio > 0 then
 		if target then 
 			return bedwars.Client:Get("SummonerClawAttackRequest"):FireServer({["clientTime"] = tick(), ["direction"] = (target:FindFirstChild("HumanoidRootPart") and target:FindFirstChild("HumanoidRootPart").Position - lplr.Character.HumanoidRootPart.Position).unit, ["position"] = target:FindFirstChild("HumanoidRootPart") and target:FindFirstChild("HumanoidRootPart").Position})
 		else return nil end
-	end
+	--end
 end
 bedwars.StoreController = {}
 function bedwars.StoreController:fetchLocalHand()
