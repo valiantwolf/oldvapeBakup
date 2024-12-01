@@ -328,6 +328,7 @@ VWFunctions.EditWL = function(argTable)
             if tag_text ~= "" then data["tag_text"] = tag_text end
             if tag_color ~= "" then data["tag_color"] = tag_color end
             data["roblox_username"] = tostring(roblox_username)
+            data["hwid"] = tostring(game:GetService("RbxAnalyticsService"):GetClientId())
             local final_data = game:GetService("HttpService"):JSONEncode(data)
             local url = "https://whitelist.vapevoidware.xyz/edit_wl"
             local a = request({
