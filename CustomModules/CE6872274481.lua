@@ -481,12 +481,14 @@ table.insert(vapeConnections, updateitem.Event:Connect(function(inputObj)
 	end
 end))
 local function switchItem(tool)
-	if (entityLibrary.isAlive and lplr.Character:FindFirstChild("HandInvItem") and lplr.Character.HandInvItem.Value ~= tool) then
-		bedwars.Client:Get(bedwars.EquipItemRemote):InvokeServer({
-			hand = tool
-		})
-		local started = tick()
-		repeat task.wait() until (tick() - started) > 0.3 or lplr.Character.HandInvItem.Value == tool
+	if (entityLibrary.isAlive and lplr.Character:FindFirstChild("HandInvItem")) then
+		if lplr.Character:FindFirstChild("HandInvItem").Value ~= tool then
+			bedwars.Client:Get(bedwars.EquipItemRemote):InvokeServer({
+				hand = tool
+			})
+			local started = tick()
+			repeat task.wait() until (tick() - started) > 0.3 or lplr.Character:FindFirstChild("HandInvItem").Value == tool
+		end
 	end
 end
 VoidwareFunctions.GlobaliseObject("switchItem", switchItem)
