@@ -481,7 +481,7 @@ table.insert(vapeConnections, updateitem.Event:Connect(function(inputObj)
 	end
 end))
 local function switchItem(tool)
-	if lplr.Character.HandInvItem.Value ~= tool then
+	if (entityLibrary.isAlive and lplr.Character:FindFirstChild("HandInvItem") and lplr.Character.HandInvItem.Value ~= tool) then
 		bedwars.Client:Get(bedwars.EquipItemRemote):InvokeServer({
 			hand = tool
 		})
