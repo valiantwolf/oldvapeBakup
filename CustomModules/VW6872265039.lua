@@ -135,7 +135,7 @@ run(function()
             pcall(function() QueueCardGradient2.Object.Visible = calling end) 
         end
     })
-    if (not shared.RiseMode) and GuiLibrary.MainColor and GuiLibrary.SecondaryColor then
+    if (not shared.RiseMode) and not GuiLibrary.MainColor and not GuiLibrary.SecondaryColor then
         QueueCardGradient = QueueCardMods.CreateColorSlider({
             Name = 'Color',
             Function = function()
