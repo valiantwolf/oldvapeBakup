@@ -1368,7 +1368,7 @@ local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
 do
 	function RunLoops:BindToRenderStep(name, func)
 		if RunLoops.RenderStepTable[name] == nil then
-			RunLoops.RenderStepTable[name] = runService.RenderStepped:Connect(func)
+			RunLoops.RenderStepTable[name] = runService.RenderStepped:Connect(function() pcall(function() func() end) end)
 		end
 	end
 
@@ -1381,7 +1381,7 @@ do
 
 	function RunLoops:BindToStepped(name, func)
 		if RunLoops.StepTable[name] == nil then
-			RunLoops.StepTable[name] = runService.Stepped:Connect(func)
+			RunLoops.StepTable[name] = runService.Stepped:Connect(function() pcall(function() func() end) end)
 		end
 	end
 
@@ -1394,7 +1394,7 @@ do
 
 	function RunLoops:BindToHeartbeat(name, func)
 		if RunLoops.HeartTable[name] == nil then
-			RunLoops.HeartTable[name] = runService.Heartbeat:Connect(func)
+			RunLoops.HeartTable[name] = runService.Heartbeat:Connect(function() pcall(function() func() end) end)
 		end
 	end
 
@@ -2356,7 +2356,7 @@ end)
 									if AimAssistTargetFrame.Walls.Enabled then
 										if not bedwars.SwordController:canSee({instance = plr.Character, player = plr.Player, getInstance = function() return plr.Character end}) then return end
 									end
-									gameCamera.CFrame = gameCamera.CFrame:lerp(CFrame.new(gameCamera.CFrame.p, plr.Character.HumanoidRootPart.Position), ((1 / AimSpeed.Value) + (AimAssistStrafe.Enabled and (inputService:IsKeyDown(Enum.KeyCode.A) or inputService:IsKeyDown(Enum.KeyCode.D)) and 0.01 or 0)))
+									gameCamera.CFrame = gameCamera.CFrame:lerp(CFrame.new(gameCamera.CFrame.p, plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("HumanoidRootPart").Position or plr.Character.RootPart.Position), ((1 / AimSpeed.Value) + (AimAssistStrafe.Enabled and (inputService:IsKeyDown(Enum.KeyCode.A) or inputService:IsKeyDown(Enum.KeyCode.D)) and 0.01 or 0)))
 								end
 							end
 						end
@@ -4076,11 +4076,11 @@ run(function()
 						local plrs = {EntityNearPosition(killaurarange.Value, false)}
 						local firstPlayerNear
 						if #plrs > 0 then
-							--pcall(function()
+							pcall(function()
 								--if getItemNear('warlock_staff') then bedwars.WarlockController:link(plrs[1].Character) end
 								if getItemNear('infernal_saber') then bedwars.EmberController:BladeRelease(getItemNear('infernal_saber')) end
 								if getItemNear('summoner_claw') then bedwars.KaidaController:request(plrs[1].Character) end
-							--end)
+							end)
 							local sword, swordmeta = getAttackData()
 							if sword and swordmeta and swordmeta.sword then
 								switchItem(sword.tool)
