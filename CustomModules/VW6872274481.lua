@@ -3203,7 +3203,7 @@ run(function()
 															end
 														end)
 					
-														task.wait(0.2)
+														task.wait(0.3)
 														lplr.Character.HumanoidRootPart.Velocity = Vector3.new(lplr.Character.HumanoidRootPart.Velocity.X, -1, lplr.Character.HumanoidRootPart.Velocity.Z)
 														lplr.Character.HumanoidRootPart.CFrame = Clone.HumanoidRootPart.CFrame
 														gameCamera.CameraSubject = lplr.Character:FindFirstChild("Humanoid")
