@@ -487,7 +487,7 @@ local function switchItem(tool)
 				hand = tool
 			})
 			local started = tick()
-			repeat task.wait() until (tick() - started) > 0.3 or lplr.Character:FindFirstChild("HandInvItem").Value == tool
+			repeat task.wait() until (tick() - started) > 0.3 or lplr.Character:FindFirstChild("HandInvItem") and lplr.Character:FindFirstChild("HandInvItem").Value == tool
 		end
 	end
 end
