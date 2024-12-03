@@ -1369,6 +1369,7 @@ do
 	function RunLoops:BindToRenderStep(name, func)
 		if RunLoops.RenderStepTable[name] == nil then
 			RunLoops.RenderStepTable[name] = runService.RenderStepped:Connect(function() pcall(function() func() end) end)
+			table.insert(vapeConnections, RunLoops.RenderStepTable[name])
 		end
 	end
 
@@ -1382,6 +1383,7 @@ do
 	function RunLoops:BindToStepped(name, func)
 		if RunLoops.StepTable[name] == nil then
 			RunLoops.StepTable[name] = runService.Stepped:Connect(function() pcall(function() func() end) end)
+			table.insert(vapeConnections, RunLoops.StepTable[name])
 		end
 	end
 

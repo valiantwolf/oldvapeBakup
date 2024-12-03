@@ -1862,6 +1862,7 @@ do
 	function RunLoops:BindToRenderStep(name, func)
 		if RunLoops.RenderStepTable[name] == nil then
 			RunLoops.RenderStepTable[name] = runService.RenderStepped:Connect(func)
+			table.insert(vapeConnections, RunLoops.RenderStepTable[name])
 		end
 	end
 
@@ -1875,6 +1876,7 @@ do
 	function RunLoops:BindToStepped(name, func)
 		if RunLoops.StepTable[name] == nil then
 			RunLoops.StepTable[name] = runService.Stepped:Connect(func)
+			table.insert(vapeConnections, RunLoops.StepTable[name])
 		end
 	end
 
@@ -1888,6 +1890,7 @@ do
 	function RunLoops:BindToHeartbeat(name, func)
 		if RunLoops.HeartTable[name] == nil then
 			RunLoops.HeartTable[name] = runService.Heartbeat:Connect(func)
+			table.insert(vapeConnections, RunLoops.HeartTable[name])
 		end
 	end
 
@@ -4008,7 +4011,7 @@ run(function()
 end)
 
 
-run(function()
+--[[run(function()
 	local Disguise = {Enabled = false}
 	local DisguiseId = {Value = ""}
 	local DisguiseDescription
@@ -4105,6 +4108,120 @@ run(function()
 			if Disguise.Enabled then
 				Disguise.ToggleButton(false)
 				Disguise.ToggleButton(false)
+			end
+		end
+	})
+end)--]]
+
+run(function() -- working but not reverting
+	local Disguise = {Enabled = false, Connections = {}}
+	local DisguiseId = {Value = ""}
+	local DisguiseDescription
+
+	local playersService = game:GetService("Players")
+	local lplr = playersService.LocalPlayer
+
+	local function Disguisechar(char)
+		if not char then return end
+		task.spawn(function()
+			local hum = char:WaitForChild("Humanoid", 9e9)
+			char:WaitForChild("Head", 9e9)
+
+			if not DisguiseDescription then
+				local success = false
+				repeat
+					success = pcall(function()
+						DisguiseDescription = playersService:GetHumanoidDescriptionFromUserId(
+							DisguiseId.Value == "" and 239702688 or tonumber(DisguiseId.Value)
+						)
+					end)
+					if success then break end
+					task.wait(1)
+				until success or not Disguise.Enabled
+			end
+			if not Disguise.Enabled then return end
+
+			local desc = hum:FindFirstChild("HumanoidDescription") or Instance.new("HumanoidDescription")
+			DisguiseDescription.HeightScale = desc.HeightScale
+
+			char.Archivable = true
+			local DisguiseClone = char:Clone()
+			DisguiseClone.Name = "DisguiseChar"
+			DisguiseClone.Parent = game.Workspace
+
+			for _, v in pairs(DisguiseClone:GetChildren()) do
+				if v:IsA("Accessory") or v:IsA("ShirtGraphic") or v:IsA("Shirt") or v:IsA("Pants") then
+					v:Destroy()
+				end
+			end
+
+			local cloneHum = DisguiseClone:FindFirstChildOfClass("Humanoid")
+			if not cloneHum then
+				DisguiseClone:Destroy()
+				return
+			end
+
+			cloneHum:ApplyDescription(DisguiseDescription)
+
+			for _, v in pairs(char:GetChildren()) do
+				if (v:IsA("Accessory") and not v:GetAttribute("InvItem") and not v:GetAttribute("ArmorSlot"))
+					or v:IsA("ShirtGraphic") or v:IsA("Shirt") or v:IsA("Pants") or v:IsA("BodyColors") then
+					v:Destroy()
+				end
+			end
+
+			for _, v in pairs(DisguiseClone:GetChildren()) do
+				v:SetAttribute("Disguise", true)
+				if v:IsA("Accessory") then
+					for _, weld in pairs(v:GetDescendants()) do
+						if weld:IsA("Weld") and weld.Part1 then
+							weld.Part1 = char:FindFirstChild(weld.Part1.Name)
+						end
+					end
+					v.Parent = char
+				elseif v:IsA("ShirtGraphic") or v:IsA("Shirt") or v:IsA("Pants") or v:IsA("BodyColors") then
+					v.Parent = char
+				elseif v.Name == "Head" and char:FindFirstChild("Head") then
+					char.Head.MeshId = v.MeshId
+				end
+			end
+
+			local localFace = char:FindFirstChild("face", true)
+			local cloneFace = DisguiseClone:FindFirstChild("face", true)
+			if localFace and cloneFace then
+				localFace:Destroy()
+				cloneFace.Parent = char:FindFirstChild("Head")
+			end
+
+			desc:SetEmotes(DisguiseDescription:GetEmotes())
+			desc:SetEquippedEmotes(DisguiseDescription:GetEquippedEmotes())
+
+			DisguiseClone:Destroy()
+		end)
+	end
+
+	Disguise = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+		Name = "Disguise",
+		Function = function(callback)
+			if callback then
+				table.insert(Disguise.Connections, lplr.CharacterAdded:Connect(Disguisechar))
+				Disguisechar(lplr.Character)
+			else
+				for _, conn in ipairs(Disguise.Connections) do
+					conn:Disconnect()
+				end
+				Disguise.Connections = {}
+			end
+		end
+	})
+
+	DisguiseId = Disguise.CreateTextBox({
+		Name = "Disguise",
+		TempText = "Disguise User Id",
+		FocusLost = function(enter)
+			if Disguise.Enabled then
+				Disguise.ToggleButton(false)
+				Disguise.ToggleButton(true)
 			end
 		end
 	})
