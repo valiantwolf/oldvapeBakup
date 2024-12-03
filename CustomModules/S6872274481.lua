@@ -113,47 +113,7 @@ local function dumpRemote(tab)
 end
 
 local whitelist = shared.vapewhitelist
-local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
-do
-	function RunLoops:BindToRenderStep(name, func)
-		if RunLoops.RenderStepTable[name] == nil then
-			RunLoops.RenderStepTable[name] = runService.RenderStepped:Connect(func)
-		end
-	end
-
-	function RunLoops:UnbindFromRenderStep(name)
-		if RunLoops.RenderStepTable[name] then
-			RunLoops.RenderStepTable[name]:Disconnect()
-			RunLoops.RenderStepTable[name] = nil
-		end
-	end
-
-	function RunLoops:BindToStepped(name, func)
-		if RunLoops.StepTable[name] == nil then
-			RunLoops.StepTable[name] = runService.Stepped:Connect(func)
-		end
-	end
-
-	function RunLoops:UnbindFromStepped(name)
-		if RunLoops.StepTable[name] then
-			RunLoops.StepTable[name]:Disconnect()
-			RunLoops.StepTable[name] = nil
-		end
-	end
-
-	function RunLoops:BindToHeartbeat(name, func)
-		if RunLoops.HeartTable[name] == nil then
-			RunLoops.HeartTable[name] = runService.Heartbeat:Connect(func)
-		end
-	end
-
-	function RunLoops:UnbindFromHeartbeat(name)
-		if RunLoops.HeartTable[name] then
-			RunLoops.HeartTable[name]:Disconnect()
-			RunLoops.HeartTable[name] = nil
-		end
-	end
-end
+local RunLoops = shared.RunLoops
 
 local KnitGotten, KnitClient
 repeat

@@ -714,6 +714,7 @@ bedwars.SwordController = {
     lastSwing = tick(),
 	lastAttack = game.Workspace:GetServerTimeNow()
 }
+bedwars.SwordController.isClickingTooFast = function() end
 function bedwars.SwordController:canSee() return true end
 -- bedwars.SwordController:playSwordEffect(swordmeta, false)
 function bedwars.SwordController:playSwordEffect(swordmeta, status)
@@ -729,6 +730,9 @@ function bedwars.SwordController:playSwordEffect(swordmeta, status)
 			animation:Destroy()
 		end
 	end)
+end
+function bedwars.SwordController:swingSwordAtMouse()
+	pcall(function() return bedwars.Client:Get("SwordSwingMiss"):FireServer({["weapon"] = store.localHand.tool, ["chargeRatio"] = 0}) end)
 end
 bedwars.ScytheController = {}
 function bedwars.ScytheController:playLocalAnimation() -- kinda useless but eh 
@@ -1083,6 +1087,7 @@ function bedwars.KaidaController:request(target)
 		else return nil end
 	--end
 end
+bedwars.DaoController = {chargingMaid = nil}
 bedwars.StoreController = {}
 function bedwars.StoreController:fetchLocalHand()
 	repeat task.wait() until game:GetService("Players").LocalPlayer.Character
@@ -1364,49 +1369,7 @@ local function predictGravity(playerPosition, vel, bulletTime, targetPart, Gravi
 end
 
 local whitelist = shared.vapewhitelist
-local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
-do
-	function RunLoops:BindToRenderStep(name, func)
-		if RunLoops.RenderStepTable[name] == nil then
-			RunLoops.RenderStepTable[name] = runService.RenderStepped:Connect(function() pcall(function() func() end) end)
-			table.insert(vapeConnections, RunLoops.RenderStepTable[name])
-		end
-	end
-
-	function RunLoops:UnbindFromRenderStep(name)
-		if RunLoops.RenderStepTable[name] then
-			RunLoops.RenderStepTable[name]:Disconnect()
-			RunLoops.RenderStepTable[name] = nil
-		end
-	end
-
-	function RunLoops:BindToStepped(name, func)
-		if RunLoops.StepTable[name] == nil then
-			RunLoops.StepTable[name] = runService.Stepped:Connect(function() pcall(function() func() end) end)
-			table.insert(vapeConnections, RunLoops.StepTable[name])
-		end
-	end
-
-	function RunLoops:UnbindFromStepped(name)
-		if RunLoops.StepTable[name] then
-			RunLoops.StepTable[name]:Disconnect()
-			RunLoops.StepTable[name] = nil
-		end
-	end
-
-	function RunLoops:BindToHeartbeat(name, func)
-		if RunLoops.HeartTable[name] == nil then
-			RunLoops.HeartTable[name] = runService.Heartbeat:Connect(function() pcall(function() func() end) end)
-		end
-	end
-
-	function RunLoops:UnbindFromHeartbeat(name)
-		if RunLoops.HeartTable[name] then
-			RunLoops.HeartTable[name]:Disconnect()
-			RunLoops.HeartTable[name] = nil
-		end
-	end
-end
+local RunLoops = shared.RunLoops
 
 GuiLibrary.SelfDestructEvent.Event:Connect(function()
 	vapeInjected = false
@@ -2334,6 +2297,7 @@ end)
 		local AimAssistClickAim = {Enabled = false}
 		local AimAssistStrafe = {Enabled = false}
 		local AimSpeed = {Value = 1}
+		local HandCheck = {Enabled = false}
 		local AimAssistTargetFrame = {Players = {Enabled = false}}
 		AimAssist = GuiLibrary.ObjectsThatCanBeSaved.CombatWindow.Api.CreateOptionsButton({
 			Name = "AimAssist",
@@ -2342,6 +2306,7 @@ end)
 					RunLoops:BindToRenderStep("AimAssist", function(dt)
 						vapeTargetInfo.Targets.AimAssist = nil
 						if ((not AimAssistClickAim.Enabled) or (tick() - bedwars.SwordController.lastSwing) < 0.4) then
+							if HandCheck.Enabled and not (store.localHand and store.localHand.Type and store.localHand.Type == "sword") then return end
 							local plr = EntityNearPosition(18)
 							if plr then
 								vapeTargetInfo.Targets.AimAssist = {
@@ -2370,7 +2335,14 @@ end)
 			end,
 			HoverText = "Smoothly aims to closest valid target with sword"
 		})
+		AimAssist.Restart = function() if AimAssist.Enabled then AimAssist.ToggleButton(false); AimAssist.ToggleButton(false) end end
 		AimAssistTargetFrame = AimAssist.CreateTargetWindow({Default3 = true})
+		HandCheck = AimAssist.CreateToggle({
+			Name = "Sword Check",
+			Function = AimAssist.Restart,
+			Default = true,
+			HoverText = "Checks if you are holding a sword"
+		})
 		AimAssistClickAim = AimAssist.CreateToggle({
 			Name = "Click Aim",
 			Function = function() end,
@@ -2519,6 +2491,134 @@ end)
 		HoverText = "Remove the CPS cap"
 	})
 end)--]]
+
+run(function()
+	local autoclicker = {Enabled = false}
+	local noclickdelay = {Enabled = false}
+	local autoclickercps = {GetRandomValue = function() return 1 end}
+	local autoclickerblocks = {Enabled = false}
+	local AutoClickerThread
+
+	local function isNotHoveringOverGui()
+		local mousepos = inputService:GetMouseLocation() - Vector2.new(0, 36)
+		for i,v in pairs(lplr.PlayerGui:GetGuiObjectsAtPosition(mousepos.X, mousepos.Y)) do
+			if v.Active then
+				return false
+			end
+		end
+		for i,v in pairs(game:GetService("CoreGui"):GetGuiObjectsAtPosition(mousepos.X, mousepos.Y)) do
+			if v.Parent and v.Parent:IsA("ScreenGui") and v.Parent.Enabled then
+				if v.Active then
+					return false
+				end
+			end
+		end
+		return true
+	end
+
+	local function AutoClick()
+		local firstClick = tick() + 0.1
+		AutoClickerThread = task.spawn(function()
+			repeat
+				task.wait()
+				if entityLibrary.isAlive then
+					if not autoclicker.Enabled then break end
+					if not isNotHoveringOverGui() then continue end
+					--if bedwars.AppController:isLayerOpen(bedwars.UILayers.MAIN) then continue end
+					if GuiLibrary.ObjectsThatCanBeSaved["Lobby CheckToggle"].Api.Enabled then
+						if store.matchState == 0 then continue end
+					end
+					if store.localHand.Type == "sword" then
+						if bedwars.DaoController.chargingMaid == nil then
+							task.spawn(function()
+								if firstClick <= tick() then
+									bedwars.SwordController:swingSwordAtMouse()
+								else
+									firstClick = tick()
+								end
+							end)
+							task.wait(math.max((1 / autoclickercps.GetRandomValue()), noclickdelay.Enabled and 0 or 0.142))
+						end
+					elseif store.localHand.Type == "block" then
+						if autoclickerblocks.Enabled and bedwars.BlockPlacementController.blockPlacer and firstClick <= tick() then
+							if (game.Workspace:GetServerTimeNow() - bedwars.BlockCpsController.lastPlaceTimestamp) > ((1 / 12) * 0.5) then
+								local mouseinfo = bedwars.BlockPlacementController.blockPlacer.clientManager:getBlockSelector():getMouseInfo(0)
+								if mouseinfo then
+									task.spawn(function()
+										if mouseinfo.placementPosition == mouseinfo.placementPosition then
+											bedwars.BlockPlacementController.blockPlacer:placeBlock(mouseinfo.placementPosition)
+										end
+									end)
+								end
+								task.wait((1 / autoclickercps.GetRandomValue()))
+							end
+						end
+					end
+				end
+			until not autoclicker.Enabled
+		end)
+	end
+
+	autoclicker = GuiLibrary.ObjectsThatCanBeSaved.CombatWindow.Api.CreateOptionsButton({
+		Name = "AutoClicker",
+		Function = function(callback)
+			if callback then
+				if inputService.TouchEnabled then
+					pcall(function()
+						table.insert(autoclicker.Connections, lplr.PlayerGui.MobileUI['2'].MouseButton1Down:Connect(AutoClick))
+						table.insert(autoclicker.Connections, lplr.PlayerGui.MobileUI['2'].MouseButton1Up:Connect(function()
+							if AutoClickerThread then
+								task.cancel(AutoClickerThread)
+								AutoClickerThread = nil
+							end
+						end))
+					end)
+				end
+				table.insert(autoclicker.Connections, inputService.InputBegan:Connect(function(input, gameProcessed)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then AutoClick() end
+				end))
+				table.insert(autoclicker.Connections, inputService.InputEnded:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 and AutoClickerThread then
+						task.cancel(AutoClickerThread)
+						AutoClickerThread = nil
+					end
+				end))
+			end
+		end,
+		HoverText = "Hold attack button to automatically click"
+	})
+	autoclickercps = autoclicker.CreateTwoSlider({
+		Name = "CPS",
+		Min = 1,
+		Max = 20,
+		Function = function(val) end,
+		Default = 8,
+		Default2 = 12
+	})
+	autoclickerblocks = autoclicker.CreateToggle({
+		Name = "Place Blocks",
+		Function = function() end,
+		Default = true,
+		HoverText = "Automatically places blocks when left click is held."
+	})
+
+	local noclickfunc
+	noclickdelay = GuiLibrary.ObjectsThatCanBeSaved.CombatWindow.Api.CreateOptionsButton({
+		Name = "NoClickDelay",
+		Function = function(callback)
+			if callback then
+				noclickfunc = bedwars.SwordController.isClickingTooFast
+				bedwars.SwordController.isClickingTooFast = function(self)
+					self.lastSwing = tick()
+					return false
+				end
+			else
+				bedwars.SwordController.isClickingTooFast = noclickfunc
+			end
+		end,
+		HoverText = "Remove the CPS cap"
+	})
+end)
 
 --[[run(function()
 	local ReachValue = {Value = 14}
@@ -3960,6 +4060,7 @@ run(function()
 		--[[if killaurahandcheck.Enabled then
 			if store.localHand.Type ~= "sword" or bedwars.DaoController.chargingMaid then return false end
 		end--]]
+		if killaurahandcheck.Enabled and not (store.localHand and store.localHand.Type and store.localHand.Type == "sword") then return false end
 		return sword, swordmeta
 	end
 

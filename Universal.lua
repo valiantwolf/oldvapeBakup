@@ -1857,49 +1857,52 @@ GuiLibrary.SelfDestructEvent.Event:Connect(function()
 	end
 end)
 
-local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
-do
-	function RunLoops:BindToRenderStep(name, func)
-		if RunLoops.RenderStepTable[name] == nil then
-			RunLoops.RenderStepTable[name] = runService.RenderStepped:Connect(func)
-			table.insert(vapeConnections, RunLoops.RenderStepTable[name])
-		end
-	end
+local runService = game:GetService("RunService")
 
-	function RunLoops:UnbindFromRenderStep(name)
-		if RunLoops.RenderStepTable[name] then
-			RunLoops.RenderStepTable[name]:Disconnect()
-			RunLoops.RenderStepTable[name] = nil
-		end
-	end
+local RunLoops = {
+    RenderStepTable = {},
+    StepTable = {},
+    HeartTable = {}
+}
 
-	function RunLoops:BindToStepped(name, func)
-		if RunLoops.StepTable[name] == nil then
-			RunLoops.StepTable[name] = runService.Stepped:Connect(func)
-			table.insert(vapeConnections, RunLoops.StepTable[name])
-		end
-	end
+local function BindToLoop(tableName, service, name, func)
+	local oldfunc = func
+	func = function(delta) VoidwareFunctions.handlepcall(pcall(function() oldfunc(delta) end)) end
+    if RunLoops[tableName][name] == nil then
+        RunLoops[tableName][name] = service:Connect(func)
+        table.insert(vapeConnections, RunLoops[tableName][name])
+    end
+end
 
-	function RunLoops:UnbindFromStepped(name)
-		if RunLoops.StepTable[name] then
-			RunLoops.StepTable[name]:Disconnect()
-			RunLoops.StepTable[name] = nil
-		end
-	end
+local function UnbindFromLoop(tableName, name)
+    if RunLoops[tableName][name] then
+        RunLoops[tableName][name]:Disconnect()
+        RunLoops[tableName][name] = nil
+    end
+end
 
-	function RunLoops:BindToHeartbeat(name, func)
-		if RunLoops.HeartTable[name] == nil then
-			RunLoops.HeartTable[name] = runService.Heartbeat:Connect(func)
-			table.insert(vapeConnections, RunLoops.HeartTable[name])
-		end
-	end
+function RunLoops:BindToRenderStep(name, func)
+    BindToLoop("RenderStepTable", runService.RenderStepped, name, func)
+end
 
-	function RunLoops:UnbindFromHeartbeat(name)
-		if RunLoops.HeartTable[name] then
-			RunLoops.HeartTable[name]:Disconnect()
-			RunLoops.HeartTable[name] = nil
-		end
-	end
+function RunLoops:UnbindFromRenderStep(name)
+    UnbindFromLoop("RenderStepTable", name)
+end
+
+function RunLoops:BindToStepped(name, func)
+    BindToLoop("StepTable", runService.Stepped, name, func)
+end
+
+function RunLoops:UnbindFromStepped(name)
+    UnbindFromLoop("StepTable", name)
+end
+
+function RunLoops:BindToHeartbeat(name, func)
+    BindToLoop("HeartTable", runService.Heartbeat, name, func)
+end
+
+function RunLoops:UnbindFromHeartbeat(name)
+    UnbindFromLoop("HeartTable", name)
 end
 VoidwareFunctions.GlobaliseObject("RunLoops", RunLoops)
 

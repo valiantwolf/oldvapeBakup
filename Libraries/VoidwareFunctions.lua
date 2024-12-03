@@ -89,6 +89,13 @@ table.insert(VWFunctions.Connections, VWFunctions.ClosetCheatModeEvent.Event:Con
     end--]]
 end))
 
+VWFunctions.handlepcall = function(suc, err)
+    if suc == nil then return "nil suc" end
+    if (not suc) then
+        warn(debug.traceback("[VWFunctions.handlepcall]: Error in pcall! Error: \n"..tostring(err)))
+    end
+end
+
 local GamesFunctions = {
     ["Universal"] = {
         btext = function(text)
