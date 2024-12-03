@@ -1003,9 +1003,9 @@ function bedwars.DragonSlayerController:fetchDragonEmblems()
 end
 bedwars.DragonSlayerController.emblemCache = {}
 function bedwars.DragonSlayerController:fetchDragonEmblemData(emblem)
-    if self.emblemCache[emblem] then
+    --[[if self.emblemCache[emblem] then
         return self.emblemCache[emblem] 
-    end
+    end--]]
     local c = emblem and emblem.Parent and emblem.ClassName and emblem.ClassName == "Model" and emblem:GetChildren() or {}
     local cn = #c
     local tbl = {
@@ -7933,7 +7933,7 @@ run(function()
 			local lastFired
 			task.spawn(function()
 				repeat
-					task.wait(0.1)
+					task.wait(0.5)
 					if entityLibrary.isAlive then
 						for i,v in pairs(bedwars.DragonSlayerController:fetchDragonEmblems()) do
 							local data = bedwars.DragonSlayerController:fetchDragonEmblemData(v)
