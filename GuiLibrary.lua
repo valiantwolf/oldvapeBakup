@@ -351,12 +351,11 @@ if shared.VapeExecuted then
 	local LegitModulesFrameCorner = Instance.new("UICorner")
 	LegitModulesFrameCorner.CornerRadius = UDim.new(0, 4)
 	LegitModulesFrameCorner.Parent = LegitModulesFrame
-	local notificationwindow = Instance.new("Frame")
+	local notificationwindow = Instance.new("NotifyFrame")
 	notificationwindow.BackgroundTransparency = 1
 	notificationwindow.Active = false
 	notificationwindow.Size = UDim2.new(1, 0, 1, 0)
-	-- notificationwindow.Parent = GuiLibrary["MainGui"]
-	notificationwindow.Parent = scaledgui
+	notificationwindow.Parent = GuiLibrary["MainGui"]
 	local hoverbox = Instance.new("TextLabel")
 	hoverbox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 	hoverbox.Active = false
