@@ -352,6 +352,7 @@ if shared.VapeExecuted then
 	LegitModulesFrameCorner.CornerRadius = UDim.new(0, 4)
 	LegitModulesFrameCorner.Parent = LegitModulesFrame
 	local notificationwindow = Instance.new("Frame")
+	notificationwindow.Name = 'NotifyFrame'
 	notificationwindow.BackgroundTransparency = 1
 	notificationwindow.Active = false
 	notificationwindow.Size = UDim2.new(1, 0, 1, 0)
