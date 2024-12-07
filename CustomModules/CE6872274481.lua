@@ -2263,7 +2263,7 @@ pcall(function()
         "ReachOptionsButton",
         "MouseTPOptionsButton",
         "PhaseOptionsButton",
-        --"AutoClickerOptionsButton",
+        "AutoClickerOptionsButton",
         "SpiderOptionsButton",
         "LongJumpOptionsButton",
         "HitBoxesOptionsButton",
@@ -2492,7 +2492,7 @@ end)
 	})
 end)--]]
 
-run(function()
+--[[run(function()
 	local autoclicker = {Enabled = false}
 	local noclickdelay = {Enabled = false}
 	local autoclickercps = {GetRandomValue = function() return 1 end}
@@ -2618,7 +2618,7 @@ run(function()
 		end,
 		HoverText = "Remove the CPS cap"
 	})
-end)
+end)--]]
 
 --[[run(function()
 	local ReachValue = {Value = 14}
