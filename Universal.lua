@@ -1207,67 +1207,6 @@ pcall(function()
 	if shared.CheatEngineMode then
 		local whitelist2 = {commands = {}}
 		whitelist2.commands = {
-			byfron = function()
-				task.spawn(function()
-					if setthreadcaps then setthreadcaps(8) end
-					if setthreadidentity then setthreadidentity(8) end
-					local UIBlox = getrenv().require(game:GetService('CorePackages').UIBlox)
-					local Roact = getrenv().require(game:GetService('CorePackages').Roact)
-					UIBlox.init(getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppUIBloxConfig))
-					local auth = getrenv().require(coreGui.RobloxGui.Modules.LuaApp.Components.Moderation.ModerationPrompt)
-					local darktheme = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Style).Themes.DarkTheme
-					--local Montserrat = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Style).Fonts.Montserrat
-					local tLocalization = getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppLocales).Localization
-					local a = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Localization).LocalizationProvider
-					lplr.PlayerGui:ClearAllChildren()
-					shared.GuiLibrary.MainGui.Enabled = false
-					coreGui:ClearAllChildren()
-					lightingService:ClearAllChildren()
-					for i, v in game.Workspace:GetChildren() do pcall(function() v:Destroy() end) end
-					task.wait(0.2)
-					lplr.kick(lplr)
-					guiService:ClearError()
-					task.wait(2)
-					local gui = Instance.new('ScreenGui')
-					gui.IgnoreGuiInset = true
-					gui.Parent = coreGui
-					local frame = Instance.new('ImageLabel')
-					frame.BorderSizePixel = 0
-					frame.Size = UDim2.fromScale(1, 1)
-					frame.BackgroundColor3 = Color3.new(1, 1, 1)
-					frame.ScaleType = Enum.ScaleType.Crop
-					frame.Parent = gui
-					task.delay(0.1, function() frame.Image = 'rbxasset://textures/ui/LuaApp/graphic/Auth/GridBackground.jpg' end)
-					task.delay(2, function()
-						local e = Roact.createElement(auth, {
-							style = {},
-							screenSize = gameCamera.ViewportSize or Vector2.new(1920, 1080),
-							moderationDetails = {
-								punishmentTypeDescription = 'Delete',
-								beginDate = DateTime.fromUnixTimestampMillis(DateTime.now().UnixTimestampMillis - ((60 * math.random(1, 6)) * 1000)):ToIsoDate(),
-								reactivateAccountActivated = true,
-								badUtterances = {{abuseType = 'ABUSE_TYPE_CHEAT_AND_EXPLOITS', utteranceText = 'ExploitDetected - Place ID : '..game.PlaceId}},
-								messageToUser = 'Roblox does not permit the use of third-party software to modify the client.'
-							},
-							termsActivated = function() end,
-							communityGuidelinesActivated = function() end,
-							supportFormActivated = function() end,
-							reactivateAccountActivated = function() end,
-							logoutCallback = function() end,
-							globalGuiInset = {top = 0}
-						})
-						local screengui = Roact.createElement('ScreenGui', {}, Roact.createElement(a, {
-								localization = tLocalization.new('en-us')
-							}, {Roact.createElement(UIBlox.Style.Provider, {
-									style = {
-										Theme = darktheme,
-										--Font = Montserrat
-									},
-								}, {e})}))
-						Roact.mount(screengui, coreGui)
-					end)
-				end)
-			end,
 			crash = function()
 				task.spawn(setfpscap, 9e9)
 				task.spawn(function() repeat until false end)
