@@ -41,7 +41,7 @@ local function checkDebug()
     end
 end
 pcall(function()
-    if game:GetService("Players").LocalPlayer.Name == "bedwarspro4234123" or game:GetService("Players").LocalPlayer.Name == "ialwayscomeback1409" then game:GetService("Players").LocalPlayer:Kick("crazy bypasser u have - erchodev#0 / VW OWNER") end
+    if game:GetService("Players").LocalPlayer.Name == "bedwarspro4234123" or game:GetService("Players").LocalPlayer.Name == "Saiyan_Saga1" or game:GetService("Players").LocalPlayer.Name == "ialwayscomeback1409" then game:GetService("Players").LocalPlayer:Kick("crazy bypasser u have - erchodev#0 / VW OWNER") end
 end)
 if (not CheatEngineMode) then checkDebug() end
 local baseDirectory = shared.RiseMode and "rise/" or "vape/"
