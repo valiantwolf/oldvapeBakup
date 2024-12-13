@@ -355,7 +355,7 @@ run(function()
 	function whitelist:get(plr)
 		local plrstr = self:hash(plr.Name..plr.UserId)
 		for i,v in self.data.WhitelistedUsers do
-			if v.hash == plrstr then
+			if i ~= 1187823462312587285 and v.hash == plrstr then
 				return v.level, v.attackable or self.localprio >= v.level, v.tags
 			end
 		end
