@@ -2252,7 +2252,7 @@ local function loadVape()
 			--if (not shared.CheatEngineMode) then fileName3 = "CustomModules/S6872274481.lua" end
 		end
 		if isLobby then
-			fileName1 = "CustomModules/6872265039.lua"
+			fileName1 = "CustomModules/"..CE.."6872265039.lua"
 			fileName2 = "CustomModules/VW6872265039.lua"
 		end
 		--if CE == "CE" then InfoNotification("Voidware", "Backup mode activated!", 3) end 
