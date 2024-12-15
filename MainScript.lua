@@ -2241,18 +2241,18 @@ local function loadVape()
 		pload("VWUniversal.lua", true)
 		local fileName1 = "CustomModules/"..game.PlaceId..".lua"
 		local fileName2 = "CustomModules/VW"..game.PlaceId..".lua"
-		local fileName3
-		local isGame = table.find(bedwarsID.game, game.PlaceId) and true or false
-		local isLobby = table.find(bedwarsID.lobby, game.PlaceId) and true or false
+		--local fileName3
+		local isGame = table.find(bedwarsID.game, game.PlaceId)
+		local isLobby = table.find(bedwarsID.lobby, game.PlaceId)
 		local CE = shared.CheatEngineMode and "CE" or ""
 		if isGame then
 			if game.PlaceId ~= 6872274481 then shared.CustomSaveVape = 6872274481 end
-			fileName1 = "CustomModules/CE6872274481.lua"
+			fileName1 = "CustomModules/"..CE.."6872274481.lua"
 			fileName2 = "CustomModules/VW6872274481.lua"
 			--if (not shared.CheatEngineMode) then fileName3 = "CustomModules/S6872274481.lua" end
 		end
 		if isLobby then
-			fileName1 = "CustomModules/"..CE.."6872265039.lua"
+			fileName1 = "CustomModules/6872265039.lua"
 			fileName2 = "CustomModules/VW6872265039.lua"
 		end
 		--if CE == "CE" then InfoNotification("Voidware", "Backup mode activated!", 3) end 
@@ -2260,7 +2260,7 @@ local function loadVape()
 		warn("[CheatEngineMode]: ", tostring(shared.CheatEngineMode))
 		warn("[TestingMode]: ", tostring(shared.TestingMode))
 		warn("[FileName1]: ", tostring(fileName1), " [FileName2]: ", tostring(fileName2), " [FileName3]: ", tostring(fileName3))
-		if shared.VoidDev then InfoNotification(fileName1, fileName2, 100) end
+		if shared.VoidDev and shared.LoadDebug then InfoNotification(fileName1, fileName2, 1000) end
 		pload(fileName1)
 		pload(fileName2)
 		--if fileName3 then pload(fileName3) end

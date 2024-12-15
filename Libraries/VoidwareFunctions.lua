@@ -219,34 +219,28 @@ local GamesFunctions = {
             repeat task.wait() until shared.vapewhitelist.loaded
             repeat task.wait() until shared.vapeentity
             repeat task.wait() until isAlive
-            local playersService = game:GetService("Players")
+            local entityLibrary = shared.vapeentity
             local magnitude, target = (distance or healthmethod and 0 or math.huge), {}
-            for i,v in playersService:GetPlayers() do 
-                if v ~= lplr and isAlive(v) and isAlive(lplr, true) then 
-                    if ({shared.vapewhitelist:get(v)})[2] then
-                        return
-                    end
-                    if shared.vapeentity.isPlayerTargetable(v) then 
-                        return
-                    end
-                    local playerRaycasted = function() return true end
-                    if playerRaycasted(v) and raycast then 
-                        return
-                    end
-                    if healthmethod and v.Character.Humanoid.Health < magnitude then 
-                        magnitude = v.Character.Humanoid.Health
-                        target.Human = true
-                        target.RootPart = v.Character.HumanoidRootPart
-                        target.Humanoid = v.Character.Humanoid
-                        target.Player = v
-                    end 
-                    local playerdistance = (lplr.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
-                    if playerdistance < magnitude then 
-                        magnitude = playerdistance
-                        target.Human = true
-                        target.RootPart = v.Character.HumanoidRootPart
-                        target.Humanoid = v.Character.Humanoid
-                        target.Player = v
+            local function isVulnerable(plr) return plr.Humanoid.Health > 0 and not plr.Character.FindFirstChildWhichIsA(plr.Character, "ForceField") end
+            if entityLibrary.isAlive then
+                for i, v in pairs(entityLibrary.entityList) do
+                    if not v.Targetable then continue end
+                    if isVulnerable(v) then
+                        if healthmethod and v.Character.Humanoid.Health < magnitude then 
+                            magnitude = v.Character.Humanoid.Health
+                            target.Human = true
+                            target.RootPart = v.Character.HumanoidRootPart
+                            target.Humanoid = v.Character.Humanoid
+                            target.Player = v
+                        end 
+                        local playerdistance = (lplr.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                        if playerdistance < magnitude then 
+                            magnitude = playerdistance
+                            target.Human = true
+                            target.RootPart = v.Character.HumanoidRootPart
+                            target.Humanoid = v.Character.Humanoid
+                            target.Player = v
+                        end
                     end
                 end
             end

@@ -2,9 +2,7 @@ repeat task.wait() until game:IsLoaded()
 repeat task.wait() until shared.GuiLibrary
 
 local function run(func)
-	local suc, err = pcall(function()
-		func()
-	end)
+	local suc, err = pcall(function() func() end)
 	if err then warn("[VW687224481.lua Module Error]: "..tostring(debug.traceback(err))) end
 end
 local GuiLibrary = shared.GuiLibrary
@@ -47,6 +45,8 @@ local function BedwarsErrorNotification(mes)
 	});
 end
 getgenv().BedwarsErrorNotification = BedwarsErrorNotification
+
+VoidwareFunctions.LoadFunctions("Bedwars")
 
 local gameCamera = game.Workspace.CurrentCamera
 
@@ -1708,7 +1708,7 @@ run(function()
 						PlayerTP.ToggleButton()
 						return
 					end
-					if GetTarget(nil, PlayerTPSort.Value == 'Health', true).RootPart and shared.VapeFullyLoaded then 
+					if GetTarget(nil, PlayerTPSort.Value == 'Health', true) and GetTarget(nil, PlayerTPSort.Value == 'Health', true).RootPart and shared.VapeFullyLoaded then 
 						bypassmethods[isAlive() and PlayerTPTeleport.Value or 'Respawn']() 
 					else
 						InfoNotification("PlayerTP", "No player/s found!", 3)
@@ -1927,24 +1927,28 @@ run(function()
 			end
 		end
 	})
+	HotbarMods.Restart = function() if HotbarMods.Enabled then HotbarMods.ToggleButton(false); HotbarMods.ToggleButton(false) end end
+	local function refreshGUI()
+		repeat task.wait() until HotbarColorToggle.Object and HotbarModsGradient.Object and HotbarModsGradientColor.Object and HotbarModsGradientColor2.Object and HotbarColor.Object
+		HotbarColorToggle.Object.Visible = (not GuiSync.Enabled)
+		HotbarModsGradient.Object.Visible = (not GuiSync.Enabled)
+		HotbarModsGradientColor.Object.Visible = HotbarModsGradient.Enabled and (not GuiSync.Enabled)
+		HotbarModsGradientColor2.Object.Visible = HotbarModsGradient.Enabled and (not GuiSync.Enabled)
+		HotbarColor.Object.Visible = (not GuiSync.Enabled)
+	end
 	GuiSync = HotbarMods.CreateToggle({
-		Name = "Sync with GUI Color",
+		Name = "GUI Color Sync",
 		Function = function()
-			if HotbarMods.Enabled then 
-				HotbarMods.ToggleButton(false)
-				HotbarMods.ToggleButton(false)
-			end
+			HotbarMods.Restart()
+			task.spawn(refreshGUI)
 		end
 	})
 	HotbarColorToggle = HotbarMods.CreateToggle({
 		Name = 'Slot Color',
 		Function = function(calling)
 			pcall(function() HotbarColor.Object.Visible = calling end)
-			pcall(function() HotbarColorToggle.Object.Visible = calling end)
-			if HotbarMods.Enabled then 
-				HotbarMods.ToggleButton(false)
-				HotbarMods.ToggleButton(false)
-			end
+			HotbarMods.Restart()
+			task.spawn(refreshGUI)
 		end
 	})
 	HotbarModsGradient = HotbarMods.CreateToggle({
@@ -1952,10 +1956,8 @@ run(function()
 		Function = function(calling)
 			pcall(function() HotbarModsGradientColor.Object.Visible = calling end)
 			pcall(function() HotbarModsGradientColor2.Object.Visible = calling end)
-			if HotbarMods.Enabled then 
-				HotbarMods.ToggleButton(false)
-				HotbarMods.ToggleButton(false)
-			end
+			HotbarMods.Restart()
+			task.spawn(refreshGUI)
 		end
 	})
 	HotbarModsGradientColor = HotbarMods.CreateColorSlider({
@@ -1988,10 +1990,8 @@ run(function()
 		Name = 'Rounding',
 		Function = function(calling)
 			pcall(function() HotbarRoundRadius.Object.Visible = calling end)
-			if HotbarMods.Enabled then 
-				HotbarMods.ToggleButton(false)
-				HotbarMods.ToggleButton(false)
-			end
+			HotbarMods.Restart()
+			task.spawn(refreshGUI)
 		end
 	})
 	HotbarRoundRadius = HotbarMods.CreateSlider({
@@ -2008,10 +2008,8 @@ run(function()
 		Name = 'Outline Highlight',
 		Function = function(calling)
 			pcall(function() HotbarHighlightColor.Object.Visible = calling end)
-			if HotbarMods.Enabled then 
-				HotbarMods.ToggleButton(false)
-				HotbarMods.ToggleButton(false)
-			end
+			HotbarMods.Restart()
+			task.spawn(refreshGUI)
 		end
 	})
 	HotbarHighlightColor = HotbarMods.CreateColorSlider({
@@ -2027,10 +2025,7 @@ run(function()
 	HotbarHideSlotIcons = HotbarMods.CreateToggle({
 		Name = 'No Slot Numbers',
 		Function = function()
-			if HotbarMods.Enabled then 
-				HotbarMods.ToggleButton(false)
-				HotbarMods.ToggleButton(false)
-			end
+			HotbarMods.Restart()
 		end
 	})
 	HotbarColor.Object.Visible = false
@@ -2039,7 +2034,7 @@ run(function()
 end)
 
 run(function()
-	local HealthbarVisuals = {};
+	local HealthbarVisuals = {Enabled = false, Connections = {}};
 	local HealthbarRound = {};
 	local HealthbarColorToggle = {};
 	local HealthbarGradientToggle = {};
@@ -2062,6 +2057,7 @@ run(function()
 	local oldhealthbar;
 	local healthbarhighlight;
 	local textconnection;
+	local GUISync = {Enabled = false}
 	local function healthbarFunction()
 		if not HealthbarVisuals.Enabled then 
 			return 
@@ -2070,16 +2066,36 @@ run(function()
 		if healthbar and type(healthbar) == 'userdata' then 
 			oldhealthbar = healthbar;
 			healthbar.Transparency = (0.1 * HealthbarInvis.Value);
-			healthbar.BackgroundColor3 = (HealthbarColorToggle.Enabled and Color3.fromHSV(HealthbarColor.Hue, HealthbarColor.Sat, HealthbarColor.Value) or healthbar.BackgroundColor3)
-			if HealthbarGradientToggle.Enabled then 
-				healthbar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				local gradient = (healthbar:FindFirstChildWhichIsA('UIGradient') or Instance.new('UIGradient', healthbar))
-				gradient.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, Color3.fromHSV(HealthbarColor.Hue, HealthbarColor.Sat, HealthbarColor.Value)), 
-					ColorSequenceKeypoint.new(1, Color3.fromHSV(HealthbarGradientColor.Hue, HealthbarGradientColor.Sat, HealthbarGradientColor.Value))
-				})
-				gradient.Rotation = HealthbarGradientRotation.Value
-				table.insert(healthbarobjects, gradient)
+			if (not GUISync.Enabled) then
+				healthbar.BackgroundColor3 = (HealthbarColorToggle.Enabled and Color3.fromHSV(HealthbarColor.Hue, HealthbarColor.Sat, HealthbarColor.Value) or healthbar.BackgroundColor3)
+				if HealthbarGradientToggle.Enabled then 
+					healthbar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					local gradient = (healthbar:FindFirstChildWhichIsA('UIGradient') or Instance.new('UIGradient', healthbar))
+					gradient.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0, Color3.fromHSV(HealthbarColor.Hue, HealthbarColor.Sat, HealthbarColor.Value)), 
+						ColorSequenceKeypoint.new(1, Color3.fromHSV(HealthbarGradientColor.Hue, HealthbarGradientColor.Sat, HealthbarGradientColor.Value))
+					})
+					gradient.Rotation = HealthbarGradientRotation.Value
+					table.insert(healthbarobjects, gradient)
+				end
+			else
+				if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+					healthbar.BackgroundColor3 = GuiLibrary.GUICoreColor
+					table.insert(HealthbarVisuals.Connections, GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+						if HealthbarVisuals.Enabled then
+							healthbar.BackgroundColor3 = GuiLibrary.GUICoreColor
+						end
+					end))
+				else
+					local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+					healthbar.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+					VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+						if HighlightVisuals.Enabled then
+							color = {Hue = h, Sat = s, Value = v}
+							healthbar.BackgroundColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+						end
+					end))
+				end
 			end
 			for i,v in healthbar.Parent:GetChildren() do 
 				if v:IsA('Frame') and v:FindFirstChildWhichIsA('UICorner') == nil and HealthbarRound.Enabled then
@@ -2164,26 +2180,36 @@ run(function()
 			end
 		end
 	})
+	HealthbarVisuals.Restart = function() if HealthbarVisuals.Enabled then HealthbarVisuals.ToggleButton(false); HealthbarVisuals.ToggleButton(false) end end
+	local function refreshGUIObjects()
+		task.spawn(function()
+			repeat task.wait() until HealthbarColorToggle.Object and HealthbarColor.Object and HealthbarGradientColor.Object and HealthbarGradientToggle.Object and HealthbarBackgroundToggle.Object and HealthbarBackground.Object and HealthbarHighlight.Object and HealthbarHighlightColor.Object and GUISync.Object
+			local a, b, c, d, e, f, g, h, i = HealthbarColorToggle, HealthbarColor, HealthbarGradientColor, HealthbarGradientToggle, HealthbarBackgroundToggle, HealthbarBackground, HealthbarHighlight, HealthbarHighlightColor, GUISync
+			a.Object.Visible = not i.Enabled
+			b.Object.Visible = a.Enabled and not i.Enabled
+			c.Object.Visible = d.Enabled and not i.Enabled
+			d.Object.Visible = not i.Enabled
+			e.Object.Visible = not i.Enabled
+			f.Object.Visible = e.Enabled and not i.Enabled
+			g.Object.Visible = not i.Enabled
+			h.Object.Visible = g.Enabled and not i.Enabled
+		end)
+	end
+	GUISync = HealthbarVisuals.CreateToggle({
+		Name = "GUI Color Sync",
+		Function = function(call)
+			refreshGUIObjects()
+			HealthbarVisuals.Restart()
+		end
+	})
 	HealthbarColorToggle = HealthbarVisuals.CreateToggle({
 		Name = 'Main Color',
 		Default = true,
 		Function = function(calling)
 			pcall(function() HealthbarColor.Object.Visible = calling end)
 			pcall(function() HealthbarGradientToggle.Object.Visible = calling end)
-			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
-			end
+			HealthbarVisuals.Restart()
 		end 
-	})
-	HealthbarGradientToggle = HealthbarVisuals.CreateToggle({
-		Name = 'Gradient',
-		Function = function(calling)
-			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
-			end
-		end
 	})
 	HealthbarColor = HealthbarVisuals.CreateColorSlider({
 		Name = 'Main Color',
@@ -2199,14 +2225,19 @@ run(function()
 			end
 		end
 	})
+	HealthbarGradientColor.Object.Visible = false
+	HealthbarGradientToggle = HealthbarVisuals.CreateToggle({
+		Name = 'Gradient',
+		Function = function(call)
+			HealthbarGradientColor.Object.Visible = call
+			HealthbarVisuals.Restart()
+		end
+	})
 	HealthbarBackgroundToggle = HealthbarVisuals.CreateToggle({
 		Name = 'Background Color',
 		Function = function(calling)
 			pcall(function() HealthbarBackground.Object.Visible = calling end)
-			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
-			end
+			HealthbarVisuals.Restart()
 		end 
 	})
 	HealthbarBackground = HealthbarVisuals.CreateColorSlider({
@@ -2219,36 +2250,20 @@ run(function()
 		Name = 'Text',
 		Function = function(calling)
 			pcall(function() HealthbarText.Object.Visible = calling end)
-			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
-			end
+			HealthbarVisuals.Restart()
 		end 
 	})
 	HealthbarText = HealthbarVisuals.CreateTextList({
 		Name = 'Text',
 		TempText = 'Healthbar Text',
-		AddFunction = function()
-			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
-			end
-		end,
-		RemoveFunction = function()
-			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
-			end
-		end
+		AddFunction = HealthbarVisuals.Restart,
+		RemoveFunction = HealthbarVisuals.Restart
 	})
 	HealthbarTextColorToggle = HealthbarVisuals.CreateToggle({
 		Name = 'Text Color',
 		Function = function(calling)
 			pcall(function() HealthbarTextColor.Object.Visible = calling end)
-			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
-			end
+			HealthbarVisuals.Restart()
 		end 
 	})
 	HealthbarTextColor = HealthbarVisuals.CreateColorSlider({
@@ -2261,30 +2276,19 @@ run(function()
 		Name = 'Text Font',
 		Function = function(calling)
 			pcall(function() HealthbarFont.Object.Visible = calling end)
-			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
-			end
+			HealthbarVisuals.Restart()
 		end 
 	})
 	HealthbarFont = HealthbarVisuals.CreateDropdown({
 		Name = 'Text Font',
 		List = GetEnumItems('Font'),
-		Function = function(calling)
-			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
-			end
-		end
+		Function = HealthbarVisuals.Restart
 	})
 	HealthbarRound = HealthbarVisuals.CreateToggle({
 		Name = 'Round',
 		Function = function(calling)
 			pcall(function() HealthbarRoundSize.Object.Visible = calling end);
-			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
-			end
+			HealthbarVisuals.Restart()
 		end
 	})
 	HealthbarRoundSize = HealthbarVisuals.CreateSlider({
@@ -2305,10 +2309,7 @@ run(function()
 		Name = 'Highlight',
 		Function = function(calling)
 			pcall(function() HealthbarHighlightColor.Object.Visible = calling end);
-			if HealthbarVisuals.Enabled then
-				HealthbarVisuals.ToggleButton(false)
-				HealthbarVisuals.ToggleButton(false)
-			end
+			HealthbarVisuals.Restart()
 		end
 	})
 	HealthbarHighlightColor = HealthbarVisuals.CreateColorSlider({
@@ -2484,11 +2485,11 @@ run(function()
 
     function handlers:applyBoost()
         local boostActions = {
-            Velocity = function() self.hrp.Velocity += vec3(0, antiDeathConfig.Velocity.Value, 0) end,
-            CFrame = function() self.hrp.CFrame += vec3(0, antiDeathConfig.CFrame.Value, 0) end,
+            Velocity = function() self.hrp.Velocity += Vector3.new(0, antiDeathConfig.Velocity.Value, 0) end,
+            CFrame = function() self.hrp.CFrame += Vector3.new(0, antiDeathConfig.CFrame.Value, 0) end,
             Tween = function()
                 tweenService:Create(self.hrp, twinfo(antiDeathConfig.TweenDuration.Value / 10), {
-                    CFrame = self.hrp.CFrame + vec3(0, antiDeathConfig.TweenPower.Value, 0)
+                    CFrame = self.hrp.CFrame + Vector3.new(0, antiDeathConfig.TweenPower.Value, 0)
                 }):Play()
             end
         }
@@ -2496,7 +2497,7 @@ run(function()
     end
 
     function handlers:moveToSky()
-        self.hrp.CFrame += vec3(0, antiDeathConfig.SkyPosition.Value, 0)
+        self.hrp.CFrame += Vector3.new(0, antiDeathConfig.SkyPosition.Value, 0)
         self.hrp.Anchored = true
     end
 
@@ -3203,7 +3204,7 @@ run(function()
 															end
 														end)
 					
-														task.wait(0.3)
+														task.wait(0.2)
 														lplr.Character.HumanoidRootPart.Velocity = Vector3.new(lplr.Character.HumanoidRootPart.Velocity.X, -1, lplr.Character.HumanoidRootPart.Velocity.Z)
 														lplr.Character.HumanoidRootPart.CFrame = Clone.HumanoidRootPart.CFrame
 														gameCamera.CameraSubject = lplr.Character:FindFirstChild("Humanoid")
@@ -3556,7 +3557,100 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
     end
     return entity
 end
-run(function()
+local function isVulnerable(plr) return plr.Humanoid.Health > 0 and not plr.Character.FindFirstChildWhichIsA(plr.Character, "ForceField") end
+VoidwareFunctions.GlobaliseObject("isVulnarable", isVulnarable)
+local function EntityNearPosition(distance, ignore, overridepos)
+	local closestEntity, closestMagnitude = nil, distance
+	if entityLibrary.isAlive then
+		for i, v in pairs(entityLibrary.entityList) do
+			if not v.Targetable then continue end
+			if isVulnerable(v) then
+				local mag = (entityLibrary.character.HumanoidRootPart.Position - v.RootPart.Position).magnitude
+				if overridepos and mag > distance then
+					mag = (overridepos - v.RootPart.Position).magnitude
+				end
+				if mag <= closestMagnitude then
+					closestEntity, closestMagnitude = v, mag
+				end
+			end
+		end
+		if not ignore then
+			for i, v in pairs(game.Workspace:GetChildren()) do
+				if v.Name == "Void Enemy Dummy" or v.Name == "Emerald Enemy Dummy" or v.Name == "Diamond Enemy Dummy" or v.Name == "Leather Enemy Dummy" or v.Name == "Regular Enemy Dummy" or v.Name == "Iron Enemy Dummy" then
+					if v.PrimaryPart then
+						local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+						if overridepos and mag > distance then
+							mag = (overridepos - v2.PrimaryPart.Position).magnitude
+						end
+						if mag <= closestMagnitude then
+							closestEntity, closestMagnitude = {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645)}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+						end
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("Monster")) do
+				if v.PrimaryPart and v:GetAttribute("Team") ~= lplr:GetAttribute("Team") then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645)}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("GuardianOfDream")) do
+				if v.PrimaryPart and v:GetAttribute("Team") ~= lplr:GetAttribute("Team") then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645)}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("DiamondGuardian")) do
+				if v.PrimaryPart then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = "DiamondGuardian", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("GolemBoss")) do
+				if v.PrimaryPart then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = "GolemBoss", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("Drone")) do
+				if v.PrimaryPart and tonumber(v:GetAttribute("PlayerUserId")) ~= lplr.UserId then
+					local droneplr = playersService:GetPlayerByUserId(v:GetAttribute("PlayerUserId"))
+					if droneplr and droneplr.Team == lplr.Team then continue end
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = "Drone", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+		end
+	end
+	return closestEntity
+end
+VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
+--[[run(function()
 	local Autowin = {Enabled = false}
 	local AutowinNotification = {Enabled = true}
 	local bedtween
@@ -3595,68 +3689,65 @@ run(function()
 						end
 						table.insert(Autowin.Connections, runService.Heartbeat:Connect(function()
 							pcall(function()
-							if not isnetworkowner(lplr.Character.HumanoidRootPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
-								if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and store.matchState < 2 then
-									lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-									lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+								if not isnetworkowner(lplr.Character.HumanoidRootPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
+									if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and store.matchState < 2 then
+										lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+										lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+									end
 								end
-							end
-						end)
+							end)
 						end))
 						table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
 							if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
 							local bed = FindEnemyBed()
 							if bed and (bed:GetAttribute("BedShieldEndTime") and bed:GetAttribute("BedShieldEndTime") < game.Workspace:GetServerTimeNow() or not bed:GetAttribute("BedShieldEndTime")) then
-							bedtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
-							task.wait(0.1)
-							bedtween:Play()
-							bedtween.Completed:Wait()
-							task.spawn(function()
-							task.wait(1.5)
-							if lplr.Character:FindFirstChild("HumanoidRootPart") then
-								local magnitude = GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, bed)
-								if magnitude >= 50 and FindTeamBed() and Autowin.Enabled then
+								bedtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
+								task.wait(0.1)
+								bedtween:Play()
+								bedtween.Completed:Wait()
+								task.spawn(function()
+									task.wait(1.5)
+									if lplr.Character:FindFirstChild("HumanoidRootPart") then
+										local magnitude = GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, bed)
+										if magnitude >= 50 and FindTeamBed() and Autowin.Enabled then
+											lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+											lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+										end
+									end
+								end)
+								if AutowinNotification.Enabled then
+									local function get_bed_team(id)
+										local teamName = "Unknown"
+										for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+											if v ~= game:GetService("Players").LocalPlayer then
+												if v:GetAttribute("Team") and tostring(v:GetAttribute("Team")) == tostring(id) then
+													teamName = tostring(v.Team)
+												end
+											end
+										end
+										return false, teamName
+									end
+									local suc, bedname = get_bed_team(bed:GetAttribute("TeamId"))
+									task.spawn(InfoNotification, "Autowin", "Destroying "..bedname:lower().." team's bed", 5)
+								end
+								repeat task.wait() until FindEnemyBed() ~= bed or not isAlive()
+								if EntityNearPosition(45) and EntityNearPosition(45).RootPart and isAlive() then
+									if AutowinNotification.Enabled then
+										local team = VoidwareStore.bedtable[bed] or "unknown"
+										task.spawn(InfoNotification, "Autowin", "Killing "..team:lower().." team's teamates", 5)
+									end
+									repeat
+										local target = EntityNearPosition(45)
+										if not target.RootPart then break end
+										playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+										playertween:Play()
+										task.wait()
+									until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
+								end
+								if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
 									lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
 									lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
 								end
-							end
-							end)
-							if AutowinNotification.Enabled then
-								local function get_bed_team(id)
-									local teamName = "Unknown"
-									for i,v in pairs(game:GetService("Players"):GetPlayers()) do
-										if v ~= game:GetService("Players").LocalPlayer then
-											if v:GetAttribute("Team") and tostring(v:GetAttribute("Team")) == tostring(id) then
-												teamName = tostring(v.Team)
-											end
-										end
-									end
-									return false, teamName
-								end
-								local suc, bedname = get_bed_team(bed:GetAttribute("TeamId"))
-								task.spawn(InfoNotification, "Autowin", "Destroying "..bedname:lower().." team's bed", 5)
-							end
-							if not isEnabled("Nuker") then
-								--GuiLibrary.ObjectsThatCanBeSaved.NukerOptionsButton.Api.ToggleButton(false)
-							end
-							repeat task.wait() until FindEnemyBed() ~= bed or not isAlive()
-							if EntityNearPosition(45) and EntityNearPosition(45).RootPart and isAlive() then
-								if AutowinNotification.Enabled then
-									local team = VoidwareStore.bedtable[bed] or "unknown"
-									task.spawn(InfoNotification, "Autowin", "Killing "..team:lower().." team's teamates", 5)
-								end
-								repeat
-								local target = EntityNearPosition(45)
-								if not target.RootPart then break end
-								playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
-								playertween:Play()
-								task.wait()
-								until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
-							end
-							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
-								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-							end
 							elseif EntityNearPosition(45) and EntityNearPosition(45).RootPart then
 								local target = EntityNearPosition(45)
 								playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
@@ -3666,23 +3757,44 @@ run(function()
 								end
 								playertween.Completed:Wait()
 								if not Autowin.Enabled then return end
-									if EntityNearPosition(50).RootPart and isAlive() then
-										repeat
+								if EntityNearPosition(50) and EntityNearPosition(50).RootPart and isAlive() then
+									repeat
 										target = EntityNearPosition(50)
 										if not target.RootPart or not isAlive() then break end
 										playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 										playertween:Play()
 										task.wait()
-										until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
-									end
+									until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
+								end
 								if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
 									lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
 									lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
 								end
+							elseif GetTarget(nil, false, true) and GetTarget(nil, false, true).RootPart then
+								local target = GetTarget(nil, false, true)
+								playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+								playertween:Play()
+								if AutowinNotification.Enabled then task.spawn(InfoNotification, "Autowin", "Killing "..target.Player.DisplayName.." ("..(target.Player.Team and target.Player.Team.Name or "neutral").." Team)", 5) end
+								playertween.Completed:Wait()
+								if not Autowin.Enabled then return end
+								if EntityNearPosition(50) and EntityNearPosition(50).RootPart and isAlive() then
+									repeat
+										target = EntityNearPosition(50)
+										if not target.RootPart or not isAlive() then break end
+										playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+										playertween:Play()
+										task.wait()
+									until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
+								end
+								if isAlive(lplr, true) and GetTarget(nil, false, true) and GetTarget(nil, false, true).RootPart and Autowin.Enabled then
+									lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+									lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+								end
 							else
-							if VoidwareStore.GameFinished then return end
-							lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-							lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+								if shared.GlobalStore.matchState == 2 then return end
+								InfoNotification("Autowin", "No targets found! Retrying...", 1)
+								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
 							end
 						end))
 						table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
@@ -3695,6 +3807,124 @@ run(function()
 							until not isAlive(lplr, true) or not Autowin.Enabled
 						end))
 					end)
+				end)
+			else
+				pcall(function() playertween:Cancel() end)
+				pcall(function() bedtween:Cancel() end)
+			end
+		end,
+		HoverText = "best paid autowin 2023!1!!! rel11!11!1"
+	})
+end)--]]
+
+run(function()
+	local Autowin = {Enabled = false}
+	local AutowinNotification = {Enabled = true}
+	local bedtween
+	local playertween
+	Autowin = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+		Name = "Autowin",
+		ExtraText = function() return store.queueType:find("5v5") and "BedShield" or "Normal" end,
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					if store.matchState == 0 then repeat task.wait() until store.matchState ~= 0 or not Autowin.Enabled end
+					if not shared.VapeFullyLoaded then repeat task.wait() until shared.VapeFullyLoaded or not Autowin.Enabled end
+					if not Autowin.Enabled then return end
+					vapeAssert(not store.queueType:find("skywars"), "Autowin", "Skywars not supported.", 7, true, true, "Autowin")
+					if isAlive(lplr, true) then
+						lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+						lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+					end
+					table.insert(Autowin.Connections, runService.Heartbeat:Connect(function()
+						pcall(function()
+						if not isnetworkowner(lplr.Character.HumanoidRootPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
+							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and not VoidwareStore.GameFinished then
+								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+							end
+						end
+					end)
+					end))
+					table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
+						if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
+						local bed = FindEnemyBed()
+						if bed and (bed:GetAttribute("BedShieldEndTime") and bed:GetAttribute("BedShieldEndTime") < workspace:GetServerTimeNow() or not bed:GetAttribute("BedShieldEndTime")) then
+						bedtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.65, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
+						task.wait(0.1)
+						bedtween:Play()
+						bedtween.Completed:Wait()
+						task.spawn(function()
+						task.wait(1.5)
+						local magnitude = GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, bed)
+						if magnitude >= 50 and FindTeamBed() and Autowin.Enabled then
+							lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+							lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+						end
+						end)
+						if AutowinNotification.Enabled then
+							local bedname = VoidwareStore.bedtable[bed] or "unknown"
+							task.spawn(InfoNotification, "Autowin", "Destroying "..bedname:lower().." team's bed", 5)
+						end
+						if not isEnabled("Nuker") then
+							GuiLibrary.ObjectsThatCanBeSaved.NukerOptionsButton.Api.ToggleButton(false)
+						end
+						repeat task.wait() until FindEnemyBed() ~= bed or not isAlive()
+						if FindTarget(45, store.blockRaycast).RootPart and isAlive() then
+							if AutowinNotification.Enabled then
+								local team = VoidwareStore.bedtable[bed] or "unknown"
+								task.spawn(InfoNotification, "Autowin", "Killing "..team:lower().." team's teamates", 5)
+							end
+							repeat
+							local target = FindTarget(45, store.blockRaycast)
+							if not target.RootPart then break end
+							playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.30), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+							playertween:Play()
+							task.wait()
+							until not FindTarget(45, store.blockRaycast).RootPart or not Autowin.Enabled or not isAlive()
+						end
+						if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
+							lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+							lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+						end
+						elseif FindTarget(nil, store.blockRaycast).RootPart then
+							task.wait()
+							local target = FindTarget(nil, store.blockRaycast)
+							playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, target.RootPart) / 23.4 / 35, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+							playertween:Play()
+							if AutowinNotification.Enabled then
+								task.spawn(InfoNotification, "Autowin", "Killing "..target.Player.DisplayName.." ("..(target.Player.Team and target.Player.Team.Name or "neutral").." Team)", 5)
+							end
+							playertween.Completed:Wait()
+							if not Autowin.Enabled then return end
+								if FindTarget(50, store.blockRaycast).RootPart and isAlive() then
+									repeat
+									target = FindTarget(50, store.blockRaycast)
+									if not target.RootPart or not isAlive() then break end
+									playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.30), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+									playertween:Play()
+									task.wait()
+									until not FindTarget(50, store.blockRaycast).RootPart or not Autowin.Enabled or not isAlive()
+								end
+							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
+								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+							end
+						else
+						if store.matchState == 2 then return end
+						lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+						lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+						end
+					end))
+					table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
+						if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
+						if not VoidwareStore.GameFinished then return end
+						local oldpos = lplr.Character.HumanoidRootPart.CFrame
+						repeat 
+						lplr.Character.HumanoidRootPart.CFrame = oldpos
+						task.wait()
+						until not isAlive(lplr, true) or not Autowin.Enabled
+					end))
 				end)
 			else
 				pcall(function() playertween:Cancel() end)
@@ -4586,56 +4816,31 @@ pcall(function()
 		local StaffDetector_Action = {
 			DropdownValue = {Value = "Uninject"},
 			FunctionsTable = {
-				["Uninject"] = function()
-					GuiLibrary.SelfDestruct()
-				end, 
+				["Uninject"] = function() GuiLibrary.SelfDestruct() end, 
 				["Panic"] = function() 
-					task.spawn(function()
-						coroutine.close(shared.saveSettingsLoop)
-					end)
+					task.spawn(function() coroutine.close(shared.saveSettingsLoop) end)
 					GuiLibrary.SaveSettings()
-					function GuiLibrary.SaveSettings()
-						return warningNotification("StaffDetector", "Saving Settings has been prevented from staff detector!", 1.5)
-					end
+					function GuiLibrary.SaveSettings() return warningNotification("GuiLibrary - SaveSettings", "Saving Settings has been prevented from staff detector!", 1.5) end
 					warningNotification("StaffDetector", "Saving settings has been disabled!", 1.5)
 					task.spawn(function()
 						repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton
 						shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton.Api.ToggleButton(false)
 					end)
 				end,
-				["Lobby"] = function() 
-					TPService:Teleport(6872265039)
-				end
+				["Lobby"] = function() TPService:Teleport(6872265039) end
 			},
 		}
 		function StaffDetector_Functions.SaveStaffData(staff, detection_type)
-			local suc, err = pcall(function()
-				return HTTPService:JSONDecode(readfile('vape/Libraries/StaffData.json'))
-			end)
-			local json = {}
-			if suc then
-				json = err
-			end
-			table.insert(json,{
-				StaffName = staff.DisplayName.."(@"..staff.Name..")",
-				Time = os.time(),
-				DetectionType = detection_type
-			})
+			local suc, res = pcall(function() return HTTPService:JSONDecode(readfile('vape/Libraries/StaffData.json')) end)
+			local json = suc and res or {}
+			table.insert(json, {StaffName = staff.DisplayName.."(@"..staff.Name..")", Time = os.time(), DetectionType = detection_type})
 			if (not isfolder('vape/Libraries')) then makefolder('vape/Libraries') end
 			writefile('vape/Libraries/StaffData.json', HTTPService:JSONEncode(json))
 		end
 		function StaffDetector_Functions.Notify(text)
 			pcall(function()
 				warningNotification("StaffDetector", tostring(text), 30)
-				game:GetService('StarterGui'):SetCore(
-					'ChatMakeSystemMessage', 
-					{
-						Text = text, 
-						Color = Color3.fromRGB(255, 0, 0), 
-						Font = Enum.Font.GothamBold,
-						FontSize = Enum.FontSize.Size24
-					}
-				)
+				game:GetService('StarterGui'):SetCore('ChatMakeSystemMessage', {Text = text, Color = Color3.fromRGB(255, 0, 0), Font = Enum.Font.GothamBold, FontSize = Enum.FontSize.Size24})
 			end)
 		end
 		function StaffDetector_Functions.Trigger(plr, det_type, addInfo)
@@ -4645,15 +4850,20 @@ pcall(function()
 			StaffDetector_Functions.Notify(text)
 			StaffDetector_Action.FunctionsTable[StaffDetector_Action.DropdownValue]()
 		end
-		function StaffDetector_Checks:checkCustomBlacklist(plr)
-			if table.find(self.CustomBlacklist, plr.Name) then StaffDetector_Functions.Trigger(plr, "CustomBlacklist") end
+		function StaffDetector_Checks:groupCheck(plr)
+			local suc, plrRank = pcall(function() plr:GetRankInGroup(5774246) end)
+			if (not suc) then plrRank = 0 end
+			local state, Type = false, nil
+			local Rank_Table = {[79029254] = "AC MOD", [86172137] = "Lead AC MOD (chase :D)", [43926962] = "Developer", [37929139] = "Developer", [87049509] = "Owner", [37929138] = "Owner"}
+			if StaffDetector_CustomBlacklist.YoutuberToggle.Enabled then Rank_Table[42378457] = "Youtuber/Famous" end
+			if Rank_Table[plrRank] then state = true; Type = Rank_Table[plrRank] end
+			if state then StaffDetector_Functions.Trigger(plr, "Group Check", "Rank: "..tostring(Type)) end
 		end
+		function StaffDetector_Checks:checkCustomBlacklist(plr) if table.find(self.CustomBlacklist, plr.Name) then StaffDetector_Functions.Trigger(plr, "CustomBlacklist") end end
 		function StaffDetector_Checks:checkPermissions(plr)
 			local KnitGotten, KnitClient
 			repeat
-				KnitGotten, KnitClient = pcall(function()
-					return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6)
-				end)
+				KnitGotten, KnitClient = pcall(function() return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6) end)
 				if KnitGotten then break end
 				task.wait()
 			until KnitGotten
@@ -4662,63 +4872,36 @@ pcall(function()
 			if KnitClient.Controllers.PermissionController:isStaffMember(plr) then StaffDetector_Functions.Trigger(plr, "PermissionController") end
 		end
 		function StaffDetector_Checks:check(plr)
-			pcall(function()
-				self:checkCustomBlacklist(plr)
-				self:checkPermissions(plr)
-			end)
+			task.spawn(function() pcall(function() self:checkCustomBlacklist(plr) end) end)
+			task.spawn(function() pcall(function() self:checkPermissions(plr) end) end)
+			task.spawn(function() pcall(function() self:groupCheck(plr) end) end)
 		end
 		StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 			Name = "StaffDetector [NEW]",
 			Function = function(call)
 				if call then
-					for i,v in pairs(game:GetService("Players"):GetPlayers()) do
-						if v ~= game:GetService("Players").LocalPlayer then
-							StaffDetector_Checks:check(v)
-						end
-					end
+					for i,v in pairs(game:GetService("Players"):GetPlayers()) do if v ~= game:GetService("Players").LocalPlayer then StaffDetector_Checks:check(v) end end
 					local con = game:GetService("Players").PlayerAdded:Connect(function(v)
 						if StaffDetector.Enabled then 
 							StaffDetector_Checks:check(v) 
-							if StaffDetector_Extra.JoinNotifier.Enabled and store.matchState > 0 then
-								warningNotification("StaffDetector", tostring(v.Name).." has joined!", 3)
-							end
+							if StaffDetector_Extra.JoinNotifier.Enabled and store.matchState > 0 then warningNotification("StaffDetector", tostring(v.Name).." has joined!", 3) end
 						end
 					end)
 					table.insert(StaffDetector_Connections, con)
-				else
-					for i, v in pairs(StaffDetector_Connections) do
-						if v.Disconnect then pcall(function() v:Disconnect() end) continue end
-						if v.disconnect then pcall(function() v:disconnect() end) continue end
-					end
-				end
+				else for i, v in pairs(StaffDetector_Connections) do if v.Disconnect then pcall(function() v:Disconnect() end) continue end; if v.disconnect then pcall(function() v:disconnect() end) continue end end end
 			end
 		})
-		StaffDetector.Restart = function()
-			if StaffDetector.Enabled then
-				StaffDetector.ToggleButton(false)
-				StaffDetector.ToggleButton(false)
-			end
-		end
+		StaffDetector.Restart = function() if StaffDetector.Enabled then StaffDetector.ToggleButton(false); StaffDetector.ToggleButton(false) end end
 		local list = {}
 		for i,v in pairs(StaffDetector_Action.FunctionsTable) do table.insert(list, i) end
-		StaffDetector_Action.DropdownValue = StaffDetector.CreateDropdown({
-			Name = 'Action',
-			List = list,
-			Function = function() end
-		})
-		StaffDetector_Extra.JoinNotifier = StaffDetector.CreateToggle({
-			Name = "Illegal player notifier",
-			Function = StaffDetector.Restart,
-			Default = true
-		})
+		StaffDetector_Action.DropdownValue = StaffDetector.CreateDropdown({Name = 'Action', List = list, Function = function() end})
+		StaffDetector_Extra.JoinNotifier = StaffDetector.CreateToggle({Name = "Illegal player notifier", Function = StaffDetector.Restart, Default = true})
 	end)
 	
 	task.spawn(function()
 		pcall(function()
 			repeat task.wait() until shared.VapeFullyLoaded
-			if (not StaffDetector.Enabled) then
-				StaffDetector.ToggleButton(false)
-			end
+			if (not StaffDetector.Enabled) then StaffDetector.ToggleButton(false) end
 		end)
 	end)
 end)	
@@ -4941,7 +5124,7 @@ end)--]]
 run(function()
     local GuiLibrary = shared.GuiLibrary
 	local texture_pack = {};
-	texture_pack = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
+	texture_pack = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
 		Name = 'TexturePack',
 		HoverText = 'Customizes your texture pack.',
 		Function = function(callback)
@@ -5316,6 +5499,101 @@ run(function()
 	Credits = texture_pack.CreateCredits({
         Name = 'CreditsButtonInstance',
         Credits = 'Melo and Star'
+    })
+end)
+
+run(function()
+    local TexturePacksV2 = {Enabled = false}
+    local TexturePacksV2_Connections = {}
+    local TexturePacksV2_GUI_Elements = {
+        Material = {Value = "Forcefield"},
+        Color = {Hue = 0, Sat = 0, Value = 0},
+        GuiSync = {Enabled = false}
+    }
+
+    local function refreshChild(child, children)
+        if (not child) then return warn("[refreshChild]: invalid child!") end
+        if (not table.find(children, child)) then table.insert(children, child) end
+        if child.ClassName == "Accessory" then
+            for i, v in pairs(child:GetChildren()) do
+                if v.ClassName == "MeshPart" then
+                    --v.Material = Enum.Material[TexturePacksV2_GUI_Elements.Material.Value]
+					v.Material = Enum.Material.ForceField
+                    if TexturePacksV2_GUI_Elements.GuiSync.Enabled and TexturePacksV2.Enabled then
+                        if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+                            v.Color = GuiLibrary.GUICoreColor
+                            GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+                                if TexturePacksV2_GUI_Elements.GuiSync.Enabled then v.Color = GuiLibrary.GUICoreColor end
+                            end)
+                        else
+                            local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+                            v.Color = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+                            VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h, s, v)
+                                if TexturePacksV2_GUI_Elements.GuiSync.Enabled and TexturePacksV2.Enabled then
+                                    local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+                                    v.Color = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+                                    if TexturePacksV2.Enabled then
+                                        color = {Hue = h, Sat = s, Value = v}
+                                        v.Color = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+                                    end
+                                end
+                            end))
+                        end
+                    else
+                        v.Color = Color3.fromHSV(TexturePacksV2_GUI_Elements.Color.Hue, TexturePacksV2_GUI_Elements.Color.Sat, TexturePacksV2_GUI_Elements.Color.Value)
+                    end
+                end
+            end
+        end
+    end
+
+    local function refreshChildren()
+        local children = gameCamera and gameCamera:FindFirstChild("Viewmodel") and gameCamera:FindFirstChild("Viewmodel").ClassName and gameCamera:FindFirstChild("Viewmodel").ClassName == "Model" and gameCamera:FindFirstChild("Viewmodel"):GetChildren() or {}
+        for i, v in pairs(children) do refreshChild(v, children) end
+    end
+
+    TexturePacksV2 = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+        Name = "TexturePacksV2",
+        Function = function(call)
+            if call then
+                task.spawn(function()
+                    repeat
+                        refreshChildren()
+                        task.wait()
+                    until (not TexturePacksV2.Enabled)
+                end)
+            else
+                for i, v in pairs(TexturePacksV2_Connections) do
+                    pcall(function() v:Disconnect() end)
+                end
+            end
+        end
+    })
+
+    TexturePacksV2.Restart = function()
+        if TexturePacksV2.Enabled then
+            TexturePacksV2.ToggleButton(false)
+            TexturePacksV2.ToggleButton(false)
+        end
+    end
+
+    TexturePacksV2_GUI_Elements.Material = TexturePacksV2.CreateDropdown({
+        Name = "Material",
+        Function = refreshChildren,
+        List = GetEnumItems("Material"),
+        Default = "Forcefield"
+    })
+	TexturePacksV2_GUI_Elements.Material.Object.Visible = false
+
+    TexturePacksV2_GUI_Elements.Color = TexturePacksV2.CreateColorSlider({
+        Name = "Color",
+        Function = refreshChildren
+    })
+
+    TexturePacksV2_GUI_Elements.GuiSync = TexturePacksV2.CreateToggle({
+        Name = "GUI Color Sync",
+        Function = TexturePacksV2.Restart,
+        Default = true
     })
 end)
 
@@ -5726,9 +6004,10 @@ run(function()
 end)
 
 run(function()
-	local damagehighlightvisuals = {};
+	local damagehighlightvisuals = {Enabled = false, Connections = {}};
 	local highlightcolor = newcolor();
 	local highlightinvis = {Value = 4}
+	local GuiSync = {Enabled = false}
 	damagehighlightvisuals = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
 		Name = 'HighlightVisuals',
 		HoverText = 'Changes the color of the damage highlight.',
@@ -5738,7 +6017,30 @@ run(function()
 					table.insert(damagehighlightvisuals.Connections, game.Workspace.DescendantAdded:Connect(function(indicator)
 						if indicator.Name == '_DamageHighlight_' and indicator.ClassName == 'Highlight' then 
 							repeat 
-								indicator.FillColor = Color3.fromHSV(highlightcolor.Hue, highlightcolor.Sat, highlightcolor.Value);
+								if GuiSync.Enabled then
+									pcall(function()
+										if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+											indicator.FillColor = GuiLibrary.GUICoreColor
+											local con = GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+												if damagehighlightvisuals.Enabled and GuiSync.Enabled then
+													indicator.FillColor = GuiLibrary.GUICoreColor
+												end
+											end)
+											table.insert(damagehighlightvisuals.Connections, con)
+										else
+											local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+											indicator.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+											VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+												if damagehighlightvisuals.Enabled then
+													color = {Hue = h, Sat = s, Value = v}
+													indicator.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+												end
+											end))
+										end
+									end)
+								else
+									indicator.FillColor = Color3.fromHSV(highlightcolor.Hue, highlightcolor.Sat, highlightcolor.Value);
+								end
 								indicator.FillTransparency = (0.1 * highlightinvis.Value);
 								task.wait()
 							until (indicator.Parent == nil)
@@ -5748,9 +6050,14 @@ run(function()
 			end
 		end
 	})
+	damagehighlightvisuals.Restart = function() if damagehighlightvisuals.Enabled then damagehighlightvisuals.ToggleButton(false); damagehighlightvisuals.ToggleButton(false) end end
 	highlightcolor = damagehighlightvisuals.CreateColorSlider({
 		Name = 'Color',
 		Function = void
+	})
+	GuiSync = damagehighlightvisuals.CreateToggle({
+		Name = "GUI Color Sync",
+		Function = function(call) pcall(function() highlightcolor.Object.Visible = not call end); damagehighlightvisuals.Restart() end
 	})
 	highlightinvis = damagehighlightvisuals.CreateSlider({
 		Name = 'Invisibility',
@@ -6572,7 +6879,7 @@ run(function()
 end)
 
 run(function()
-	local DamageIndicator = {}
+	local DamageIndicator = {Enabled = false, Connections = {}}
 	local DamageIndicatorColorToggle = {}
 	local DamageIndicatorColor = {Hue = 0, Sat = 0, Value = 0}
 	local DamageIndicatorTextToggle = {}
@@ -6627,10 +6934,11 @@ run(function()
                                         if DamageIndicatorMode2.Value == 'Gradient' then
                                             indicatorobj.TextColor3 = Color3.fromHSV(tick() % mz / mz, orgI, orgI)
                                         else
-                                            runService.Stepped:Connect(function()
+                                            local a = runService.Stepped:Connect(function()
                                                 orgI = (orgI % #RGBColors) + 1
                                                 indicatorobj.TextColor3 = RGBColors[orgI]
                                             end)
+											table.insert(DamageIndicator.Connections, a)
                                         end
                                     elseif DamageIndicatorMode.Value == 'Custom' then
                                         indicatorobj.TextColor3 = Color3.fromHSV(
@@ -6638,7 +6946,23 @@ run(function()
                                             DamageIndicatorColor.Sat, 
                                             DamageIndicatorColor.Value
                                         )
-                                    else
+                                    elseif DamageIndicatorMode.Value == "GUI Sync" then
+										if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+											indicatorobj.TextColor3 = GuiLibrary.GUICoreColor
+											GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+												pcall(function()
+													indicatorobj.TextColor3 = GuiLibrary.GUICoreColor
+												end)
+											end)
+										else
+											local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+											indicatorobj.TextColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+											VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+												color = {Hue = h, Sat = s, Value = v}
+												indicatorobj.TextColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+											end))
+										end
+									else
                                         indicatorobj.TextColor3 = Color3.fromRGB(127, 0, 255)
                                     end
                                 end
@@ -6664,7 +6988,7 @@ run(function()
 		List = {
 			'Rainbow',
 			'Custom',
-			'Lunar'
+			'GUI Sync'
 		},
 		HoverText = 'Mode to color the Damage Indicator',
 		Value = 'Rainbow',
@@ -6721,274 +7045,6 @@ run(function()
 	DamageIndicatorColor.Object.Visible = DamageIndicatorColorToggle.Enabled
 	DamageIndicatorText.Object.Visible = DamageIndicatorTextToggle.Enabled
 	DamageIndicatorFont.Object.Visible = DamageIndicatorFontToggle.Enabled
-end)
-
-task.spawn(function()
-	pcall(function()
-		repeat task.wait() until shared.vapewhitelist.loaded
-		if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) ~= 0 then
-			run(function()
-				local GlobalCommands = {Enabled = false}
-				local GlobalCommandsGUI = {
-					CommandsDropdown = {Value = "none"},
-					CommandArgs = {
-						["1"] = {Value = ""},
-						["2"] = {Value = ""}
-					},
-					TargetUsername = {Value = ""},
-					ApiKey = {Value = ""}
-				}
-				local ValidCommandArgs = 2
-			
-				local commandList = {"none"}
-				
-				local function isCommandAllowed(cmd)
-					local blacklist = {"mute", "unmute", "say", "troll"}
-					return not table.find(blacklist, cmd)
-				end
-			
-				for command, _ in pairs(shared.vapewhitelist.commands) do
-					local cmdStr = tostring(command)
-					if isCommandAllowed(cmdStr) then
-						table.insert(commandList, cmdStr)
-					end
-				end
-			
-				local commandArgsConfig = {
-					["kick"] = {
-						RequiredArgs = 1,
-						Args = {
-							{Placeholder = "KickMessage"}
-						}
-					},
-					["toggle"] = {
-						RequiredArgs = 1,
-						Args = {
-							{Placeholder = "ModuleName (all = all modules)"}
-						}
-					},
-					["gravity"] = {
-						RequiredArgs = 1,
-						Args = {
-							{Placeholder = "GravityPowerLevel"}
-						}
-					},
-					["framerate"] = {
-						RequiredArgs = 1,
-						Args = {
-							{Placeholder = "FramerateNumber"}
-						}
-					},
-					["teleport"] = {
-						RequiredArgs = 2,
-						Args = {
-							{Placeholder = "Server JobID"},
-							{Placeholder = "Game PlaceID"}
-						}
-					},
-					["cteleport"] = {
-						RequiredArgs = 1,
-						Args = {
-							{Placeholder = "CustomMatch Code"}
-						},
-						CustomMessages = {
-							{Type = "warning", Title = "GlobalCommands - cteleport", Text = "WARNING! This only works in Bedwars!", Duration = 5}
-						}
-					}
-				}
-				local function fetchCommandArg(arg)
-					return GuiLibrary.ObjectsThatCanBeSaved["GlobalCommandsCommandArg"..tostring(arg).."TextBox"]
-				end
-				local function checkCommandArgsObjects()
-					for i = 1, ValidCommandArgs do
-						if fetchCommandArg(i).Object.AddBoxBKG.AddBox.PlaceholderText == "Unspecified" and fetchCommandArg(i).Object.Visible == true then fetchCommandArg(i).Object.Visible = false end
-					end
-					for i = 1, ValidCommandArgs do
-						if fetchCommandArg(i).Object.Visible == true then
-							if (not commandArgsConfig[GlobalCommandsGUI.CommandsDropdown.Value]) then fetchCommandArg(i).Object.Visible = false else
-								local declined = true
-								for i,v in pairs(commandArgsConfig[GlobalCommandsGUI.CommandsDropdown.Value].Args) do
-									if v.Placeholder == fetchCommandArg(i).Object.AddBoxBKG.AddBox.PlaceholderText then declined = false end
-								end
-								if declined then fetchCommandArg(i).Object.Visible = false end
-							end
-						end
-					end
-				end
-				local function handleCommandSelection(command)
-					for i = 1, #GlobalCommandsGUI.CommandArgs do
-						fetchCommandArg(i).Object.Visible = false
-					end
-			
-					local commandConfig = commandArgsConfig[command]
-					if commandConfig then
-						for i, argConfig in ipairs(commandConfig.Args) do
-							fetchCommandArg(i).Object.Visible = true
-							fetchCommandArg(i).Object.AddBoxBKG.AddBox.PlaceholderText = argConfig.Placeholder
-						end
-			
-						if commandConfig.CustomMessages then
-							local notificationFunctions = {
-								["error"] = errorNotification,
-								["warning"] = warningNotification,
-								["info"] = InfoNotification
-							}
-							for _, message in ipairs(commandConfig.CustomMessages) do
-								notificationFunctions[message.Type](message.Title, message.Text, message.Duration)
-							end
-						end
-						checkCommandArgsObjects()
-					end
-					checkCommandArgsObjects()
-				end
-				local function fetchCommandArgsData()
-					local errors = {}
-					local cmd = GlobalCommandsGUI.CommandsDropdown.Value
-					if cmd == "none" then errorNotification("GlobalCommands", "Please specify a command!", 5) return nil end 
-					local requiredArgs = commandArgsConfig[GlobalCommandsGUI.CommandsDropdown.Value] and commandArgsConfig[GlobalCommandsGUI.CommandsDropdown.Value].RequiredArgs or 0
-					if requiredArgs ~= 0 then
-						local function resolveCommandArgData(argPlaceholder)
-							for i = 1, ValidCommandArgs do
-								if fetchCommandArg(i).Object.AddBoxBKG.AddBox.PlaceholderText == argPlaceholder then return fetchCommandArg(i).Api.Value end
-							end
-							warn("[resolveCommandArgData - "..tostring(argPlaceholder).."]: Error finding the command arg corresponder!")
-							table.insert(errors, {
-								Error = "[resolveCommandArgData - "..tostring(argPlaceholder).."]: Error finding the command arg corresponder!"
-							})
-							return "unknown"
-						end
-						local resTable = {}
-						for i,v in pairs(commandArgsConfig[GlobalCommandsGUI.CommandsDropdown.Value].Args) do
-							table.insert(resTable, resolveCommandArgData(v.Placeholder))
-						end
-						if #errors == 0 then return resTable else
-							warn("[fetchCommandArgsData - Error/s Handler]:"..tostring(#errors).." errors found!")
-							writefile("ErrorsLog.json", game:GetService("HttpService"):JSONEncode(errors))
-							return nil
-						end
-					else return "" end
-				end
-				local function isValidPlayer()
-					local suc, err = pcall(function()
-						return game:GetService("Players"):GetUserIdFromNameAsync(GlobalCommandsGUI.TargetUsername.Value)
-					end)
-					if suc then return true else return false end
-				end
-				local function isAboveTarget()
-					local function getPlayerRank(fetchType, arg)
-						if fetchType == "local" then return shared.vapewhitelist:get(game:GetService("Players").LocalPlayer)
-						elseif fetchType == "global" then
-							local wlTable = shared.vapewhitelist.data
-							for i,v in pairs(wlTable.WhitelistedUsers) do
-								if v.hash == arg then return v.level end
-							end
-							return 0
-						end
-					end
-					local lplrRank = getPlayerRank("local")
-					local targetRank = getPlayerRank("global", shared.vapewhitelist:hash(GlobalCommandsGUI.TargetUsername.Value..game:GetService("Players"):GetUserIdFromNameAsync(GlobalCommandsGUI.TargetUsername.Value)))
-					if lplrRank > targetRank then return true else return false, {Self = lplrRank, Target = targetRank} end
-				end
-				local RankCorresponder = {
-					["0"] = "NORMAL",
-					["1"] = "PRIVATE",
-					["2"] = "OWNER"
-				}
-				local function fetchTargetData()
-					if GlobalCommandsGUI.TargetUsername.Value ~= "" then 
-						if isValidPlayer() then 
-							local isAbove, rankTable = isAboveTarget()
-							if isAbove then return GlobalCommandsGUI.TargetUsername.Value 
-							else errorNotification("GloablCommands", "Error! Target's rank is above yours! Your rank: "..(RankCorresponder[tostring(rankTable.Self)] or tostring(rankTable.Self)).." Target's rank: "..(RankCorresponder[tostring(rankTable.Target)] or tostring(rankTable.Target)).."               ", 5) end
-						else errorNotification("GlobalCommands", "Player username is INVALID!", 3) end
-					else errorNotification("GlobalCommands", "Please specify a target!", 3) end
-				end
-				local function fetchAPI_Key()
-					local val = GlobalCommandsGUI.ApiKey.Value
-					if val ~= "" then return val else 
-						errorNotification("GlobalCommands", "Please specify your API KEY!", 3)
-						return nil
-					end
-				end
-				GlobalCommands = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-					Name = "GlobalCommands",
-					Function = function(call)
-						if call then
-							GlobalCommands.ToggleButton(false)
-							local target = fetchTargetData()
-							local argsData = fetchCommandArgsData()
-							local apikey = fetchAPI_Key() or readfile("VW_API_KEY.txt") or nil
-							print(target and type(target) == "table" and game:GetService("HttpService"):JSONEncode(target) or target)
-							print(argsData and type(argsData) == "table" and game:GetService("HttpService"):JSONEncode(argsData) or argsData)
-							print(apikey)
-							if target and type(target) == "string" and argsData and apikey then
-								writefile("VW_API_KEY.txt", tostring(apikey))
-								local data = {
-									command = GlobalCommandsGUI.CommandsDropdown.Value,
-									sendername = game:GetService("Players").LocalPlayer.Name,
-									args = argsData,
-									receiver = target
-								}
-								--[[for i,v in pairs(data) do
-									warningNotification(tostring(i), tostring(v), 5)
-								end--]]
-								warn(debug.traceback(game:GetService("HttpService"):JSONEncode(data)))
-								local headers = {
-									["api-key"] = apikey,
-									["Content-Type"] = "application/json"
-								}
-								local url = 'https://whitelist.vapevoidware.xyz/GlobalFunctions.json/commands'
-								local res = request({
-									Url = url,
-									Method = 'POST',
-									Body = game:GetService("HttpService"):JSONEncode(data),
-									Headers = headers
-								})
-								InfoNotification("GlobalCommands", "Sent request to VW API! Waiting for response...", 3)
-								local body = res.Body
-								print(res)
-								print(game:GetService("HttpService"):JSONEncode(res))
-								if res.StatusCode == 200 then
-									InfoNotification("GloablCommands", (suc and json.message and tostring(json.message)) or "Success!", 5)
-								else
-									print(game:GetService("HttpService"):JSONDecode(body).error)
-									errorNotification("GloablCommands - "..tostring(res.StatusCode), "Error! "..(game:GetService("HttpService"):JSONDecode(body).error and tostring(game:GetService("HttpService"):JSONDecode(body).error) or "Unknown error"), 7)
-								end
-							end
-						end
-					end
-				})
-			
-				GlobalCommandsGUI.ApiKey = GlobalCommands.CreateTextBox({
-					Name = "ApiKey",
-					Function = function() end,
-					TempText = "API-KEY"
-				})
-			
-				GlobalCommandsGUI.TargetUsername = GlobalCommands.CreateTextBox({
-					Name = "Target",
-					Function = function() end,
-					TempText = "TargetUsername"
-				})
-			
-				GlobalCommandsGUI.CommandsDropdown = GlobalCommands.CreateDropdown({
-					Name = "CommandChoice",
-					Function = function() handleCommandSelection(GlobalCommandsGUI.CommandsDropdown.Value) end,
-					List = commandList
-				})
-			
-				for i = 1, ValidCommandArgs do
-					GlobalCommandsGUI.CommandArgs[tostring(i)] = GlobalCommands.CreateTextBox({
-						Name = "CommandArg" .. i,
-						Function = function() end,
-						TempText = "Unspecified"
-					})
-					GlobalCommandsGUI.CommandArgs[tostring(i)].Visible = false
-				end
-				for i = 1, 5 do checkCommandArgsObjects() task.wait(0.5) end
-			end)
-		end
-	end)
 end)
 
 --[[run(function() -- someday this will come back up :(
@@ -7177,102 +7233,64 @@ run(function()
 	local ItemSpawner = {Enabled = false}
 	local spawnedItems = {}
 	local chattedConnection
-	local function getInv(plr)
-		return plr.Character and plr.Character:FindFirstChild("InventoryFolder") and plr.Character:FindFirstChild("InventoryFolder").Value
-	end
+	local function getInv(plr) return plr.Character and plr.Character:FindFirstChild("InventoryFolder") and plr.Character:FindFirstChild("InventoryFolder").Value end
 	local ArmorIncluded = {Enabled = false}
 	local ProjectilesIncluded = {Enabled = false}
 	local ItemsIncluded = {Enabled = false}
 	local StrictMatch = {Enabled = false}
 	local function getRepItems()
-		local tbl = {
-			"Armor",
-			"Projectiles"
-		}
+		local tbl = {"Armor", "Projectiles"}
 		local a = ItemsIncluded.Enabled and game:GetService("ReplicatedStorage"):FindFirstChild("Items") and game:GetService("ReplicatedStorage"):FindFirstChild("Items"):GetChildren() or {}
 		local b = ArmorIncluded.Enabled and game:GetService("ReplicatedStorage"):FindFirstChild("Assets") and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[1]) and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[1]):GetChildren() or {}
 		local c = ProjectilesIncluded.Enabled and game:GetService("ReplicatedStorage"):FindFirstChild("Assets") and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[2]) and game:GetService("ReplicatedStorage"):FindFirstChild("Assets"):FindFirstChild(tbl[2]):GetChildren() or {}
 		
 		local fullTbl = {}
 		local d = {a,b,c}
-		for i,v in pairs(d) do
-			for i2,v2 in pairs(v) do table.insert(fullTbl, v2) end
-		end
+		for i,v in pairs(d) do for i2,v2 in pairs(v) do table.insert(fullTbl, v2) end end
 		return fullTbl
 	end
-	local inv
-	local repItems
+	local inv, repItems
 	local function getRepItem(name)
 		repItems = getRepItems()
-		print(#repItems)
-		for i,v in pairs(repItems) do
-			if v.Name and ((StrictMatch.Enabled and v.Name == name) or ((not StrictMatch.Enabled) and string.find(v.Name, name))) then
-				return v
-			end
-		end
+		for i,v in pairs(repItems) do if v.Name and ((StrictMatch.Enabled and v.Name == name) or ((not StrictMatch.Enabled) and string.find(v.Name, name))) then return v end end
 		return nil
 	end
 	local function getSpawnedItem(name)
-		for i,v in pairs(spawnedItems) do
-			if v.Name and ((StrictMatch.Enabled and v.Name == name) or ((not StrictMatch.Enabled) and string.find(v.Name, name))) then
-				return v
-			end
-		end
+		for i,v in pairs(spawnedItems) do if v.Name and ((StrictMatch.Enabled and v.Name == name) or ((not StrictMatch.Enabled) and string.find(v.Name, name))) then return v end end
 		return nil
 	end
 	ItemSpawner = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 		Name = "ItemSpawner (CS)",
 		Function = function(call)
 			if call then
-				task.spawn(function()
-					repeat task.wait(0.1)
-						inv = getInv(game:GetService("Players").LocalPlayer)
-					until inv
-				end)
-				task.spawn(function()
-					repeat task.wait(0.1)
-						repItems = getRepItems()
-					until repItems
-				end)
+				task.spawn(function() repeat task.wait(0.1); inv = getInv(game:GetService("Players").LocalPlayer) until inv end)
+				task.spawn(function() repeat task.wait(0.1); repItems = getRepItems() until repItems end)
 				chattedConnection = game:GetService("Players").LocalPlayer.Chatted:Connect(function(msg)
 					local parts = string.split(msg, " ")
 					if parts[1] == "/e" then
 						if parts[2] == "spawn" then
-							inv = getInv(game:GetService("Players").LocalPlayer)
-							repItems = getRepItems()
+							inv, repItems = getInv(game:GetService("Players").LocalPlayer), getRepItems()
 							if parts[3] then
 								local item = getRepItem(parts[3])
 								if item then
-									local amount = tonumber(parts[4]) or 1
-									local newItem = item:Clone()
+									local amount, newItem = tonumber(parts[4]) or 1, item:Clone()
 									newItem.Parent = inv
-									pcall(function()
-										newItem:SetAttribute("Amount", amount)
-									end)
-									pcall(function()
-										newItem:SetAttribute("CustomSpawned", true)
-									end)
-									bedwars.StoreController:updateLocalInventory()
+									pcall(function() newItem:SetAttribute("Amount", amount) end)
+									pcall(function() newItem:SetAttribute("CustomSpawned", true) end)
+									pcall(function() bedwars.StoreController:updateLocalInventory() end)
 									table.insert(spawnedItems, newItem)
-								else
-									errorNotification("ItemSpawner", tostring(parts[3]).." is not a valid item name!", 3)
-								end
+								else errorNotification("ItemSpawner", tostring(parts[3]).." is not a valid item name!", 3) end
 							end
 						elseif parts[2] == "despawn" then
-							inv = getInv(game:GetService("Players").LocalPlayer)
-							repItems = getRepItems()
+							inv, repItems = getInv(game:GetService("Players").LocalPlayer), getRepItems()
 							if parts[3] then
 								local item = getSpawnedItem(parts[3])
 								if item then 
 									table.remove(spawnedItems, table.find(spawnedItems, item))
-									pcall(function()
-										item:Destroy()
-									end)
-									bedwars.StoreController:updateLocalInventory()
+									pcall(function() item:Destroy() end)
+									pcall(function() bedwars.StoreController:updateLocalInventory() end)
 								end
-							else
-								errorNotification("ItemSpawner", tostring(parts[3]).." is not a valid item name!", 3)
-							end
+							else errorNotification("ItemSpawner", tostring(parts[3]).." is not a valid item name!", 3) end
 						end
 					end
 				end)
@@ -7283,24 +7301,287 @@ run(function()
 			end
 		end
 	})
-	StrictMatch = ItemSpawner.CreateToggle({
-		Name = "StrictMatch",
-		Function = function() if ItemSpawner.Enabled then ItemSpawner.ToggleButton(false); ItemSpawner.ToggleButton(false) end end,
-		Default = true
-	})
-	ItemsIncluded = ItemSpawner.CreateToggle({
-		Name = "ItemsIncluded",
-		Function = function() if ItemSpawner.Enabled then ItemSpawner.ToggleButton(false); ItemSpawner.ToggleButton(false) end end,
-		Default = true
-	})
-	ProjectilesIncluded = ItemSpawner.CreateToggle({
-		Name = "ProjectilesIncluded",
-		Function = function() if ItemSpawner.Enabled then ItemSpawner.ToggleButton(false); ItemSpawner.ToggleButton(false) end end,
-		Default = true
-	})
-	ArmorIncluded = ItemSpawner.CreateToggle({
-		Name = "ArmorIncluded",
-		Function = function() if ItemSpawner.Enabled then ItemSpawner.ToggleButton(false); ItemSpawner.ToggleButton(false) end end,
-		Default = true
-	})
+	ItemSpawner.Restart = function() if ItemSpawner.Enabled then ItemSpawner.ToggleButton(false); ItemSpawner.ToggleButton(false) end end
+	StrictMatch = ItemSpawner.CreateToggle({ Name = "StrictMatch", Function = ItemSpawner.Restart, Default = true})
+	ItemsIncluded = ItemSpawner.CreateToggle({Name = "ItemsIncluded", Function = ItemSpawner.Restart, Default = true})
+	ProjectilesIncluded = ItemSpawner.CreateToggle({Name = "ProjectilesIncluded", Function = ItemSpawner.Restart, Default = true})
+	ArmorIncluded = ItemSpawner.CreateToggle({Name = "ArmorIncluded", Function = ItemSpawner.Restart, Default = true})
 end)
+
+run(function()
+	local WeatherMods = {Enabled = false}
+	local WeatherMode = {Value = "Snow"}
+	local SnowSpread = {Value = 35}
+	local SnowRate = {Value = 28}
+	local SnowHigh = {Value = 100}
+	WeatherMods = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+		Name = 'WeatherMods',
+		HoverText = 'Changes the weather',
+		Function = function(callback) 
+			if callback then
+				task.spawn(function()
+					local snowpart = Instance.new("Part")
+					snowpart.Size = Vector3.new(240,0.5,240)
+					snowpart.Name = "SnowParticle"
+					snowpart.Transparency = 1
+					snowpart.CanCollide = false
+					snowpart.Position = Vector3.new(0,120,286)
+					snowpart.Anchored = true
+					snowpart.Parent = game.Workspace
+					local snow = Instance.new("ParticleEmitter")
+					snow.RotSpeed = NumberRange.new(300)
+					snow.VelocitySpread = SnowSpread.Value
+					snow.Rate = SnowRate.Value
+					snow.Texture = "rbxassetid://8158344433"
+					snow.Rotation = NumberRange.new(110)
+					snow.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0,0.16939899325371,0),NumberSequenceKeypoint.new(0.23365999758244,0.62841498851776,0.37158501148224),NumberSequenceKeypoint.new(0.56209099292755,0.38797798752785,0.2771390080452),NumberSequenceKeypoint.new(0.90577298402786,0.51912599802017,0),NumberSequenceKeypoint.new(1,1,0)})
+					snow.Lifetime = NumberRange.new(8,14)
+					snow.Speed = NumberRange.new(8,18)
+					snow.EmissionDirection = Enum.NormalId.Bottom
+					snow.SpreadAngle = Vector2.new(35,35)
+					snow.Size = NumberSequence.new({NumberSequenceKeypoint.new(0,0,0),NumberSequenceKeypoint.new(0.039760299026966,1.3114800453186,0.32786899805069),NumberSequenceKeypoint.new(0.7554469704628,0.98360699415207,0.44038599729538),NumberSequenceKeypoint.new(1,0,0)})
+					snow.Parent = snowpart
+					local windsnow = Instance.new("ParticleEmitter")
+					windsnow.Acceleration = Vector3.new(0,0,1)
+					windsnow.RotSpeed = NumberRange.new(100)
+					windsnow.VelocitySpread = SnowSpread.Value
+					windsnow.Rate = SnowRate.Value
+					windsnow.Texture = "rbxassetid://8158344433"
+					windsnow.EmissionDirection = Enum.NormalId.Bottom
+					windsnow.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0,0.16939899325371,0),NumberSequenceKeypoint.new(0.23365999758244,0.62841498851776,0.37158501148224),NumberSequenceKeypoint.new(0.56209099292755,0.38797798752785,0.2771390080452),NumberSequenceKeypoint.new(0.90577298402786,0.51912599802017,0),NumberSequenceKeypoint.new(1,1,0)})
+					windsnow.Lifetime = NumberRange.new(8,14)
+					windsnow.Speed = NumberRange.new(8,18)
+					windsnow.Rotation = NumberRange.new(110)
+					windsnow.SpreadAngle = Vector2.new(35,35)
+					windsnow.Size = NumberSequence.new({NumberSequenceKeypoint.new(0,0,0),NumberSequenceKeypoint.new(0.039760299026966,1.3114800453186,0.32786899805069),NumberSequenceKeypoint.new(0.7554469704628,0.98360699415207,0.44038599729538),NumberSequenceKeypoint.new(1,0,0)})
+					windsnow.Parent = snowpart
+					repeat task.wait(); if entityLibrary.isAlive then snowpart.Position = entityLibrary.character.HumanoidRootPart.Position + Vector3.new(0,SnowHigh.Value,0) end until not shared.VapeExecuted
+				end)
+			else for _, v in next, game.Workspace:GetChildren() do if v.Name == "SnowParticle" then v:Remove() end end end
+		end
+	})
+	SnowSpread = WeatherMods.CreateSlider({Name = "Snow Spread", Min = 1, Max = 100, Function = function() end, Default = 35})
+	SnowRate = WeatherMods.CreateSlider({Name = "Snow Rate", Min = 1, Max = 100, Function = function() end, Default = 28})
+	SnowHigh = WeatherMods.CreateSlider({Name = "Snow High", Min = 1, Max = 200, Function = function() end, Default = 100})
+end)
+
+run(function()
+    local function getDiamonds()
+        local function getItem(itemName, inv)
+            for slot, item in pairs(inv or store.localInventory.inventory.items) do if item.itemType == itemName then return item, slot end end
+            return nil
+        end
+        local inv = store.localInventory.inventory
+        if inv.items and type(inv.items) == "table" and getItem("diamond", inv.items) and getItem("diamond", inv.items).amount then return tostring(getItem("diamond", inv.items).amount) ~= "inf" and tonumber(getItem("diamond", inv.items).amount) or 9999999999999
+        else return 0 end
+    end
+    local resolve = {["Armor"] = {Name = "ARMOR", Upgrades = {[1] = 4, [2] = 8, [3] = 20}, CurrentUpgrade = 0, Function = function() end}, ["Damage"] = {Name = "DAMAGE", Upgrades = {[1] = 5, [2] = 10, [3] = 18}, CurrentUpgrade = 0, Function = function() end}, ["Diamond Gen"] = {Name = "DIAMOND_GENERATOR", Upgrades = {[1] = 4, [2] = 8, [3] = 12}, CurrentUpgrade = 0, Function = function() end}, ["Team Gen"] = {Name = "TEAM_GENERATOR", Upgrades = {[1] = 4, [2] = 8, [3] = 16}, CurrentUpgrade = 0, Function = function() end}}
+    local function buyUpgrade(translation)
+        if not translation or not resolve[translation] or not type(resolve[translation]) == "table" then return warn(debug.traceback("[buyUpgrade]: Invalid translation given! "..tostring(translation))) end
+        local res = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("RequestPurchaseTeamUpgrade"):InvokeServer(resolve[translation].Name)
+        if res == true then resolve[translation].CurrentUpgrade = resolve[translation].CurrentUpgrade + 1 else
+            if getDiamonds() >= resolve[translation].Upgrades[resolve[translation].CurrentUpgrade + 1] then
+                local res2 = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("RequestPurchaseTeamUpgrade"):InvokeServer(resolve[translation].Name)
+                if res2 == true then resolve[translation].CurrentUpgrade = resolve[translation].CurrentUpgrade + 1 else
+                    warn("Using force use of current upgrade...", translation, tostring(res), tostring(res2))
+                    resolve[translation].CurrentUpgrade = resolve[translation].CurrentUpgrade + 1
+                end
+            end
+        end
+    end
+    local function resolveTeamUpgradeApp(app)
+        if (not app) or not app:IsA("ScreenGui") then return "invalid app! "..tostring(app) end
+        local function findChild(name, className, children)
+            for i,v in pairs(children) do if v.Name == name and v.ClassName == className then return v end end
+            local args = {Name = tostring(name), ClassName == tostring(className), Children = children}
+            warn(debug.traceback("[findChild]: CHILD NOT FOUND! Args: "), game:GetService("HttpService"):JSONEncode(args), name, className, children)
+            return nil
+        end
+        local function resolveCard(card, translation)
+            local a = "["..tostring(card).." | "..tostring(translation).."] "
+            local suc, res = true, a
+            local function p(b) suc = false; res = a..tostring(b).." not found!" return suc, res end
+            if not card or not translation or not card:IsA("Frame") then suc = false; res = a.."Invalid use of resolveCard!" return suc, res end
+            translation = tostring(translation)
+            local function resolveUpgradeCost(cost)
+                if not cost then return warn(debug.traceback("[resolveUpgradeCost]: Invalid cost given!")) end
+                cost = tonumber(cost)
+                if resolve[translation] and resolve[translation].Upgrades and type(resolve[translation].Upgrades) == "table" then
+                    for i,v in pairs(resolve[translation].Upgrades) do 
+                        if v == cost then return i end
+                    end
+                end
+            end
+            local Content = findChild("Content", "Frame", card:GetChildren())
+            if Content then
+                local PurchaseSection = findChild("PurchaseSection", "Frame", Content:GetChildren())
+                if PurchaseSection then
+                    local Cost_Info = findChild("Cost Info", "Frame", PurchaseSection:GetChildren())
+                    if Cost_Info then
+                        local Current_Diamond_Required = findChild("2", "TextLabel", Cost_Info:GetChildren())
+                        if Current_Diamond_Required then
+                            local upgrade = resolveUpgradeCost(Current_Diamond_Required.Text)
+                            if upgrade then
+                                resolve[translation].CurrentUpgrade = upgrade - 1
+                            else warn("invalid upgrade", translation, Current_Diamond_Required.Text) end
+                        else return p("Card->Content->PurchaseSection->Cost Info") end
+                    else resolve[translation].CurrentUpgrade = 3 return p("Card->Content->PurchaseSection->Cost Info") end
+                else return p("Card->Content->PurchaseSection") end
+            else return p("Card->Content") end
+        end
+        local frame2 = findChild("2", "Frame", app:GetChildren())
+        if frame2 then
+            local TeamUpgradeAppContainer = findChild("TeamUpgradeAppContainer", "ImageButton", frame2:GetChildren())
+            if TeamUpgradeAppContainer then
+                local UpgradesWrapper = findChild("UpgradesWrapper", "Frame", TeamUpgradeAppContainer:GetChildren())
+                if UpgradesWrapper then
+                    local suc1, res1, suc2, res2, suc3, res3, suc4, res4 = resolveCard(findChild("ARMOR_Card", "Frame", UpgradesWrapper:GetChildren()), "Armor"), resolveCard(findChild("DAMAGE_Card", "Frame", UpgradesWrapper:GetChildren()), "Damage"), resolveCard(findChild("DIAMOND_GENERATOR_Card", "Frame", UpgradesWrapper:GetChildren()), "Diamond Gen"), resolveCard(findChild("TEAM_GENERATOR_Card", "Frame", UpgradesWrapper:GetChildren()), "Team Gen")
+                end
+            end
+        end
+    end
+    local function check(app) if app.Name and app:IsA("ScreenGui") and app.Name == "TeamUpgradeApp" then resolveTeamUpgradeApp(app) end end
+    local con = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui").ChildAdded:Connect(check)
+    GuiLibrary.SelfDestructEvent.Event:Connect(function() pcall(function() con:Disconnect() end) end)
+    for i, app in pairs(game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):GetChildren()) do check(app) end
+
+    local bedwarsshopnpcs = {}
+    task.spawn(function()
+		repeat task.wait() until store.matchState ~= 0 or not shared.VapeExecuted
+		for i,v in pairs(collectionService:GetTagged("TeamUpgradeShopkeeper")) do table.insert(bedwarsshopnpcs, {Position = v.Position, TeamUpgradeNPC = false, Id = v.Name}) end
+	end)
+
+    local function nearNPC(range)
+		local npc, npccheck, enchant, newid = nil, false, false, nil
+		if entityLibrary.isAlive then
+			for i, v in pairs(bedwarsshopnpcs) do
+				if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - v.Position).magnitude <= (range or 20) then
+					npc, npccheck, enchant = true, (v.TeamUpgradeNPC or npccheck), false
+					newid = v.TeamUpgradeNPC and v.Id or newid
+				end
+			end
+		end
+		return npc, not npccheck, enchant, newid
+	end
+
+    local AutoBuyDiamond = {Enabled = false}
+    local PreferredUpgrade = {Value = "Damage"}
+    local AutoBuyDiamondGui = {Enabled = false}
+    local AutoBuyDiamondRange = {Value = 20}
+
+    AutoBuyDiamond = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+        Name = "AutoBuyDiamondUpgrades",
+        Function = function(call)
+            if call then
+                repeat task.wait()
+                    if nearNPC(AutoBuyDiamondRange.Value) then
+                        if (not AutoBuyDiamondGui.Enabled) or bedwars.AppController:isAppOpen("TeamUpgradeApp") then
+                            if resolve[PreferredUpgrade.Value].CurrentUpgrade ~= 3 and getDiamonds() >= resolve[PreferredUpgrade.Value].Upgrades[resolve[PreferredUpgrade.Value].CurrentUpgrade + 1] then buyUpgrade(PreferredUpgrade.Value) end
+                            for i,v in pairs(resolve) do if v.CurrentUpgrade ~= 3 and getDiamonds() >= v.Upgrades[v.CurrentUpgrade + 1] then buyUpgrade(i) end end
+                        end
+                    end
+                until (not AutoBuyDiamond.Enabled)
+            end
+        end,
+        HoverText = "Auto buys diamond upgrades"
+    })
+    AutoBuyDiamond.Restart = function() if AutoBuyDiamond.Enabled then AutoBuyDiamond.ToggleButton(false); AutoBuyDiamond.ToggleButton(false) end end
+    AutoBuyDiamondRange = AutoBuyDiamond.CreateSlider({Name = "Range", Function = function() end, Min = 1, Max = 20, Default = 20})
+    local real_list = {}
+    for i,v in pairs(resolve) do table.insert(real_list, tostring(i)) end
+    PreferredUpgrade = AutoBuyDiamond.CreateDropdown({Name = "PreferredUpgrade", Function = AutoBuyDiamond.Restart, List = real_list, Default = "Damage"})
+    AutoBuyDiamondGui = AutoBuyDiamond.CreateToggle({Name = "Gui Check", Function = AutoBuyDiamond.Restart})
+end)
+
+local isAlive = function(plr, healthblacklist)
+	plr = plr or lplr
+	local alive = false 
+	if plr.Character and plr.Character.PrimaryPart and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character:FindFirstChild("Head") then 
+		alive = true
+	end
+	if not healthblacklist and alive and plr.Character.Humanoid.Health and plr.Character.Humanoid.Health <= 0 then 
+		alive = false
+	end
+	return alive
+end
+local function fetchTeamMembers()
+	local plrs = {}
+	for i,v in pairs(game:GetService("Players"):GetPlayers()) do if v.Team == lplr.Team then table.insert(plrs, v) end end
+	return plrs
+end
+local function isEveryoneDead()
+	if #fetchTeamMembers() > 0 then
+		for i,v in pairs(fetchTeamMembers()) do
+			local plr = playersService:FindFirstChild(v.name)
+			if plr and isAlive(plr, true) then
+				return false
+			end
+		end
+		return true
+	else
+		return true
+	end
+end
+--[[run(function()
+	GuiLibrary.RemoveObject("AutoLeaveOptionsButton")
+
+	local playersService = game:GetService("Players")
+	local lplr = playersService.LocalPlayer
+
+	local leaveAttempted = false
+
+	local AutoQueue = {Enabled = false, Connections = {}}
+	local AutoQueue_GUI = {
+		AutoPlayAgain = {Enabled = false},
+		AutoPlayRandom = {Enabled = false},
+		AutoPlayDelay = {Value = 1}
+	}
+	local queueFunction = function()
+		if (not AutoQueue_GUI.AutoPlayAgain.Enabled) then return game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("TeleportToLobby"):FireServer() end
+		local listofmodes = {}
+		for i,v in pairs(bedwars.QueueMeta) do if not v.disabled and not v.voiceChatOnly and not v.rankCategory then table.insert(listofmodes, i) end end 
+		bedwars.QueueController:joinQueue(AutoQueue_GUI.AutoPlayRandom.Enabled and listofmodes[math.random(1, #listofmodes)] or store.queueType)
+	end
+	AutoQueue = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+		Name = "AutoQueue",
+		Function = function(call)
+			table.insert(AutoQueue.Connections, vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
+				if (not leaveAttempted) and deathTable.finalKill and deathTable.entityInstance == lplr.Character then
+					leaveAttempted = true
+					if isEveryoneDead() and store.matchState ~= 2 then
+						task.wait(1 + (AutoLeaveDelay.Value / 10))
+						queueFunction()
+					end
+				end
+			end))
+			table.insert(AutoQueue.Connections, vapeEvents.MatchEndEvent.Event:Connect(function(deathTable)
+				task.wait(AutoLeaveDelay.Value / 10)
+				if not AutoQueue.Enabled then return end
+				if leaveAttempted then return end
+				leaveAttempted = true
+				queueFunction()
+			end))
+			if store.matchState == 2 or isEveryoneDead() then queueFunction() end
+		end
+	})
+	AutoQueue.Restart = function() if AutoQueue.Enabled then AutoQueue.ToggleButton(false); AutoQueue.ToggleButton(false) end end
+	AutoQueue_GUI.AutoPlayAgain = AutoQueue.CreateToggle({
+		Name = "AutoPlayAgain",
+		Function = AutoQueue.Restart,
+		Default = true,
+		HoverText = "Automatically queues a new game."
+	})
+	AutoQueue_GUI.AutoPlayRandom = AutoQueue.CreateToggle({
+		Name = "AutoPlayRandom",
+		Function = AutoQueue.Restart,
+		Default = false,
+		HoverText = "Chooses a random mode"
+	})
+	AutoQueue_GUI.AutoPlayDelay = AutoQueue.CreateSlider({
+		Name = "AutoPlayDelay",
+		Function = function() end,
+		Default = 0,
+		Min = 0,
+		Max = 50
+	})
+end)--]]

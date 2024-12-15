@@ -355,7 +355,7 @@ run(function()
 	function whitelist:get(plr)
 		local plrstr = self:hash(plr.Name..plr.UserId)
 		for i,v in self.data.WhitelistedUsers do
-			if i ~= 1187823462312587285 and v.hash == plrstr then
+			if v.hash == plrstr then
 				return v.level, v.attackable or self.localprio >= v.level, v.tags
 			end
 		end
@@ -4814,10 +4814,10 @@ run(function()
 						v.Main.OutlineColor = GuiLibrary.GUICoreColor
 					end)
 				else
+					local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+					v.Main.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+					v.Main.OutlineColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
 					VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
-						local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
-						v.Main.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
-						v.Main.OutlineColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
 						if CharacterOutline.Enabled then
 							color = {Hue = h, Sat = s, Value = v}
 							v.Main.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
@@ -4877,10 +4877,10 @@ run(function()
 										v.Main.OutlineColor = GuiLibrary.GUICoreColor
 									end)
 								else
+									local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+									v.Main.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+									v.Main.OutlineColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
 									VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
-										local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
-										v.Main.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
-										v.Main.OutlineColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
 										if CharacterOutline.Enabled then
 											color = {Hue = h, Sat = s, Value = v}
 											v.Main.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
@@ -4900,13 +4900,16 @@ run(function()
 		end,
 		HoverText = "Render players through walls"
 	})
+	Chams.Restart = function() if Chams.Enabled then Chams.ToggleButton(false); Chams.ToggleButton(false) end end
+	local function refreshGUI()
+		repeat task.wait() until ChamsColor.Object and ChamsOutlineColor.Object 
+		ChamsColor.Object.Visible, ChamsOutlineColor.Object.Visible = (not GuiSync.Enabled), (not GuiSync.Enabled)
+	end
 	GuiSync = Chams.CreateToggle({
-		Name = "Sync with GUI Color",
+		Name = "GUI Color Sync",
 		Function = function()
-			if Chams.Enabled then 
-				Chams.ToggleButton(false)
-				Chams.ToggleButton(false)
-			end
+			task.spawn(refreshGUI)
+			Chams.Restart()
 		end
 	})
 	ChamsColor = Chams.CreateColorSlider({
@@ -4929,24 +4932,24 @@ run(function()
 		Name = "Transparency",
 		Min = 1,
 		Max = 100,
-		Function = function(callback) if Chams.Enabled then Chams.ToggleButton(true) Chams.ToggleButton(true) end end,
+		Function = Chams.Restart,
 		Default = 50
 	})
 	ChamsOutlineTransparency = Chams.CreateSlider({
 		Name = "Outline Transparency",
 		Min = 1,
 		Max = 100,
-		Function = function(callback) if Chams.Enabled then Chams.ToggleButton(true) Chams.ToggleButton(true) end end,
+		Function = Chams.Restart,
 		Default = 1
 	})
 	ChamsTeammates = Chams.CreateToggle({
 		Name = "Teammates",
-		Function = function(callback) if Chams.Enabled then Chams.ToggleButton(true) Chams.ToggleButton(true) end end,
+		Function = Chams.Restart,
 		Default = true
 	})
 	ChamsOnTop = Chams.CreateToggle({
 		Name = "Bypass Walls",
-		Function = function(callback) if Chams.Enabled then Chams.ToggleButton(true) Chams.ToggleButton(true) end end
+		Function = Chams.Restart
 	})
 end)
 
@@ -6122,11 +6125,14 @@ run(function()
 end)
 
 run(function()
-	local ChinaHat = {Enabled = false}
-	local ChinaHatColor = {Hue = 1, Sat=1, Value=0.33}
+	local ChinaHat = {Enabled = false, Connections = {}}
+	local ChinaHatColor = {Hue = 1, Sat = 1, Value = 0.33}
 	local chinahattrail
 	local chinahatattachment
 	local chinahatattachment2
+
+	local GuiSync = {Enabled = false}
+
 	ChinaHat = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
 		Name = "ChinaHat",
 		Function = function(callback)
@@ -6139,7 +6145,7 @@ run(function()
 							chinahattrail.Size = Vector3.new(3, 0.7, 3)
 							chinahattrail.Name = "ChinaHat"
 							chinahattrail.Material = Enum.Material.Neon
-							chinahattrail.Color = Color3.fromHSV(ChinaHatColor.Hue, ChinaHatColor.Sat, ChinaHatColor.Value)
+							
 							chinahattrail.CanCollide = false
 							chinahattrail.Transparency = 0.3
 							local chinahatmesh = Instance.new("SpecialMesh")
@@ -6148,6 +6154,30 @@ run(function()
 							chinahatmesh.MeshId = "http://www.roblox.com/asset/?id=1778999"
 							chinahatmesh.Scale = Vector3.new(3, 0.6, 3)
 							chinahattrail.Parent = game.Workspace.Camera
+							if GuiSync.Enabled then
+								pcall(function()
+									if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+										chinahattrail.Color = GuiLibrary.GUICoreColor
+										local con = GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+											if ChinaHat.Enabled and GuiSync.Enabled then
+												chinahattrail.Color = GuiLibrary.GUICoreColor
+											end
+										end)
+										table.insert(ChinaHat.Connections, con)
+									else
+										local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+										chinahattrail.Color = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+										VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
+											if ChinaHat.Enabled then
+												color = {Hue = h, Sat = s, Value = v}
+												chinahattrail.Color = Color3.fromHSV(color.Hue, color.Sat, color.Value)
+											end
+										end))
+									end
+								end)
+							else
+								chinahattrail.Color = Color3.fromHSV(ChinaHatColor.Hue, ChinaHatColor.Sat, ChinaHatColor.Value)
+							end
 						end
 						chinahattrail.CFrame = entityLibrary.character.Head.CFrame * CFrame.new(0, 1.1, 0)
 						chinahattrail.Velocity = Vector3.zero
@@ -6169,12 +6199,20 @@ run(function()
 		end,
 		HoverText = "Puts a china hat on your character (mastadawn ty for)"
 	})
+	ChinaHat.Restart = function() if ChinaHat.Enabled then ChinaHat.ToggleButton(false); ChinaHat.ToggleButton(false) end end
 	ChinaHatColor = ChinaHat.CreateColorSlider({
 		Name = "Hat Color",
 		Function = function(h, s, v)
 			if chinahattrail then
 				chinahattrail.Color = Color3.fromHSV(h, s, v)
 			end
+		end
+	})
+	GuiSync = ChinaHat.CreateToggle({
+		Name = "GUI Color Sync",
+		Function = function(call)
+			pcall(function() ChinaHatColor.Object.Visible = not call end)
+			ChinaHat.Restart()
 		end
 	})
 end)

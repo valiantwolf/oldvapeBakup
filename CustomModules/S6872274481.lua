@@ -17,6 +17,155 @@ local lplr = playersService.LocalPlayer
 local vapeInjected = shared.VapeExecuted
 local entityLibrary = shared.vapeentity
 
+local vapeConnections = {}
+GuiLibrary.SelfDestructEvent.Event:Connect(function()
+	for i, v in pairs(vapeConnections) do
+		if v.Disconnect then pcall(function() v:Disconnect() end) continue end
+		if v.disconnect then pcall(function() v:disconnect() end) continue end
+	end
+end)
+
+local store = {
+	holdingscythe = false,
+	attackReach = 0,
+	attackReachUpdate = tick(),
+	blocks = {},
+	blockPlacer = {},
+	blockPlace = tick(),
+	blockRaycast = RaycastParams.new(),
+	equippedKit = 'none',
+	grapple = tick(),
+	inventories = {},
+	localInventory = {
+		inventory = {
+			items = {},
+			armor = {}
+		},
+		hotbar = {}
+	},
+	desyncing = false,
+	localHand = {},
+	matchState = 0,
+	holdingscythe = false,
+	matchStateChanged = tick(),
+	pots = {},
+	queueType = 'bedwars_test',
+	scythe = tick(),
+	statistics = {
+		beds = 0,
+		kills = 0,
+		lagbacks = 0,
+		lagbackEvent = Instance.new('BindableEvent'),
+		reported = 0,
+		universalLagbacks = 0
+	},
+	whitelist = {
+		chatStrings1 = {helloimusinginhaler = 'vape'},
+		chatStrings2 = {vape = 'helloimusinginhaler'},
+		clientUsers = {},
+		oldChatFunctions = {}
+	},
+	zephyrOrb = 0
+}
+store.blockRaycast.FilterType = Enum.RaycastFilterType.Include
+
+local function getItem(itemName, inv)
+	for slot, item in pairs(inv or store.localInventory.inventory.items) do
+		if item.itemType == itemName then
+			return item, slot
+		end
+	end
+	return nil
+end
+
+local function getItemNear(itemName, inv)
+	for slot, item in pairs(inv or store.localInventory.inventory.items) do
+		if item.itemType == itemName or item.itemType:find(itemName) then
+			return item, slot
+		end
+	end
+	return nil
+end
+
+local function getHotbarSlot(itemName)
+	for slotNumber, slotTable in pairs(store.localInventory.hotbar) do
+		if slotTable.item and slotTable.item.itemType == itemName then
+			return slotNumber - 1
+		end
+	end
+	return nil
+end
+
+local function getShieldAttribute(char)
+	local returnedShield = 0
+	for attributeName, attributeValue in pairs(char:GetAttributes()) do
+		if attributeName:find("Shield") and type(attributeValue) == "number" then
+			returnedShield = returnedShield + attributeValue
+		end
+	end
+	return returnedShield
+end
+
+local function getPickaxe()
+	return getItemNear("pick")
+end
+
+local function getAxe()
+	local bestAxe, bestAxeSlot = nil, nil
+	for slot, item in pairs(store.localInventory.inventory.items) do
+		if item.itemType:find("axe") and item.itemType:find("pickaxe") == nil and item.itemType:find("void") == nil then
+			bextAxe, bextAxeSlot = item, slot
+		end
+	end
+	return bestAxe, bestAxeSlot
+end
+
+local function getSword()
+	local bestSword, bestSwordSlot, bestSwordDamage = nil, nil, 0
+	for slot, item in pairs(store.localInventory.inventory.items) do
+		local swordMeta = bedwars.ItemTable[item.itemType].sword
+		if swordMeta then
+			local swordDamage = swordMeta.damage or 0
+			if swordDamage > bestSwordDamage and item.tool.Name ~= 'guards_spear' then
+				bestSword, bestSwordSlot, bestSwordDamage = item, slot, swordDamage
+			end			
+		end
+	end
+	return bestSword, bestSwordSlot
+end
+
+local function getBow()
+	local bestBow, bestBowSlot, bestBowStrength = nil, nil, 0
+	for slot, item in pairs(store.localInventory.inventory.items) do
+		if item.itemType:find("bow") then
+			local tab = bedwars.ItemTable[item.itemType].projectileSource
+			local ammo = tab.projectileType("arrow")
+			local dmg = bedwars.ProjectileMeta[ammo].combat.damage
+			if dmg > bestBowStrength then
+				bestBow, bestBowSlot, bestBowStrength = item, slot, dmg
+			end
+		end
+	end
+	return bestBow, bestBowSlot
+end
+
+local function getWool()
+	local wool = getItemNear("wool")
+	return wool and wool.itemType, wool and wool.amount
+end
+
+local function getBlock()
+	for slot, item in pairs(store.localInventory.inventory.items) do
+		if bedwars.ItemTable[item.itemType].block then
+			return item.itemType, item.amount
+		end
+	end
+end
+
+local function attackValue(vec)
+	return {value = vec}
+end
+
 local networkownerswitch = tick()
 local isnetworkowner = function(part)
 	local suc, res = pcall(function() return gethiddenproperty(part, "NetworkOwnershipRule") end)
@@ -26,19 +175,62 @@ local isnetworkowner = function(part)
 	return networkownerswitch <= tick()
 end
 
+local function getItem(itemName, inv)
+	for slot, item in pairs(inv or store.localInventory.inventory.items) do
+		if item.itemType == itemName then
+			return item, slot
+		end
+	end
+	return nil
+end
+
+shared.zephyrActive = false
+shared.scytheActive = false
+shared.SpeedBoostEnabled = false
+shared.scytheSpeed = 5
+local function getSpeed(reduce)
+	local speed = 0
+	if lplr.Character then
+		local SpeedDamageBoost = lplr.Character:GetAttribute("SpeedBoost")
+		if SpeedDamageBoost and SpeedDamageBoost > 1 then
+			speed = speed + (8 * (SpeedDamageBoost - 1))
+		end
+		if store.grapple > tick() then
+			speed = speed + 90
+		end
+		if store.scythe > tick() and shared.scytheActive then
+			speed = speed + shared.scytheSpeed
+		end
+		if lplr.Character:GetAttribute("GrimReaperChannel") then
+			speed = speed + 20
+		end
+		print(tostring(lastdamagetick > tick()), tostring(shared.SpeedBoostEnabled))
+		if lastdamagetick > tick() and shared.SpeedBoostEnabled then
+			speed = speed + 20
+		end;
+		local armor = store.localInventory.inventory.armor[3]
+		if type(armor) ~= "table" then armor = {itemType = ""} end
+		if armor.itemType == "speed_boots" then
+			speed = speed + 12
+		end
+		if store.zephyrOrb ~= 0 then
+			speed = speed + 12
+		end
+		if store.zephyrOrb ~= 0 and shared.zephyrActive then
+			isZephyr = true
+		else
+			isZephyr = false
+		end
+	end
+	pcall(function()
+		--speed = speed + (CheatEngineHelper.SprintEnabled and 23 - game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed or 0)
+	end)
+	return reduce and speed ~= 1 and math.max(speed * (0.8 - (0.3 * math.floor(speed))), 1) or speed
+end
+
 local vapeTargetInfo = shared.VapeTargetInfo
 
 local vapeEvents = shared.vapeEvents
-
-local vapeConnections = {}
-GuiLibrary.SelfDestructEvent.Event:Connect(function()
-	for i, v in pairs(vapeConnections) do
-		if v.Disconnect then pcall(function() v:Disconnect() end) continue end
-		if v.disconnect then pcall(function() v:disconnect() end) continue end
-	end
-end)
-
-local store = shared.GlobalStore
 
 local function run(func)
 	local suc, err = pcall(function()
@@ -157,7 +349,7 @@ bedwars = setmetatable({
     placeBlock = shared.GlobalBedwars.placeBlock,
     CannonAimRemote = dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.CannonController.startAiming, 5))),
     CannonLaunchRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.CannonHandController.launchSelf)),
-    BlockController = shared.GlobalBedwars.BlockController,
+    BlockController = require(replicatedStorage["rbxts_include"]["node_modules"]["@easy-games"]["block-engine"].out).BlockEngine,
     AbilityController = Flamework.resolveDependency("@easy-games/game-core:client/controllers/ability/ability-controller@AbilityController"),
 	KnockbackUtil = require(replicatedStorage.TS.damage["knockback-util"]).KnockbackUtil,
 	CombatConstant = require(replicatedStorage.TS.combat["combat-constant"]).CombatConstant,
@@ -204,41 +396,6 @@ local blacklistedblocks = {
 	ceramic = true
 }
 
-local function getPlacedBlock(pos)
-	local roundedPosition = bedwars.BlockController:getBlockPosition(pos)
-	return bedwars.BlockController:getStore():getBlockAt(roundedPosition), roundedPosition
-end
-
-local function isBlockCovered(pos)
-	local coveredsides = 0
-	for i, v in pairs(cachedNormalSides) do
-		local blockpos = (pos + (Vector3.FromNormalId(v) * 3))
-		local block = getPlacedBlock(blockpos)
-		if block then
-			coveredsides = coveredsides + 1
-		end
-	end
-	return coveredsides == #cachedNormalSides
-end
-
-local function getLastCovered(pos, normal)
-	local lastfound, lastpos = nil, nil
-	for i = 1, 20 do
-		local blockpos = (pos + (Vector3.FromNormalId(normal) * (i * 3)))
-		local extrablock, extrablockpos = getPlacedBlock(blockpos)
-		local covered = isBlockCovered(blockpos)
-		if extrablock then
-			lastfound, lastpos = extrablock, extrablockpos
-			if not covered then
-				break
-			end
-		else
-			break
-		end
-	end
-	return lastfound, lastpos
-end
-
 local function getBestTool(block)
 	local tool = nil
 	local blockmeta = bedwars.ItemTable[block]
@@ -255,120 +412,6 @@ local function getBestTool(block)
 	end
 	return tool
 end
-
-local function GetPlacedBlocksNear(pos, normal)
-	local blocks = {}
-	local lastfound = nil
-	for i = 1, 20 do
-		local blockpos = (pos + (Vector3.FromNormalId(normal) * (i * 3)))
-		local extrablock = getPlacedBlock(blockpos)
-		local covered = isBlockCovered(blockpos)
-		if extrablock then
-			if bedwars.BlockController:isBlockBreakable({blockPosition = blockpos}, lplr) and (not blacklistedblocks[extrablock.Name]) then
-				table.insert(blocks, extrablock.Name)
-			end
-			lastfound = extrablock
-			if not covered then
-				break
-			end
-		else
-			break
-		end
-	end
-	return blocks
-end
-
-local function getBestBreakSide(pos)
-	local softest, softestside = 9e9, Enum.NormalId.Top
-	for i,v in pairs(cachedNormalSides) do
-		local sidehardness = 0
-		for i2,v2 in pairs(GetPlacedBlocksNear(pos, v)) do
-			local blockmeta = bedwars.ItemTable[v2].block
-			sidehardness = sidehardness + (blockmeta and blockmeta.health or 10)
-			if blockmeta then
-				local tool = getBestTool(v2)
-				if tool then
-					sidehardness = sidehardness - bedwars.ItemTable[tool.itemType].breakBlock[blockmeta.breakType]
-				end
-			end
-		end
-		if sidehardness <= softest then
-			softest = sidehardness
-			softestside = v
-		end
-	end
-	return softestside, softest
-end
-
---[[bedwars.breakBlock = function(pos, effects, normal, bypass, anim)
-	if GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled then
-		return
-	end
-	if lplr:GetAttribute("DenyBlockBreak") then
-		return
-	end
-	local block, blockpos = nil, nil
-	if not bypass then block, blockpos = getLastCovered(pos, normal) end
-	if not block then block, blockpos = getPlacedBlock(pos) end
-	if blockpos and block then
-		if bedwars.BlockEngineClientEvents.DamageBlock:fire(block.Name, blockpos, block):isCancelled() then
-			return
-		end
-		local blockhealthbarpos = {blockPosition = Vector3.zero}
-		local blockdmg = 0
-		if block and block.Parent ~= nil then
-			if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - (blockpos * 3)).magnitude > 30 then return end
-			store.blockPlace = tick() + 0.1
-			switchToAndUseTool(block)
-			blockhealthbarpos = {
-				blockPosition = blockpos
-			}
-			task.spawn(function()
-				bedwars.ClientDamageBlock:Get("DamageBlock"):CallServerAsync({
-					blockRef = blockhealthbarpos,
-					hitPosition = blockpos * 3,
-					hitNormal = Vector3.FromNormalId(normal)
-				}):andThen(function(result)
-					if result ~= "failed" then
-						failedBreak = 0
-						if healthbarblocktable.blockHealth == -1 or blockhealthbarpos.blockPosition ~= healthbarblocktable.breakingBlockPosition then
-							local blockdata = bedwars.BlockController:getStore():getBlockData(blockhealthbarpos.blockPosition)
-							local blockhealth = blockdata and (blockdata:GetAttribute("Health") or blockdata:GetAttribute(lplr.Name .. "_Health")) or block:GetAttribute("Health")
-							healthbarblocktable.blockHealth = blockhealth
-							healthbarblocktable.breakingBlockPosition = blockhealthbarpos.blockPosition
-						end
-						healthbarblocktable.blockHealth = result == "destroyed" and 0 or healthbarblocktable.blockHealth
-						blockdmg = bedwars.BlockController:calculateBlockDamage(lplr, blockhealthbarpos)
-						healthbarblocktable.blockHealth = math.max(healthbarblocktable.blockHealth - blockdmg, 0)
-						if effects then
-							bedwars.BlockBreaker:updateHealthbar(blockhealthbarpos, healthbarblocktable.blockHealth, block:GetAttribute("MaxHealth"), blockdmg, block)
-							if healthbarblocktable.blockHealth <= 0 then
-								bedwars.BlockBreaker.breakEffect:playBreak(block.Name, blockhealthbarpos.blockPosition, lplr)
-								bedwars.BlockBreaker.healthbarMaid:DoCleaning()
-								healthbarblocktable.breakingBlockPosition = Vector3.zero
-							else
-								bedwars.BlockBreaker.breakEffect:playHit(block.Name, blockhealthbarpos.blockPosition, lplr)
-							end
-						end
-						local animation
-						if anim then
-							animation = bedwars.AnimationUtil:playAnimation(lplr, bedwars.BlockController:getAnimationController():getAssetId(1))
-							bedwars.ViewmodelController:playAnimation(15)
-						end
-						task.wait(0.3)
-						if animation ~= nil then
-							animation:Stop()
-							animation:Destroy()
-						end
-					else
-						failedBreak = failedBreak + 1
-					end
-				end)
-			end)
-			task.wait(physicsUpdate)
-		end
-	end
-end--]]
 
 local function LaunchAngle(v, g, d, h, higherArc)
 	local v2 = v * v
@@ -427,6 +470,99 @@ local function predictGravity(playerPosition, vel, bulletTime, targetPart, Gravi
 
 	return playerPosition, Vector3.new(0, 0, 0)
 end
+local function isVulnerable(plr) return plr.Humanoid.Health > 0 and not plr.Character.FindFirstChildWhichIsA(plr.Character, "ForceField") end
+VoidwareFunctions.GlobaliseObject("isVulnarable", isVulnarable)
+local function EntityNearPosition(distance, ignore, overridepos)
+	local closestEntity, closestMagnitude = nil, distance
+	if entityLibrary.isAlive then
+		for i, v in pairs(entityLibrary.entityList) do
+			if not v.Targetable then continue end
+			if isVulnerable(v) then
+				local mag = (entityLibrary.character.HumanoidRootPart.Position - v.RootPart.Position).magnitude
+				if overridepos and mag > distance then
+					mag = (overridepos - v.RootPart.Position).magnitude
+				end
+				if mag <= closestMagnitude then
+					closestEntity, closestMagnitude = v, mag
+				end
+			end
+		end
+		if not ignore then
+			for i, v in pairs(game.Workspace:GetChildren()) do
+				if v.Name == "Void Enemy Dummy" or v.Name == "Emerald Enemy Dummy" or v.Name == "Diamond Enemy Dummy" or v.Name == "Leather Enemy Dummy" or v.Name == "Regular Enemy Dummy" or v.Name == "Iron Enemy Dummy" then
+					if v.PrimaryPart then
+						local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+						if overridepos and mag > distance then
+							mag = (overridepos - v2.PrimaryPart.Position).magnitude
+						end
+						if mag <= closestMagnitude then
+							closestEntity, closestMagnitude = {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645)}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+						end
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("Monster")) do
+				if v.PrimaryPart and v:GetAttribute("Team") ~= lplr:GetAttribute("Team") then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645)}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("GuardianOfDream")) do
+				if v.PrimaryPart and v:GetAttribute("Team") ~= lplr:GetAttribute("Team") then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645)}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("DiamondGuardian")) do
+				if v.PrimaryPart then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = "DiamondGuardian", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("GolemBoss")) do
+				if v.PrimaryPart then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = "GolemBoss", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("Drone")) do
+				if v.PrimaryPart and tonumber(v:GetAttribute("PlayerUserId")) ~= lplr.UserId then
+					local droneplr = playersService:GetPlayerByUserId(v:GetAttribute("PlayerUserId"))
+					if droneplr and droneplr.Team == lplr.Team then continue end
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = "Drone", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+		end
+	end
+	return closestEntity
+end
+VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 
 run(function()
 	local oldclickhold
@@ -1148,7 +1284,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local TargetStrafe = {Enabled = false}
 	local TargetStrafeRange = {Value = 18}
 	local oldmove
@@ -1172,7 +1308,7 @@ run(function()
 					block.Parent = gameCamera
 					controlmodule.moveFunction = function(Self, vec, facecam, ...)
 						if entityLibrary.isAlive then
-							local plr = AllNearPosition(TargetStrafeRange.Value + 5, 10)[1]
+							local plr = EntityNearPosition(TargetStrafeRange.Value + 5, 10)
 							plr = plr and (not game.Workspace:Raycast(entityLibrary.character.HumanoidRootPart.Position, (plr.RootPart.Position - entityLibrary.character.HumanoidRootPart.Position), store.blockRaycast)) and game.Workspace:Raycast(plr.RootPart.Position, Vector3.new(0, -70, 0), store.blockRaycast) and plr or nil
 							if plr ~= oldplr then
 								if plr then
@@ -1213,7 +1349,7 @@ run(function()
 		Max = 18,
 		Function = function() end
 	})
-end)
+end)--]]
 
 run(function()
 	local controlmodule = require(lplr.PlayerScripts.PlayerModule).controls
@@ -1226,7 +1362,7 @@ run(function()
 			if callback then
 				oldmove = controlmodule.moveFunction
 				controlmodule.moveFunction = function(Self, vec, facecam)
-					if entityLibrary.isAlive and (not Scaffold.Enabled) and (not GuiLibrary.ObjectsThatCanBeSaved.FlyOptionsButton.Api.Enabled) then
+					if entityLibrary.isAlive and (not GuiLibrary.ObjectsThatCanBeSaved.ScaffoldOptionsButton.Api.Enabled) and (not GuiLibrary.ObjectsThatCanBeSaved.FlyOptionsButton.Api.Enabled) then
 						if SafeWalkMode.Value == "Optimized" then
 							local newpos = (entityLibrary.character.HumanoidRootPart.Position - Vector3.new(0, entityLibrary.character.Humanoid.HipHeight * 2, 0))
 							local ray = getPlacedBlock(newpos + Vector3.new(0, -6, 0) + vec)
@@ -1428,8 +1564,22 @@ local function switchToAndUseTool(block, legit)
 	end
 end
 
-local LongJump = {Enabled = false}
-run(function()
+local LongJump = {Enabled = false, Connections = {}}
+local oldpos = Vector3.zero
+local function getScaffold(vec, diagonaltoggle)
+	local realvec = Vector3.new(math.floor((vec.X / 3) + 0.5) * 3, math.floor((vec.Y / 3) + 0.5) * 3, math.floor((vec.Z / 3) + 0.5) * 3)
+	local speedCFrame = (oldpos - realvec)
+	local returedpos = realvec
+	if entityLibrary.isAlive then
+		local angle = math.deg(math.atan2(-entityLibrary.character.Humanoid.MoveDirection.X, -entityLibrary.character.Humanoid.MoveDirection.Z))
+		local goingdiagonal = (angle >= 130 and angle <= 150) or (angle <= -35 and angle >= -50) or (angle >= 35 and angle <= 50) or (angle <= -130 and angle >= -150)
+		if goingdiagonal and ((speedCFrame.X == 0 and speedCFrame.Z ~= 0) or (speedCFrame.X ~= 0 and speedCFrame.Z == 0)) and diagonaltoggle then
+			return oldpos
+		end
+	end
+	return realvec
+end
+--[[run(function()
 	local damagetimer = 0
 	local damagetimertick = 0
 	local directionvec
@@ -1496,14 +1646,14 @@ run(function()
 						if damage < block:GetAttribute("Health") then
 							task.spawn(function()
 								broken = 0.4
-								bedwars.breakBlock(block.Position, true, getBestBreakSide(block.Position), true, true)
+								bedwars.breakBlock(block, true)
 							end)
 						end
 						task.delay(broken, function()
 							for i = 1, 3 do
 								local call = bedwars.Client:Get(bedwars.CannonLaunchRemote):CallServer({cannonBlockPos = bedwars.BlockController:getBlockPosition2(block.Position)})
 								if call then
-									bedwars.breakBlock(block.Position, true, getBestBreakSide(block.Position), true, true)
+									bedwars.breakBlock(block, true)
 									task.delay(0.1, function()
 										damagetimer = LongJumpSpeed.Value * 5
 										damagetimertick = tick() + 2.5
@@ -1717,7 +1867,7 @@ run(function()
 		Function = function() end,
 		Default = 52
 	})
-end)
+end)--]]
 
 run(function()
 	local NoSlowdown = {Enabled = false}
