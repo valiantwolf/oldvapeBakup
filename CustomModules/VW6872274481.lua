@@ -3799,7 +3799,7 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 						end))
 						table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
 							if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
-							if not VoidwareStore.GameFinished then return end
+							if not store.matchState == 2 then return end
 							local oldpos = lplr.Character.HumanoidRootPart.CFrame
 							repeat 
 							lplr.Character.HumanoidRootPart.CFrame = oldpos
@@ -3839,7 +3839,7 @@ run(function()
 					table.insert(Autowin.Connections, runService.Heartbeat:Connect(function()
 						pcall(function()
 						if not isnetworkowner(lplr.Character.HumanoidRootPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
-							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and not VoidwareStore.GameFinished then
+							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and not store.matchState == 2 then
 								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
 								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
 							end
@@ -3918,7 +3918,7 @@ run(function()
 					end))
 					table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
 						if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
-						if not VoidwareStore.GameFinished then return end
+						if not store.matchState == 2 then return end
 						local oldpos = lplr.Character.HumanoidRootPart.CFrame
 						repeat 
 						lplr.Character.HumanoidRootPart.CFrame = oldpos
