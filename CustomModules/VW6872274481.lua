@@ -3640,8 +3640,30 @@ local function EntityNearPosition(distance, ignore, overridepos)
 					if overridepos and mag > distance then
 						mag = (overridepos - v.PrimaryPart.Position).magnitude
 					end
-					if mag <= closestMagnitude then
+					if mag <= closestMagnitude then -- magcheck
 						closestEntity, closestMagnitude = {Player = {Name = "Drone", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i,v in pairs(game.Workspace:GetChildren()) do
+				if v.Name == "InfectedCrateEntity" and v.ClassName == "Model" and v.PrimaryPart then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then -- magcheck
+						closestEntity, closestMagnitude = {Player = {Name = "InfectedCrateEntity", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(store.pots) do
+				if v.PrimaryPart then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then -- magcheck
+						closestEntity, closestMagnitude = {Player = {Name = "Pot", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
 					end
 				end
 			end
@@ -3799,7 +3821,7 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 						end))
 						table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
 							if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
-							if not store.matchState == 2 then return end
+							if not VoidwareStore.GameFinished then return end
 							local oldpos = lplr.Character.HumanoidRootPart.CFrame
 							repeat 
 							lplr.Character.HumanoidRootPart.CFrame = oldpos
@@ -3839,7 +3861,7 @@ run(function()
 					table.insert(Autowin.Connections, runService.Heartbeat:Connect(function()
 						pcall(function()
 						if not isnetworkowner(lplr.Character.HumanoidRootPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
-							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and not store.matchState == 2 then
+							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and not VoidwareStore.GameFinished then
 								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
 								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
 							end
@@ -3918,7 +3940,7 @@ run(function()
 					end))
 					table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
 						if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
-						if not store.matchState == 2 then return end
+						if not VoidwareStore.GameFinished then return end
 						local oldpos = lplr.Character.HumanoidRootPart.CFrame
 						repeat 
 						lplr.Character.HumanoidRootPart.CFrame = oldpos
