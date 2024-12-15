@@ -1547,13 +1547,16 @@ task.spawn(function()
 	end)
 end)
 game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function()
-	repeat task.wait() until entityLibrary.isAlive
-	local oldhealth = game:GetService("Players").LocalPlayer.Character.Humanoid.Health
-	game:GetService("Players").LocalPlayer.Character.Humanoid.HealthChanged:Connect(function(new)
-		if new < oldhealth then
-			lastdamagetick = tick() + 0.25
-		end
-		oldhealth = new
+	pcall(function()
+		repeat task.wait() until entityLibrary.isAlive
+		local oldhealth = game:GetService("Players").LocalPlayer.Character.Humanoid.Health
+		repeat task.wait() until game:GetService("Players").LocalPlayer.Character.Humanoid
+		game:GetService("Players").LocalPlayer.Character.Humanoid.HealthChanged:Connect(function(new)
+			if new < oldhealth then
+				lastdamagetick = tick() + 0.25
+			end
+			oldhealth = new
+		end)
 	end)
 end)
 shared.zephyrActive = false
@@ -4198,10 +4201,12 @@ run(function()
 						local plrs = {EntityNearPosition(killaurarange.Value, false)}
 						local firstPlayerNear
 						if #plrs > 0 then
-							pcall(function()
-								--if getItemNear('warlock_staff') then bedwars.WarlockController:link(plrs[1].Character) end
-								if getItemNear('infernal_saber') then bedwars.EmberController:BladeRelease(getItemNear('infernal_saber')) end
-								if getItemNear('summoner_claw') then bedwars.KaidaController:request(plrs[1].Character) end
+							task.spawn(function()
+								pcall(function()
+									--if getItemNear('warlock_staff') then bedwars.WarlockController:link(plrs[1].Character) end
+									if getItemNear('infernal_saber') then bedwars.EmberController:BladeRelease(getItemNear('infernal_saber')) end
+									if getItemNear('summoner_claw') then bedwars.KaidaController:request(plrs[1].Character) end
+								end)
 							end)
 							local sword, swordmeta = getAttackData()
 							if sword and swordmeta and swordmeta.sword then
