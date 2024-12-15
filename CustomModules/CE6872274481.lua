@@ -916,7 +916,6 @@ function bedwars.ProjectileUtil:createProjectile(p15, p16, p17, p18)
 	u20 = function(p19)
 		return "projectile:" .. tostring(p19);
 	end;
-	print(p16, l__ProjectileMeta__5[p16])
 	local v68 = l__ProjectileMeta__5[p16].projectileModel;
 	if v68 == nil then
 		v68 = p16;
@@ -1577,7 +1576,6 @@ local function getSpeed(reduce)
 		if lplr.Character:GetAttribute("GrimReaperChannel") then
 			speed = speed + 20
 		end
-		print(tostring(lastdamagetick > tick()), tostring(shared.SpeedBoostEnabled))
 		if lastdamagetick > tick() and shared.SpeedBoostEnabled then
 			speed = speed + 10
 		end;

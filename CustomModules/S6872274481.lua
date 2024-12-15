@@ -204,7 +204,6 @@ local function getSpeed(reduce)
 		if lplr.Character:GetAttribute("GrimReaperChannel") then
 			speed = speed + 20
 		end
-		print(tostring(lastdamagetick > tick()), tostring(shared.SpeedBoostEnabled))
 		if lastdamagetick > tick() and shared.SpeedBoostEnabled then
 			speed = speed + 20
 		end;
