@@ -3157,6 +3157,7 @@ run(function()
 	local killauramethod = {Value = "Normal"}
 	local killauraothermethod = {Value = "Normal"}
 	local killauraanimmethod = {Value = "Normal"}
+	local killaurahitslowmode = {Value = 0}
 	local killaurarange = {Value = 14}
 	local killauraangle = {Value = 360}
 	local killauratargets = {Value = 10}
@@ -3530,6 +3531,7 @@ run(function()
 									break
 								end
 							end
+							task.wait(killaurahitslowmode.Value/10)
 						end
 						if not firstPlayerNear then
 							targetedPlayer = nil
@@ -3623,6 +3625,13 @@ run(function()
 		Max = 360,
 		Function = function(val) end,
 		Default = 360
+	})
+	killaurahitslowmode = Killaura.CreateSlider({
+		Name = "Hit Slowmode",
+		Min = 0,
+		Max = 10,
+		Function = function(val) end,
+		Default = 0
 	})
 	local animmethods = {}
 	for i,v in pairs(anims) do table.insert(animmethods, i) end
