@@ -3815,7 +3815,10 @@ run(function()
 				end)
 				if (not suc) then
 					pcall(function()
-						killaurarangecircle:ToggleButton(false)
+						if killaurarangecirclepart then
+							killaurarangecirclepart:Destroy()
+							killaurarangecirclepart = nil
+						end
 						InfoNotification("Killaura - Range Visualiser Circle", "There was an error creating the circle. Disabling...", 2)
 					end)
 				end
