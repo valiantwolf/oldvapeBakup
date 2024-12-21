@@ -4595,7 +4595,7 @@ run(function()
 			if callback then
 				--context issues moment
 			---- BIG BALLS MOMENT
-				pcall(function()
+				local suc, err = pcall(function()
 					if identifyexecutor and not string.find(string.lower(identifyexecutor()), "wave") and not shared.CheatEngineMode then
 						killaurarangecirclepart = Instance.new("MeshPart")
 						killaurarangecirclepart.MeshId = "rbxassetid://3726303797"
@@ -4620,6 +4620,12 @@ run(function()
 						--bedwars.QueryUtil:setQueryIgnored(killaurarangecirclepart, true)
 					end
 				end)
+				if (not suc) then
+					pcall(function()
+						killaurarangecircle:ToggleButton(false)
+						InfoNotification("Killaura - Range Visualiser Circle", "There was an error creating the circle. Disabling...", 2)
+					end)
+				end
 			else
 				if killaurarangecirclepart then
 					killaurarangecirclepart:Destroy()
