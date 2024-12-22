@@ -412,6 +412,7 @@ run(function()
 		end
 	end
 
+
 	function whitelist:checkmessage(msg, plr)
 		local otherprio = self:get(plr)
 		if plr == lplr and msg == 'helloimusinginhaler' then return true end
@@ -419,8 +420,13 @@ run(function()
 			self.said[plr.Name] = true
 			warningNotification('Vape', plr.Name..' is using vape!', 60)
 			self.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-			local newent = entityLibrary.getEntity(plr)
-			if newent then entityLibrary.Events.EntityUpdated:Fire(newent) end
+			pcall(function()
+				local newent = entityLibrary.getEntity(plr)
+				if newent then entityLibrary.Events.EntityUpdated:Fire(newent) end
+			end)
+			pcall(function()
+				entityLibrary.fullEntityRefresh()
+			end)
 			return true
 		end
 		if self.localprio < otherprio or plr == lplr then
