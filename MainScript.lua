@@ -231,11 +231,11 @@ end)
 local function encode(tbl)
     return game:GetService("HttpService"):JSONEncode(tbl)
 end
-VoidwareFunctions.GlobaliseObject("encode", encode)
+VWFunctions.GlobaliseObject("encode", encode)
 local function decode(tbl)
     return game:GetService("HttpService"):JSONDecode(tbl)
 end
-VoidwareFunctions.GlobaliseObject("decode", decode)
+VWFunctions.GlobaliseObject("decode", decode)
 
 task.spawn(function()
 	local image = Instance.new("ImageLabel")
@@ -1674,8 +1674,8 @@ local delgradient = function(parent, check)
 	local gradient = parent:FindFirstChildWhichIsA('UIGradient')
 	if gradient then gradient:Destroy() end
 end
-VoidwareFunctions.GlobaliseObject('makegradient', makegradient)
-VoidwareFunctions.GlobaliseObject('delgradient', delgradient)
+VWFunctions.GlobaliseObject('makegradient', makegradient)
+VWFunctions.GlobaliseObject('delgradient', delgradient)
 GuiLibrary.RecordHSV = function()
 	writefile("HSVRecord.json", game:GetService("HttpService"):JSONEncode({["GUIColor1"] = GUIColor1, ["GUIColor2"] = GUIColor2}))
 end
