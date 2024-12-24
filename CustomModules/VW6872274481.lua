@@ -6292,12 +6292,8 @@ run(function()
 				local function dostuff()
 					local limit = Staff_Members_Limit.Value
 					local tbl1, tbl2, Type = getData()
-					local suc1 = tbl1[1]
-					local suc2 = tbl2[1]
-					local res1 = tbl1[2]
-					local res2 = tbl2[2]
-					local err1 = tbl1[3]
-					local err2 = tbl2[3]     
+					local suc1, res1, err1 = tbl1[1], tbl1[2], tbl1[3]
+					local suc2, res2, err2 = tbl2[1], tbl2[2], tbl2[3]   
 					local handle_table = {}    
 					local number = 0      
 					if (suc1 and suc2) then
