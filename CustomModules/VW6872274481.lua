@@ -697,7 +697,7 @@ run(function()
 							v['1'].Visible = false
 							emoting = true
 							bedwars.Client:Get('Emote'):CallServer({emoteType = lplr:GetAttribute('EmoteTypeSlot1')})
-							local oldpos = lplr.Character.PrimaryPart.Position 
+							local oldpos = lplr.Character.HumanoidRootPart.Position 
 							if tostring(lplr:GetAttribute('EmoteTypeSlot1')):lower():find('nightmare') then 
 								anim = Instance.new('Animation')
 								anim.AnimationId = 'rbxassetid://9191822700'
@@ -709,7 +709,7 @@ run(function()
 									until not anim
 								end)
 							end
-							repeat task.wait() until ((lplr.Character.PrimaryPart.Position - oldpos).Magnitude >= 0.3 or not isAlive(lplr, true))
+							repeat task.wait() until ((lplr.Character.HumanoidRootPart.Position - oldpos).Magnitude >= 0.3 or not isAlive(lplr, true))
 							pcall(function() anim:Stop() end)
 							anim = nil
 							emoting = false
@@ -1134,7 +1134,7 @@ run(function()
             return nil 
         end
 
-		local localPos = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position or Vector3.zero
+        local localPos = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position or Vector3.zero
         local playerTeam = player:GetAttribute('Team')
         local beds = collectionService:GetTagged('bed')
 
@@ -1187,7 +1187,7 @@ run(function()
 					table.insert(BedTP.Connections, lplr.CharacterAdded:Connect(function(char)
 						if tppos2 then 
 							task.spawn(function()
-								local root = char:WaitForChild("HumanoidRootPart")
+								local root = char:WaitForChild("HumanoidRootPart", 9000000000)
 								if root and tppos2 then 
 									teleportWithTween(char, tppos2)
 									tppos2 = nil
@@ -1365,10 +1365,10 @@ run(function()
 			if item == nil or not DiamondTP.Enabled then 
 				return
 			end
-			local localposition = lplr.Character.PrimaryPart.Position
+			local localposition = lplr.Character.HumanoidRootPart.Position
 			local tweenspeed = (DiamondTPAutoSpeed.Enabled and ((item.Position - localposition).Magnitude / 470) + 0.001 * 2 or (DiamondTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (DiamondTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[DiamondTPTeleport.Value])
-			diamondtween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
+			diamondtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
 			diamondtween:Play() 
 			diamondtween.Completed:Wait()
 		end,
@@ -1394,10 +1394,10 @@ run(function()
 			if item == nil or not isAlive(lplr, true) then 
 				return
 			end
-			local localposition = lplr.Character.PrimaryPart.Position
+			local localposition = lplr.Character.HumanoidRootPart.Position
 			local tweenspeed = (DiamondTPAutoSpeed.Enabled and ((item.Position - localposition).Magnitude / 470) + 0.001 * 2 or (DiamondTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (DiamondTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[DiamondTPTeleport.Value])
-			diamondtween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
+			diamondtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
 			diamondtween:Play() 
 			diamondtween.Completed:Wait()
 		end
@@ -1501,10 +1501,10 @@ run(function()
 			if item == nil or not EmeraldTP.Enabled then 
 				return
 			end
-			local localposition = lplr.Character.PrimaryPart.Position
+			local localposition = lplr.Character.HumanoidRootPart.Position
 			local tweenspeed = (EmeraldTPAutoSpeed.Enabled and ((item.Position - localposition).Magnitude / 470) + 0.001 * 2 or (EmeraldTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (EmeraldTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[EmeraldTPTeleport.Value])
-			emeraldtween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
+			emeraldtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
 			emeraldtween:Play() 
 			emeraldtween.Completed:Wait()
 		end,
@@ -1530,10 +1530,10 @@ run(function()
 			if item == nil or not isAlive(lplr, true) then 
 				return
 			end
-			local localposition = lplr.Character.PrimaryPart.Position
+			local localposition = lplr.Character.HumanoidRootPart.Position
 			local tweenspeed = (EmeraldTPAutoSpeed.Enabled and ((item.Position - localposition).Magnitude / 470) + 0.001 * 2 or (EmeraldTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (EmeraldTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[EmeraldTPTeleport.Value])
-			emeraldtween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
+			emeraldtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
 			emeraldtween:Play() 
 			emeraldtween.Completed:Wait()
 		end
@@ -1640,10 +1640,10 @@ run(function()
 			if target.RootPart == nil or not PlayerTP.Enabled then 
 				return
 			end
-			local localposition = lplr.Character.PrimaryPart.Position
+			local localposition = lplr.Character.HumanoidRootPart.Position
 			local tweenspeed = (PlayerTPAutoSpeed.Enabled and ((target.RootPart.Position - localposition).Magnitude / 470) + 0.001 * 2 or (PlayerTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (PlayerTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[PlayerTPMethod.Value])
-			playertween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
+			playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
 			playertween:Play() 
 			playertween.Completed:Wait()
 		end,
@@ -1652,7 +1652,7 @@ run(function()
 			if target.RootPart == nil then 
 				return PlayerTP.ToggleButton()
 			end
-			lplr.Character.PrimaryPart.CFrame = (target.RootPart.CFrame + Vector3.new(0, 5, 0)) 
+			lplr.Character.HumanoidRootPart.CFrame = (target.RootPart.CFrame + Vector3.new(0, 5, 0)) 
 			PlayerTP.ToggleButton()
 		end,
 		Recall = function()
@@ -1677,10 +1677,10 @@ run(function()
 			if target.RootPart == nil or not isAlive(lplr, true) or not PlayerTP.Enabled then 
 				return
 			end
-			local localposition = lplr.Character.PrimaryPart.Position
+			local localposition = lplr.Character.HumanoidRootPart.Position
 			local tweenspeed = (PlayerTPAutoSpeed.Enabled and ((target.RootPart.Position - localposition).Magnitude / 1000) + 0.001 or (PlayerTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (PlayerTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[PlayerTPMethod.Value])
-			playertween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
+			playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
 			playertween:Play() 
 			playertween.Completed:Wait()
 		end
@@ -1762,14 +1762,14 @@ end)
 	local function instawin()
 		local player = game.Players.LocalPlayer
 		local character = player.Character or player.CharacterAdded:Wait()
-		local PrimaryPart = characte.PrimaryPart
+		local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 		
 		for _, part in pairs(game.Workspace:GetDescendants()) do
 			if part:IsA("BasePart") then
 				for _, child in pairs(part:GetChildren()) do
 					if child:IsA("TouchTransmitter") then
-						firetouchinterest(PrimaryPart, part, 0)
-						firetouchinterest(PrimaryPart, part, 1)
+						firetouchinterest(humanoidRootPart, part, 0)
+						firetouchinterest(humanoidRootPart, part, 1)
 					end
 				end
 			end
@@ -2428,7 +2428,7 @@ run(function()
             inf = false,
             notify = false,
             id = false,
-            hrp = entityLibrary.character.PrimaryPart,
+            hrp = entityLibrary.character.HumanoidRootPart,
             hasNotified = false
         }
         setmetatable(self, { __index = handlers })
@@ -3175,11 +3175,11 @@ run(function()
 								for i, v in pairs(game:GetService("Players"):GetChildren()) do
 									if v.Team ~= lplr.Team and IsAlive(v) and IsAlive(lplr) then
 										if v and v ~= lplr then
-											local TargetDistance = lplr:DistanceFromCharacter(v.Character:FindFirstChild("PrimaryPart").CFrame.p)
+											local TargetDistance = lplr:DistanceFromCharacter(v.Character:FindFirstChild("HumanoidRootPart").CFrame.p)
 											if TargetDistance < 25 then
-												if not lplr.Character.PrimaryPart:FindFirstChildOfClass("BodyVelocity") then
+												if not lplr.Character.HumanoidRootPart:FindFirstChildOfClass("BodyVelocity") then
 													repeat task.wait() until shared.GlobalStore.matchState ~= 0
-													if not (v.Character.PrimaryPart.Velocity.Y < -10*5) then
+													if not (v.Character.HumanoidRootPart.Velocity.Y < -10*5) then
 														lplr.Character.Archivable = true
 				
 														local Clone = lplr.Character:Clone()
@@ -3196,17 +3196,17 @@ run(function()
 															end
 														end
 					
-														lplr.Character.PrimaryPart.CFrame = lplr.Character.PrimaryPart.CFrame + Vector3.new(0,100000,0)
+														lplr.Character.HumanoidRootPart.CFrame = lplr.Character.HumanoidRootPart.CFrame + Vector3.new(0,100000,0)
 					
 														game:GetService("RunService").RenderStepped:Connect(function()
 															if Clone ~= nil and Clone:FindFirstChild("HumanoidRootPart") then
-																Clone.PrimaryPart.Position = Vector3.new(lplr.Character.PrimaryPart.Position.X, Clone.PrimaryPart.Position.Y, lplr.Character.PrimaryPart.Position.Z)
+																Clone.HumanoidRootPart.Position = Vector3.new(lplr.Character.HumanoidRootPart.Position.X, Clone.HumanoidRootPart.Position.Y, lplr.Character.HumanoidRootPart.Position.Z)
 															end
 														end)
 					
 														task.wait(0.2)
-														lplr.Character.PrimaryPart.Velocity = Vector3.new(lplr.Character.PrimaryPart.Velocity.X, -1, lplr.Character.PrimaryPart.Velocity.Z)
-														lplr.Character.PrimaryPart.CFrame = Clone.PrimaryPart.CFrame
+														lplr.Character.HumanoidRootPart.Velocity = Vector3.new(lplr.Character.HumanoidRootPart.Velocity.X, -1, lplr.Character.HumanoidRootPart.Velocity.Z)
+														lplr.Character.HumanoidRootPart.CFrame = Clone.HumanoidRootPart.CFrame
 														gameCamera.CameraSubject = lplr.Character:FindFirstChild("Humanoid")
 														Clone:Destroy()
 														task.wait(0.15)
@@ -3402,7 +3402,7 @@ local function GetMagnitudeOf2Objects(part, part2, bypass)
 	return magnitude
 end
 local function GetTopBlock(position, smart, raycast, customvector)
-	position = position or isAlive(lplr, true) and lplr.Character.PrimaryPart.Position
+	position = position or isAlive(lplr, true) and lplr.Character.HumanoidRootPart.Position
 	if not position then 
 		return nil 
 	end
@@ -3469,7 +3469,7 @@ local function FindItemDrop(item)
 	local function abletocalculate() return lplr.Character and lplr.Character:FindFirstChild("HumanoidRootPart") end
     for i,v in pairs(collectionService:GetTagged("ItemDrop")) do
 		if v and v.Name == item and abletocalculate() then
-			local itemdistance = GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, v)
+			local itemdistance = GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v)
 			if itemdistance < dist then
 			itemdist = v
 			dist = itemdistance
@@ -3482,7 +3482,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 	local whitelist = shared.vapewhitelist
 	local sort, entity = healthmethod and math.huge or dist or math.huge, {}
 	local function abletocalculate() return lplr.Character and lplr.Character:FindFirstChild("HumanoidRootPart") end
-	local sortmethods = {Normal = function(entityroot, entityhealth) return abletocalculate() and GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, entityroot) < sort end, Health = function(entityroot, entityhealth) return abletocalculate() and entityhealth < sort end}
+	local sortmethods = {Normal = function(entityroot, entityhealth) return abletocalculate() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, entityroot) < sort end, Health = function(entityroot, entityhealth) return abletocalculate() and entityhealth < sort end}
 	local sortmethod = healthmethod and "Health" or "Normal"
 	local function raycasted(entityroot) return abletocalculate() and blockRaycast and game.Workspace:Raycast(entityroot.Position, Vector3.new(0, -2000, 0), store.blockRaycast) or not blockRaycast and true or false end
 	for i,v in pairs(playersService:GetPlayers()) do
@@ -3490,11 +3490,11 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 			if not ({whitelist:get(v)})[2] then 
 				continue
 			end
-			if sortmethods[sortmethod](v.Character.PrimaryPart, v.Character:GetAttribute("Health") or v.Character.Humanoid.Health) and raycasted(v.Character.PrimaryPart) then
-				sort = healthmethod and v.Character.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, v.Character.PrimaryPart)
+			if sortmethods[sortmethod](v.Character.HumanoidRootPart, v.Character:GetAttribute("Health") or v.Character.Humanoid.Health) and raycasted(v.Character.HumanoidRootPart) then
+				sort = healthmethod and v.Character.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.Character.HumanoidRootPart)
 				entity.Player = v
 				entity.Human = true 
-				entity.RootPart = v.Character.PrimaryPart
+				entity.RootPart = v.Character.HumanoidRootPart
 				entity.Humanoid = v.Character.Humanoid
 			end
 		end
@@ -3502,7 +3502,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 	if includemobs then
 		local maxdistance = dist or math.huge
 		for i,v in pairs(store.pots) do
-			if abletocalculate() and v.PrimaryPart and GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, v.PrimaryPart) < maxdistance then
+			if abletocalculate() and v.PrimaryPart and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.PrimaryPart) < maxdistance then
 			entity.Player = {Character = v, Name = "PotEntity", DisplayName = "PotEntity", UserId = 1}
 			entity.Human = false
 			entity.RootPart = v.PrimaryPart
@@ -3512,7 +3512,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 		for i,v in pairs(collectionService:GetTagged("DiamondGuardian")) do 
 			if v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health and abletocalculate() then
 				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, v.PrimaryPart)
+				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.PrimaryPart)
 				entity.Player = {Character = v, Name = "DiamondGuardian", DisplayName = "DiamondGuardian", UserId = 1}
 				entity.Human = false
 				entity.RootPart = v.PrimaryPart
@@ -3523,7 +3523,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 		for i,v in pairs(collectionService:GetTagged("GolemBoss")) do
 			if v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health and abletocalculate() then
 				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, v.PrimaryPart)
+				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.PrimaryPart)
 				entity.Player = {Character = v, Name = "Titan", DisplayName = "Titan", UserId = 1}
 				entity.Human = false
 				entity.RootPart = v.PrimaryPart
@@ -3535,7 +3535,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 			local plr = playersService:GetPlayerByUserId(v:GetAttribute("PlayerUserId"))
 			if plr and plr ~= lplr and plr.Team and lplr.Team and plr.Team ~= lplr.Team and ({VoidwareFunctions:GetPlayerType(plr)})[2] and abletocalculate() and v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health then
 				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-					sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, v.PrimaryPart)
+					sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.PrimaryPart)
 					entity.Player = {Character = v, Name = "Drone", DisplayName = "Drone", UserId = 1}
 					entity.Human = false
 					entity.RootPart = v.PrimaryPart
@@ -3546,7 +3546,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 		for i,v in pairs(collectionService:GetTagged("Monster")) do
 			if v:GetAttribute("Team") ~= lplr:GetAttribute("Team") and abletocalculate() and v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health then
 				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, v.PrimaryPart)
+				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.PrimaryPart)
 				entity.Player = {Character = v, Name = "Monster", DisplayName = "Monster", UserId = 1}
 				entity.Human = false
 				entity.RootPart = v.PrimaryPart
@@ -3565,7 +3565,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 		for i, v in pairs(entityLibrary.entityList) do
 			if not v.Targetable then continue end
 			if isVulnerable(v) then
-				local mag = (entityLibrary.character.PrimaryPart.Position - v.RootPart.Position).magnitude
+				local mag = (entityLibrary.character.HumanoidRootPart.Position - v.RootPart.Position).magnitude
 				if overridepos and mag > distance then
 					mag = (overridepos - v.RootPart.Position).magnitude
 				end
@@ -3578,7 +3578,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 			for i, v in pairs(game.Workspace:GetChildren()) do
 				if v.Name == "Void Enemy Dummy" or v.Name == "Emerald Enemy Dummy" or v.Name == "Diamond Enemy Dummy" or v.Name == "Leather Enemy Dummy" or v.Name == "Regular Enemy Dummy" or v.Name == "Iron Enemy Dummy" then
 					if v.PrimaryPart then
-						local mag = (entityLibrary.character.PrimaryPart.Position - v.PrimaryPart.Position).magnitude
+						local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
 						if overridepos and mag > distance then
 							mag = (overridepos - v2.PrimaryPart.Position).magnitude
 						end
@@ -3590,7 +3590,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 			end
 			for i, v in pairs(collectionService:GetTagged("Monster")) do
 				if v.PrimaryPart and v:GetAttribute("Team") ~= lplr:GetAttribute("Team") then
-					local mag = (entityLibrary.character.PrimaryPart.Position - v.PrimaryPart.Position).magnitude
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
 					if overridepos and mag > distance then
 						mag = (overridepos - v2.PrimaryPart.Position).magnitude
 					end
@@ -3601,7 +3601,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 			end
 			for i, v in pairs(collectionService:GetTagged("GuardianOfDream")) do
 				if v.PrimaryPart and v:GetAttribute("Team") ~= lplr:GetAttribute("Team") then
-					local mag = (entityLibrary.character.PrimaryPart.Position - v.PrimaryPart.Position).magnitude
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
 					if overridepos and mag > distance then
 						mag = (overridepos - v2.PrimaryPart.Position).magnitude
 					end
@@ -3612,7 +3612,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 			end
 			for i, v in pairs(collectionService:GetTagged("DiamondGuardian")) do
 				if v.PrimaryPart then
-					local mag = (entityLibrary.character.PrimaryPart.Position - v.PrimaryPart.Position).magnitude
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
 					if overridepos and mag > distance then
 						mag = (overridepos - v2.PrimaryPart.Position).magnitude
 					end
@@ -3623,7 +3623,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 			end
 			for i, v in pairs(collectionService:GetTagged("GolemBoss")) do
 				if v.PrimaryPart then
-					local mag = (entityLibrary.character.PrimaryPart.Position - v.PrimaryPart.Position).magnitude
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
 					if overridepos and mag > distance then
 						mag = (overridepos - v2.PrimaryPart.Position).magnitude
 					end
@@ -3636,7 +3636,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 				if v.PrimaryPart and tonumber(v:GetAttribute("PlayerUserId")) ~= lplr.UserId then
 					local droneplr = playersService:GetPlayerByUserId(v:GetAttribute("PlayerUserId"))
 					if droneplr and droneplr.Team == lplr.Team then continue end
-					local mag = (entityLibrary.character.PrimaryPart.Position - v.PrimaryPart.Position).magnitude
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
 					if overridepos and mag > distance then
 						mag = (overridepos - v.PrimaryPart.Position).magnitude
 					end
@@ -3647,7 +3647,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 			end
 			for i,v in pairs(game.Workspace:GetChildren()) do
 				if v.Name == "InfectedCrateEntity" and v.ClassName == "Model" and v.PrimaryPart then
-					local mag = (entityLibrary.character.PrimaryPart.Position - v.PrimaryPart.Position).magnitude
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
 					if overridepos and mag > distance then
 						mag = (overridepos - v.PrimaryPart.Position).magnitude
 					end
@@ -3658,7 +3658,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
 			end
 			for i, v in pairs(store.pots) do
 				if v.PrimaryPart then
-					local mag = (entityLibrary.character.PrimaryPart.Position - v.PrimaryPart.Position).magnitude
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
 					if overridepos and mag > distance then
 						mag = (overridepos - v.PrimaryPart.Position).magnitude
 					end
@@ -3711,7 +3711,7 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 						end
 						table.insert(Autowin.Connections, runService.Heartbeat:Connect(function()
 							pcall(function()
-								if not isnetworkowner(lplr.Character.PrimaryPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
+								if not isnetworkowner(lplr.Character.HumanoidRootPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
 									if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and store.matchState < 2 then
 										lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
 										lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
@@ -3723,14 +3723,14 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 							if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
 							local bed = FindEnemyBed()
 							if bed and (bed:GetAttribute("BedShieldEndTime") and bed:GetAttribute("BedShieldEndTime") < game.Workspace:GetServerTimeNow() or not bed:GetAttribute("BedShieldEndTime")) then
-								bedtween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
+								bedtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
 								task.wait(0.1)
 								bedtween:Play()
 								bedtween.Completed:Wait()
 								task.spawn(function()
 									task.wait(1.5)
-									if lplr.Character:FindFirstChild("PrimaryPart") then
-										local magnitude = GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, bed)
+									if lplr.Character:FindFirstChild("HumanoidRootPart") then
+										local magnitude = GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, bed)
 										if magnitude >= 50 and FindTeamBed() and Autowin.Enabled then
 											lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
 											lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
@@ -3761,7 +3761,7 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 									repeat
 										local target = EntityNearPosition(45)
 										if not target.RootPart then break end
-										playertween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+										playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 										playertween:Play()
 										task.wait()
 									until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
@@ -3772,7 +3772,7 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 								end
 							elseif EntityNearPosition(45) and EntityNearPosition(45).RootPart then
 								local target = EntityNearPosition(45)
-								playertween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+								playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 								playertween:Play()
 								if AutowinNotification.Enabled then
 									task.spawn(InfoNotification, "Autowin", "Killing "..target.Player.DisplayName.." ("..(target.Player.Team and target.Player.Team.Name or "neutral").." Team)", 5)
@@ -3783,7 +3783,7 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 									repeat
 										target = EntityNearPosition(50)
 										if not target.RootPart or not isAlive() then break end
-										playertween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+										playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 										playertween:Play()
 										task.wait()
 									until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
@@ -3794,7 +3794,7 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 								end
 							elseif GetTarget(nil, false, true) and GetTarget(nil, false, true).RootPart then
 								local target = GetTarget(nil, false, true)
-								playertween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+								playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 								playertween:Play()
 								if AutowinNotification.Enabled then task.spawn(InfoNotification, "Autowin", "Killing "..target.Player.DisplayName.." ("..(target.Player.Team and target.Player.Team.Name or "neutral").." Team)", 5) end
 								playertween.Completed:Wait()
@@ -3803,7 +3803,7 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 									repeat
 										target = EntityNearPosition(50)
 										if not target.RootPart or not isAlive() then break end
-										playertween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+										playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 										playertween:Play()
 										task.wait()
 									until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
@@ -3822,9 +3822,9 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 						table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
 							if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
 							if not VoidwareStore.GameFinished then return end
-							local oldpos = lplr.Character.PrimaryPart.CFrame
+							local oldpos = lplr.Character.HumanoidRootPart.CFrame
 							repeat 
-							lplr.Character.PrimaryPart.CFrame = oldpos
+							lplr.Character.HumanoidRootPart.CFrame = oldpos
 							task.wait()
 							until not isAlive(lplr, true) or not Autowin.Enabled
 						end))
@@ -3860,7 +3860,7 @@ run(function()
 					end
 					table.insert(Autowin.Connections, runService.Heartbeat:Connect(function()
 						pcall(function()
-						if not isnetworkowner(lplr.Character.PrimaryPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
+						if not isnetworkowner(lplr.Character.HumanoidRootPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
 							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and not VoidwareStore.GameFinished then
 								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
 								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
@@ -3872,13 +3872,13 @@ run(function()
 						if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
 						local bed = FindEnemyBed()
 						if bed and (bed:GetAttribute("BedShieldEndTime") and bed:GetAttribute("BedShieldEndTime") < workspace:GetServerTimeNow() or not bed:GetAttribute("BedShieldEndTime")) then
-						bedtween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(0.65, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
+						bedtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.65, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
 						task.wait(0.1)
 						bedtween:Play()
 						bedtween.Completed:Wait()
 						task.spawn(function()
 						task.wait(1.5)
-						local magnitude = GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, bed)
+						local magnitude = GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, bed)
 						if magnitude >= 50 and FindTeamBed() and Autowin.Enabled then
 							lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
 							lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
@@ -3900,7 +3900,7 @@ run(function()
 							repeat
 							local target = FindTarget(45, store.blockRaycast)
 							if not target.RootPart then break end
-							playertween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(0.30), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+							playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.30), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 							playertween:Play()
 							task.wait()
 							until not FindTarget(45, store.blockRaycast).RootPart or not Autowin.Enabled or not isAlive()
@@ -3912,7 +3912,7 @@ run(function()
 						elseif FindTarget(nil, store.blockRaycast).RootPart then
 							task.wait()
 							local target = FindTarget(nil, store.blockRaycast)
-							playertween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(GetMagnitudeOf2Objects(lplr.Character.PrimaryPart, target.RootPart) / 23.4 / 35, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+							playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, target.RootPart) / 23.4 / 35, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 							playertween:Play()
 							if AutowinNotification.Enabled then
 								task.spawn(InfoNotification, "Autowin", "Killing "..target.Player.DisplayName.." ("..(target.Player.Team and target.Player.Team.Name or "neutral").." Team)", 5)
@@ -3923,7 +3923,7 @@ run(function()
 									repeat
 									target = FindTarget(50, store.blockRaycast)
 									if not target.RootPart or not isAlive() then break end
-									playertween = tweenService:Create(lplr.Character.PrimaryPart, TweenInfo.new(0.30), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+									playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.30), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 									playertween:Play()
 									task.wait()
 									until not FindTarget(50, store.blockRaycast).RootPart or not Autowin.Enabled or not isAlive()
@@ -3941,9 +3941,9 @@ run(function()
 					table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
 						if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
 						if not VoidwareStore.GameFinished then return end
-						local oldpos = lplr.Character.PrimaryPart.CFrame
+						local oldpos = lplr.Character.HumanoidRootPart.CFrame
 						repeat 
-						lplr.Character.PrimaryPart.CFrame = oldpos
+						lplr.Character.HumanoidRootPart.CFrame = oldpos
 						task.wait()
 						until not isAlive(lplr, true) or not Autowin.Enabled
 					end))
@@ -4004,7 +4004,7 @@ end)
 						if sd then
 							local item = getItemNear("scythe")
 							if item and lplr.Character.HandInvItem.Value == item.tool and bedwars.CombatController then 
-								bedwars.Client:Get("ScytheDash"):SendToServer({direction = lplr.Character.PrimaryPart.CFrame.LookVector*9e9})
+								bedwars.Client:Get("ScytheDash"):SendToServer({direction = lplr.Character.HumanoidRootPart.CFrame.LookVector*9e9})
 								if entityLibrary.isAlive and entityLibrary.character.Head.Transparency ~= 0 then
 									shared.GlobalStore.scythe = tick() + 1
 								end
@@ -4271,10 +4271,10 @@ run(function()
 					return 
 				end
 				 repeat task.wait() until isAlive(plr, true)
-				 local oldpos2 = plr.Character.PrimaryPart.Position 
+				 local oldpos2 = plr.Character.HumanoidRootPart.Position 
 				 task.delay(2, function()
 					if isAlive(plr, true) then 
-						local newdistance = (plr.Character.PrimaryPart.Position - oldpos2).Magnitude 
+						local newdistance = (plr.Character.HumanoidRootPart.Position - oldpos2).Magnitude 
 						if newdistance >= 400 and (plr:GetAttribute('LastTeleported') - lastbwteleport) == 0 then 
 							InfoNotification('HackerDetector', plr.DisplayName..' is using Teleport Exploit!', 100) 
 							table.insert(detectedusers.Teleport, plr)
@@ -4299,12 +4299,12 @@ run(function()
 			table.insert(HackerDetector.Connections, plr.CharacterAdded:Connect(function() oldpos = Vector3.zero end))
 			repeat 
 				if isAlive(plr, true) then 
-					local magnitude = (plr.Character.PrimaryPart.Position - oldpos).Magnitude
+					local magnitude = (plr.Character.HumanoidRootPart.Position - oldpos).Magnitude
 					if (plr:GetAttribute('LastTeleported') - lastbwteleport) ~= 0 and magnitude >= ((distances[plr:GetAttribute('PlayingAsKit') or ''] or 25) + (playerRaycasted(plr, Vector3.new(0, -15, 0)) and 0 or 40)) then 
 						InfoNotification('HackerDetector', plr.DisplayName..' is using speed!', 60)
 						whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
 					end
-					oldpos = plr.Character.PrimaryPart.Position
+					oldpos = plr.Character.HumanoidRootPart.Position
 					task.wait(2.5)
 					lastbwteleport = plr:GetAttribute('LastTeleported')
 				end
@@ -4314,8 +4314,8 @@ run(function()
 			pcall(function()
 				repeat 
 					if isAlive(plr, true) then 
-						local magnitude = (lplr.Character.PrimaryPart.Position - plr.Character.PrimaryPart.Position).Magnitude
-						if magnitude >= 10000 and playerRaycast(plr) == nil and playerRaycast({Character = {PrimaryPart = {Position = lplr.Character.PrimaryPart.Position}}}) then 
+						local magnitude = (lplr.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+						if magnitude >= 10000 and playerRaycast(plr) == nil and playerRaycast({Character = {PrimaryPart = {Position = lplr.Character.HumanoidRootPart.Position}}}) then 
 							InfoNotification('HackerDetector', plr.DisplayName..' is using InfiniteFly!', 60) 
 							cachedetection(plr, 'InfiniteFly')
 							table.insert(detectedusers.InfiniteFly, plr)
@@ -4465,7 +4465,7 @@ run(function()
 						if i == 2 and lplr.Character.Humanoid.FloorMaterial ~= Enum.Material.Air then 
 							continue
 						end
-						lplr.Character.PrimaryPart.Velocity = Vector3.new(0, i == 1 and DoubleHighJumpHeight.Value or DoubleHighJumpHeight2.Value, 0)
+						lplr.Character.HumanoidRootPart.Velocity = Vector3.new(0, i == 1 and DoubleHighJumpHeight.Value or DoubleHighJumpHeight2.Value, 0)
 						jumps = i
 						task.wait(i == 1 and 1 or 0.3)
 					end
@@ -4976,7 +4976,7 @@ run(function()
 				anim.AnimationId = 'rbxassetid://11360825341'
 				local anim2 = lplr.Character.Humanoid.Animator:LoadAnimation(anim) 
 				for i,v in next, lplr.Character:GetDescendants() do 
-					if v:IsA('BasePart') and v.CanCollide and v ~= lplr.Character.PrimaryPart then 
+					if v:IsA('BasePart') and v.CanCollide and v ~= lplr.Character.HumanoidRootPart then 
 						v.CanCollide = false 
 						table.insert(collideparts, v) 
 					end 
@@ -4990,10 +4990,10 @@ run(function()
 					if isEnabled('AnimationPlayer') then 
 						GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.ToggleButton()
 					end
-					if isAlive(lplr, true) and isnetworkowner(lplr.Character.PrimaryPart) then 
-						lplr.Character.PrimaryPart.Transparency = (invisvisual.Enabled and 0.6 or 1)
-						oldcolor = lplr.Character.PrimaryPart.Color
-						lplr.Character.PrimaryPart.Color = Color3.fromHSV(visualrootcolor.Hue, visualrootcolor.Sat, visualrootcolor.Value)
+					if isAlive(lplr, true) and isnetworkowner(lplr.Character.HumanoidRootPart) then 
+						lplr.Character.HumanoidRootPart.Transparency = (invisvisual.Enabled and 0.6 or 1)
+						oldcolor = lplr.Character.HumanoidRootPart.Color
+						lplr.Character.HumanoidRootPart.Color = Color3.fromHSV(visualrootcolor.Hue, visualrootcolor.Sat, visualrootcolor.Value)
 						anim2:Play(0.1, 9e9, 0.1) 
 					elseif Invisibility.Enabled then 
 						Invisibility.ToggleButton() 
@@ -5008,8 +5008,8 @@ run(function()
 				end
 				table.clear(collideparts)
 				if isAlive(lplr, true) then 
-					lplr.Character.PrimaryPart.Transparency = 1 
-					lplr.Character.PrimaryPart.Color = oldcolor
+					lplr.Character.HumanoidRootPart.Transparency = 1 
+					lplr.Character.HumanoidRootPart.Color = oldcolor
 					task.wait()
 				    bedwars.SwordController:swingSwordAtMouse() 
 				end
@@ -6505,14 +6505,14 @@ task.spawn(function()
 								local minDistance = math.huge
 								for _, player in ipairs(Players:GetPlayers()) do
 									if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-										local distance = (player.Character.PrimaryPart.Position - localPlayer.Character.PrimaryPart.Position).magnitude
+										local distance = (player.Character.HumanoidRootPart.Position - localPlayer.Character.HumanoidRootPart.Position).magnitude
 										if distance < minDistance then
 											minDistance = distance
 											nearestPlayer = player
 										end
 									end
 								end
-								local targetPosition = nearestPlayer and nearestPlayer.Character.PrimaryPart.Position or Vector3.new(999999, 999999, 999999)
+								local targetPosition = nearestPlayer and nearestPlayer.Character.HumanoidRootPart.Position or Vector3.new(999999, 999999, 999999)
 								local Random = Random.new()
 								local args = {
 									[1] = {
@@ -6568,14 +6568,14 @@ run(function()
 							table.insert(enchanttab, v)
 						end
 						for i,v in pairs(enchanttab) do
-							if ((entityLibrary.LocalPosition or entityLibrary.character.PrimaryPart.Position) - v.Position).magnitude <= 6 then
+							if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - v.Position).magnitude <= 6 then
 								if ((not v:GetAttribute("Team")) or v:GetAttribute("Team") == lplr:GetAttribute("Team")) then
 									npc, npccheck, enchant = true, true, true
 								end
 							end
 						end
 						for i, v in pairs(bedwarsshopnpcs) do
-							if ((entityLibrary.LocalPosition or entityLibrary.character.PrimaryPart.Position) - v.Position).magnitude <= (range or 20) then
+							if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - v.Position).magnitude <= (range or 20) then
 								npc, npccheck, enchant = true, (v.TeamUpgradeNPC or npccheck), false
 								newid = v.TeamUpgradeNPC and v.Id or newid
 							end
@@ -6655,17 +6655,17 @@ end)--]]
 					if store.queueType ~= "training_room" and store.equippedKit ~= "summoner" then warningNotification("KaidaInstakill", "Kaida kit is required!", 1.5); return KaidaInstaKill.ToggleButton(false); end
 					local npcsortmethods = {
 						Distance = function(a, b)
-							local check1 = a.PrimaryPart
-							local check2 = b.PrimaryPart
+							local check1 = a.HumanoidRootPart
+							local check2 = b.HumanoidRootPart
 							if a:FindFirstChild("RootPart") then check1 = a.RootPart end
 							if b:FindFirstChild("RootPart") then check2 = b.RootPart end
-							return (check1.Position - entityLibrary.character.PrimaryPart.Position).Magnitude < (check2.Position - entityLibrary.character.PrimaryPart.Position).Magnitude
+							return (check1.Position - entityLibrary.character.HumanoidRootPart.Position).Magnitude < (check2.Position - entityLibrary.character.HumanoidRootPart.Position).Magnitude
 						end
 					}
 					local lplr = game:GetService("Players").LocalPlayer
 					local function sendRequest(entity)
-						local targetPosition = entity.PrimaryPart.Position
-						local direction = (targetPosition - lplr.Character.PrimaryPart.Position).unit
+						local targetPosition = entity.HumanoidRootPart.Position
+						local direction = (targetPosition - lplr.Character.HumanoidRootPart.Position).unit
 						local args = {
 							[1] = {
 								["clientTime"] = tick(),
@@ -7107,7 +7107,7 @@ end)
 
 	local sortfunctions = {
 		Distance = function(a, b)
-			return (a.RootPart.Position - entityLibrary.character.PrimaryPart.Position).Magnitude < (b.RootPart.Position - entityLibrary.character.PrimaryPart.Position).Magnitude
+			return (a.RootPart.Position - entityLibrary.character.HumanoidRootPart.Position).Magnitude < (b.RootPart.Position - entityLibrary.character.HumanoidRootPart.Position).Magnitude
 		end,
 		Health = function(a, b)
 			return a.Humanoid.Health < b.Humanoid.Health
@@ -7377,7 +7377,7 @@ run(function()
 					windsnow.SpreadAngle = Vector2.new(35,35)
 					windsnow.Size = NumberSequence.new({NumberSequenceKeypoint.new(0,0,0),NumberSequenceKeypoint.new(0.039760299026966,1.3114800453186,0.32786899805069),NumberSequenceKeypoint.new(0.7554469704628,0.98360699415207,0.44038599729538),NumberSequenceKeypoint.new(1,0,0)})
 					windsnow.Parent = snowpart
-					repeat task.wait(); if entityLibrary.isAlive then snowpart.Position = entityLibrary.character.PrimaryPart.Position + Vector3.new(0,SnowHigh.Value,0) end until not shared.VapeExecuted
+					repeat task.wait(); if entityLibrary.isAlive then snowpart.Position = entityLibrary.character.HumanoidRootPart.Position + Vector3.new(0,SnowHigh.Value,0) end until not shared.VapeExecuted
 				end)
 			else for _, v in next, game.Workspace:GetChildren() do if v.Name == "SnowParticle" then v:Remove() end end end
 		end
@@ -7477,7 +7477,7 @@ run(function()
 		local npc, npccheck, enchant, newid = nil, false, false, nil
 		if entityLibrary.isAlive then
 			for i, v in pairs(bedwarsshopnpcs) do
-				if ((entityLibrary.LocalPosition or entityLibrary.character.PrimaryPart.Position) - v.Position).magnitude <= (range or 20) then
+				if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - v.Position).magnitude <= (range or 20) then
 					npc, npccheck, enchant = true, (v.TeamUpgradeNPC or npccheck), false
 					newid = v.TeamUpgradeNPC and v.Id or newid
 				end
@@ -7518,7 +7518,7 @@ end)
 local isAlive = function(plr, healthblacklist)
 	plr = plr or lplr
 	local alive = false 
-	if plr.Character and plr.Character.PrimaryPart and plr.Character:FindFirstChild("PrimaryPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character:FindFirstChild("Head") then 
+	if plr.Character and plr.Character.PrimaryPart and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character:FindFirstChild("Head") then 
 		alive = true
 	end
 	if not healthblacklist and alive and plr.Character.Humanoid.Health and plr.Character.Humanoid.Health <= 0 then 

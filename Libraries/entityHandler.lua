@@ -128,7 +128,6 @@ do
                         entity.character.Head = head
                         entity.character.Humanoid = hum
                         entity.character.HumanoidRootPart = humrootpart
-                        entity.character.RootPart = char.RootPart
                     else
                         newent = {
                             Player = plr,
