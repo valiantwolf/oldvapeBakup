@@ -608,7 +608,6 @@ run(function()
                     local gradient = (lplr.PlayerGui.QueueApp['1']:FindFirstChildWhichIsA('UIGradient') or Instance.new('UIGradient', lplr.PlayerGui.QueueApp['1']))
                     if shared.RiseMode and GuiLibrary.MainColor and GuiLibrary.SecondaryColor then
                         local v = {GuiLibrary.MainColor, GuiLibrary.SecondaryColor, GuiLibrary.ThirdColor}
-                        print(encode(v))
                         if v[3] then 
                             gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, v[1]), ColorSequenceKeypoint.new(0.5, v[2]), ColorSequenceKeypoint.new(1, v[3])})
                         else
@@ -2685,16 +2684,8 @@ run(function()
 					["era"] = era
 				}
 			}
-			game:GetService("ReplicatedStorage")
-				:WaitForChild("rbxts_include")
-				:WaitForChild("node_modules")
-				:WaitForChild("@rbxts")
-				:WaitForChild("net")
-				:WaitForChild("out")
-				:WaitForChild("_NetManaged")
-				:WaitForChild("RequestPurchaseEra")
-				:InvokeServer(unpack(args))
-			task.wait(0.1)  -- Add a small delay to avoid overwhelming the server
+			game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("RequestPurchaseEra"):InvokeServer(unpack(args))
+			task.wait(0.1)
 		end
 	end
 
@@ -2705,16 +2696,8 @@ run(function()
 					["upgrade"] = upgrade
 				}
 			}
-			game:GetService("ReplicatedStorage")
-				:WaitForChild("rbxts_include")
-				:WaitForChild("node_modules")
-				:FindFirstChild("@rbxts")
-				:WaitForChild("net")
-				:WaitForChild("out")
-				:WaitForChild("_NetManaged")
-				:WaitForChild("RequestPurchaseTeamUpgrade")
-				:InvokeServer(unpack(args))
-			task.wait(0.1)  -- Add a small delay to avoid overwhelming the server
+			game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):FindFirstChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("RequestPurchaseTeamUpgrade"):InvokeServer(unpack(args))
+			task.wait(0.1)
 		end
 	end
 
