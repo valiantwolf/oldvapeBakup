@@ -2684,8 +2684,16 @@ run(function()
 					["era"] = era
 				}
 			}
-			game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("RequestPurchaseEra"):InvokeServer(unpack(args))
-			task.wait(0.1)
+			game:GetService("ReplicatedStorage")
+				:WaitForChild("rbxts_include")
+				:WaitForChild("node_modules")
+				:WaitForChild("@rbxts")
+				:WaitForChild("net")
+				:WaitForChild("out")
+				:WaitForChild("_NetManaged")
+				:WaitForChild("RequestPurchaseEra")
+				:InvokeServer(unpack(args))
+			task.wait(0.1) 
 		end
 	end
 
@@ -2696,8 +2704,16 @@ run(function()
 					["upgrade"] = upgrade
 				}
 			}
-			game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):FindFirstChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("RequestPurchaseTeamUpgrade"):InvokeServer(unpack(args))
-			task.wait(0.1)
+			game:GetService("ReplicatedStorage")
+				:WaitForChild("rbxts_include")
+				:WaitForChild("node_modules")
+				:FindFirstChild("@rbxts")
+				:WaitForChild("net")
+				:WaitForChild("out")
+				:WaitForChild("_NetManaged")
+				:WaitForChild("RequestPurchaseTeamUpgrade")
+				:InvokeServer(unpack(args))
+			task.wait(0.1) 
 		end
 	end
 
