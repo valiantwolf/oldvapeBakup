@@ -4239,6 +4239,7 @@ run(function()
 									--if getItemNear('warlock_staff') then bedwars.WarlockController:link(plrs[1].Character) end
 									if getItemNear('infernal_saber') then bedwars.EmberController:BladeRelease(getItemNear('infernal_saber')) end
 									if getItemNear('summoner_claw') then bedwars.KaidaController:request(plrs[1].Character) end
+									if getItemNear('noctium_blade') then for i,v in pairs({"void_knight_consume_emerald", "void_knight_consume_iron"}) do if bedwars.AbilityController:canUseAbility(v) then bedwars.AbilityController:useAbility(v) end end end
 								end)
 							end)
 							local sword, swordmeta = getAttackData()

@@ -3442,15 +3442,25 @@ run(function()
 						local plrs = {EntityNearPosition(killaurarange.Value, false)}
 						local firstPlayerNear
 						if #plrs > 0 then
+							task.spawn(function()
+								pcall(function() 
+									if getItemNear('infernal_saber') then bedwars.Client:Get('HellBladeRelease'):SendToServer({chargeTime = 1, player = lplr, weapon = getItemNear('infernal_saber')}) end
+									if getItemNear('noctium_blade') then
+										local abilities = {"void_knight_consume_emerald", "void_knight_consume_iron"}
+										for i,v in pairs(abilities) do
+											if bedwars.AbilityController:canUseAbility(v) then bedwars.AbilityController:useAbility(v) end
+										end
+									end
+									if getItemNear('summoner_claw') then 
+										local target = plrs[1].Character
+										if target then
+											game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("SummonerClawAttackRequest"):FireServer({["clientTime"] = tick(), ["direction"] = (target:FindFirstChild("HumanoidRootPart") and target:FindFirstChild("HumanoidRootPart").Position - lplr.Character.HumanoidRootPart.Position).unit, ["position"] = target:FindFirstChild("HumanoidRootPart") and target:FindFirstChild("HumanoidRootPart").Position})
+										end
+									end
+								end)
+							end)
 							local sword, swordmeta = getAttackData()
-							if getItemNear('infernal_saber') then
-								bedwars.Client:Get('HellBladeRelease'):SendToServer({
-									chargeTime = 1,
-									player = lplr,
-									weapon = getItemNear('infernal_saber')
-								})
-							end
-							if sword then
+							if sword and swordmeta then
 								switchItem(sword.tool)
 								for i, plr in pairs(plrs) do
 									local root = plr.RootPart
