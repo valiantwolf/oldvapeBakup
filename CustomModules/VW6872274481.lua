@@ -4280,9 +4280,6 @@ run(function()
 							table.insert(detectedusers.Teleport, plr)
 							cachedetection(plr, 'Teleport')
 							whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-							--[[if RenderFunctions.playerTags[plr] == nil then 
-								RenderFunctions:CreatePlayerTag(plr, 'SCRIPT KIDDIE', 'FF0000') 
-							end--]]
 						end 
 					end
 				 end)
