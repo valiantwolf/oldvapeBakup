@@ -697,11 +697,11 @@ run(function()
 							v['1'].Visible = false
 							emoting = true
 							bedwars.Client:Get('Emote'):CallServer({emoteType = lplr:GetAttribute('EmoteTypeSlot1')})
-							local oldpos = lplr.Character.HumanoidRootPart.Position 
+							local oldpos = lplr.Character:WaitForChild("HumanoidRootPart").Position 
 							if tostring(lplr:GetAttribute('EmoteTypeSlot1')):lower():find('nightmare') then 
 								anim = Instance.new('Animation')
 								anim.AnimationId = 'rbxassetid://9191822700'
-								anim = lplr.Character.Humanoid.Animator:LoadAnimation(anim)
+								anim = lplr.Character:WaitForChild("Humanoid").Animator:LoadAnimation(anim)
 								task.spawn(function()
 									repeat 
 										anim:Play()
@@ -709,7 +709,7 @@ run(function()
 									until not anim
 								end)
 							end
-							repeat task.wait() until ((lplr.Character.HumanoidRootPart.Position - oldpos).Magnitude >= 0.3 or not isAlive(lplr, true))
+							repeat task.wait() until ((lplr.Character:WaitForChild("HumanoidRootPart").Position - oldpos).Magnitude >= 0.3 or not isAlive(lplr, true))
 							pcall(function() anim:Stop() end)
 							anim = nil
 							emoting = false
@@ -1353,9 +1353,9 @@ run(function()
 				return 
 			end
 			for i = 1, 30 do 
-				if isAlive(lplr, true) and lplr.Character.Humanoid:GetState() ~= Enum.HumanoidStateType.Dead then
-					lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-					lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+				if isAlive(lplr, true) and lplr.Character:WaitForChild("Humanoid"):GetState() ~= Enum.HumanoidStateType.Dead then
+					lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+					lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 				end
 			end
 			lplr.CharacterAdded:Wait()
@@ -1365,15 +1365,15 @@ run(function()
 			if item == nil or not DiamondTP.Enabled then 
 				return
 			end
-			local localposition = lplr.Character.HumanoidRootPart.Position
+			local localposition = lplr.Character:WaitForChild("HumanoidRootPart").Position
 			local tweenspeed = (DiamondTPAutoSpeed.Enabled and ((item.Position - localposition).Magnitude / 470) + 0.001 * 2 or (DiamondTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (DiamondTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[DiamondTPTeleport.Value])
-			diamondtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
+			diamondtween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
 			diamondtween:Play() 
 			diamondtween.Completed:Wait()
 		end,
 		Recall = function()
-			if not isAlive(lplr, true) or lplr.Character.Humanoid.FloorMaterial == Enum.Material.Air then 
+			if not isAlive(lplr, true) or lplr.Character:WaitForChild("Humanoid").FloorMaterial == Enum.Material.Air then 
 				errorNotification('DiamondTP', 'Recall ability not available.', 7)
 				return 
 			end
@@ -1394,10 +1394,10 @@ run(function()
 			if item == nil or not isAlive(lplr, true) then 
 				return
 			end
-			local localposition = lplr.Character.HumanoidRootPart.Position
+			local localposition = lplr.Character:WaitForChild("HumanoidRootPart").Position
 			local tweenspeed = (DiamondTPAutoSpeed.Enabled and ((item.Position - localposition).Magnitude / 470) + 0.001 * 2 or (DiamondTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (DiamondTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[DiamondTPTeleport.Value])
-			diamondtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
+			diamondtween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
 			diamondtween:Play() 
 			diamondtween.Completed:Wait()
 		end
@@ -1489,9 +1489,9 @@ run(function()
 				return 
 			end
 			for i = 1, 30 do 
-				if isAlive(lplr, true) and lplr.Character.Humanoid:GetState() ~= Enum.HumanoidStateType.Dead then
-					lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-					lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+				if isAlive(lplr, true) and lplr.Character:WaitForChild("Humanoid"):GetState() ~= Enum.HumanoidStateType.Dead then
+					lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+					lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 				end
 			end
 			lplr.CharacterAdded:Wait()
@@ -1501,15 +1501,15 @@ run(function()
 			if item == nil or not EmeraldTP.Enabled then 
 				return
 			end
-			local localposition = lplr.Character.HumanoidRootPart.Position
+			local localposition = lplr.Character:WaitForChild("HumanoidRootPart").Position
 			local tweenspeed = (EmeraldTPAutoSpeed.Enabled and ((item.Position - localposition).Magnitude / 470) + 0.001 * 2 or (EmeraldTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (EmeraldTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[EmeraldTPTeleport.Value])
-			emeraldtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
+			emeraldtween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
 			emeraldtween:Play() 
 			emeraldtween.Completed:Wait()
 		end,
 		Recall = function()
-			if not isAlive(lplr, true) or lplr.Character.Humanoid.FloorMaterial == Enum.Material.Air then 
+			if not isAlive(lplr, true) or lplr.Character:WaitForChild("Humanoid").FloorMaterial == Enum.Material.Air then 
 				errorNotification('EmeraldTP', 'Recall ability not available.', 7)
 				return 
 			end
@@ -1530,10 +1530,10 @@ run(function()
 			if item == nil or not isAlive(lplr, true) then 
 				return
 			end
-			local localposition = lplr.Character.HumanoidRootPart.Position
+			local localposition = lplr.Character:WaitForChild("HumanoidRootPart").Position
 			local tweenspeed = (EmeraldTPAutoSpeed.Enabled and ((item.Position - localposition).Magnitude / 470) + 0.001 * 2 or (EmeraldTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (EmeraldTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[EmeraldTPTeleport.Value])
-			emeraldtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
+			emeraldtween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(tweenspeed, tweenstyle), {CFrame = item.CFrame}) 
 			emeraldtween:Play() 
 			emeraldtween.Completed:Wait()
 		end
@@ -1628,9 +1628,9 @@ run(function()
 				return 
 			end
 			for i = 1, 30 do 
-				if isAlive(lplr, true) and lplr.Character.Humanoid:GetState() ~= Enum.HumanoidStateType.Dead then
-					lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-					lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+				if isAlive(lplr, true) and lplr.Character:WaitForChild("Humanoid"):GetState() ~= Enum.HumanoidStateType.Dead then
+					lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+					lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 				end
 			end
 			lplr.CharacterAdded:Wait()
@@ -1640,10 +1640,10 @@ run(function()
 			if target.RootPart == nil or not PlayerTP.Enabled then 
 				return
 			end
-			local localposition = lplr.Character.HumanoidRootPart.Position
+			local localposition = lplr.Character:WaitForChild("HumanoidRootPart").Position
 			local tweenspeed = (PlayerTPAutoSpeed.Enabled and ((target.RootPart.Position - localposition).Magnitude / 470) + 0.001 * 2 or (PlayerTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (PlayerTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[PlayerTPMethod.Value])
-			playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
+			playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
 			playertween:Play() 
 			playertween.Completed:Wait()
 		end,
@@ -1652,11 +1652,11 @@ run(function()
 			if target.RootPart == nil then 
 				return PlayerTP.ToggleButton()
 			end
-			lplr.Character.HumanoidRootPart.CFrame = (target.RootPart.CFrame + Vector3.new(0, 5, 0)) 
+			lplr.Character:WaitForChild("HumanoidRootPart").CFrame = (target.RootPart.CFrame + Vector3.new(0, 5, 0)) 
 			PlayerTP.ToggleButton()
 		end,
 		Recall = function()
-			if not isAlive(lplr, true) or lplr.Character.Humanoid.FloorMaterial == Enum.Material.Air then 
+			if not isAlive(lplr, true) or lplr.Character:WaitForChild("Humanoid").FloorMaterial == Enum.Material.Air then 
 				errorNotification('PlayerTP', 'Recall ability not available.', 7)
 				return 
 			end
@@ -1677,10 +1677,10 @@ run(function()
 			if target.RootPart == nil or not isAlive(lplr, true) or not PlayerTP.Enabled then 
 				return
 			end
-			local localposition = lplr.Character.HumanoidRootPart.Position
+			local localposition = lplr.Character:WaitForChild("HumanoidRootPart").Position
 			local tweenspeed = (PlayerTPAutoSpeed.Enabled and ((target.RootPart.Position - localposition).Magnitude / 1000) + 0.001 or (PlayerTPSpeed.Value / 1000) + 0.1)
 			local tweenstyle = (PlayerTPAutoSpeed.Enabled and Enum.EasingStyle.Linear or Enum.EasingStyle[PlayerTPMethod.Value])
-			playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
+			playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(tweenspeed, tweenstyle), {CFrame = target.RootPart.CFrame}) 
 			playertween:Play() 
 			playertween.Completed:Wait()
 		end
@@ -3177,7 +3177,7 @@ run(function()
 										if v and v ~= lplr then
 											local TargetDistance = lplr:DistanceFromCharacter(v.Character:FindFirstChild("HumanoidRootPart").CFrame.p)
 											if TargetDistance < 25 then
-												if not lplr.Character.HumanoidRootPart:FindFirstChildOfClass("BodyVelocity") then
+												if not lplr.Character:WaitForChild("HumanoidRootPart"):FindFirstChildOfClass("BodyVelocity") then
 													repeat task.wait() until shared.GlobalStore.matchState ~= 0
 													if not (v.Character.HumanoidRootPart.Velocity.Y < -10*5) then
 														lplr.Character.Archivable = true
@@ -3196,17 +3196,17 @@ run(function()
 															end
 														end
 					
-														lplr.Character.HumanoidRootPart.CFrame = lplr.Character.HumanoidRootPart.CFrame + Vector3.new(0,100000,0)
+														lplr.Character:WaitForChild("HumanoidRootPart").CFrame = lplr.Character:WaitForChild("HumanoidRootPart").CFrame + Vector3.new(0,100000,0)
 					
 														game:GetService("RunService").RenderStepped:Connect(function()
 															if Clone ~= nil and Clone:FindFirstChild("HumanoidRootPart") then
-																Clone.HumanoidRootPart.Position = Vector3.new(lplr.Character.HumanoidRootPart.Position.X, Clone.HumanoidRootPart.Position.Y, lplr.Character.HumanoidRootPart.Position.Z)
+																Clone.HumanoidRootPart.Position = Vector3.new(lplr.Character:WaitForChild("HumanoidRootPart").Position.X, Clone.HumanoidRootPart.Position.Y, lplr.Character:WaitForChild("HumanoidRootPart").Position.Z)
 															end
 														end)
 					
 														task.wait(0.2)
-														lplr.Character.HumanoidRootPart.Velocity = Vector3.new(lplr.Character.HumanoidRootPart.Velocity.X, -1, lplr.Character.HumanoidRootPart.Velocity.Z)
-														lplr.Character.HumanoidRootPart.CFrame = Clone.HumanoidRootPart.CFrame
+														lplr.Character:WaitForChild("HumanoidRootPart").Velocity = Vector3.new(lplr.Character:WaitForChild("HumanoidRootPart").Velocity.X, -1, lplr.Character:WaitForChild("HumanoidRootPart").Velocity.Z)
+														lplr.Character:WaitForChild("HumanoidRootPart").CFrame = Clone.HumanoidRootPart.CFrame
 														gameCamera.CameraSubject = lplr.Character:FindFirstChild("Humanoid")
 														Clone:Destroy()
 														task.wait(0.15)
@@ -3234,7 +3234,7 @@ end)
 				warningNotification("MelodyExploit", "Requires a guitar! Recommended lucky blocks or melody kit", 3)
 				RunLoops:BindToHeartbeat("melody",function()			
 					if getItem("guitar") then
-						if lplr.Character.Humanoid.Health < lplr.Character.Humanoid.MaxHealth then
+						if lplr.Character:WaitForChild("Humanoid").Health < lplr.Character:WaitForChild("Humanoid").MaxHealth then
 							bedwars.Client:Get(bedwars.GuitarHealRemote):SendToServer({healTarget = lplr})
 							game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("StopPlayingGuitar"):FireServer()
 						else
@@ -3402,7 +3402,7 @@ local function GetMagnitudeOf2Objects(part, part2, bypass)
 	return magnitude
 end
 local function GetTopBlock(position, smart, raycast, customvector)
-	position = position or isAlive(lplr, true) and lplr.Character.HumanoidRootPart.Position
+	position = position or isAlive(lplr, true) and lplr.Character:WaitForChild("HumanoidRootPart").Position
 	if not position then 
 		return nil 
 	end
@@ -3469,7 +3469,7 @@ local function FindItemDrop(item)
 	local function abletocalculate() return lplr.Character and lplr.Character:FindFirstChild("HumanoidRootPart") end
     for i,v in pairs(collectionService:GetTagged("ItemDrop")) do
 		if v and v.Name == item and abletocalculate() then
-			local itemdistance = GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v)
+			local itemdistance = GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v)
 			if itemdistance < dist then
 			itemdist = v
 			dist = itemdistance
@@ -3482,7 +3482,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 	local whitelist = shared.vapewhitelist
 	local sort, entity = healthmethod and math.huge or dist or math.huge, {}
 	local function abletocalculate() return lplr.Character and lplr.Character:FindFirstChild("HumanoidRootPart") end
-	local sortmethods = {Normal = function(entityroot, entityhealth) return abletocalculate() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, entityroot) < sort end, Health = function(entityroot, entityhealth) return abletocalculate() and entityhealth < sort end}
+	local sortmethods = {Normal = function(entityroot, entityhealth) return abletocalculate() and GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), entityroot) < sort end, Health = function(entityroot, entityhealth) return abletocalculate() and entityhealth < sort end}
 	local sortmethod = healthmethod and "Health" or "Normal"
 	local function raycasted(entityroot) return abletocalculate() and blockRaycast and game.Workspace:Raycast(entityroot.Position, Vector3.new(0, -2000, 0), store.blockRaycast) or not blockRaycast and true or false end
 	for i,v in pairs(playersService:GetPlayers()) do
@@ -3491,7 +3491,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 				continue
 			end
 			if sortmethods[sortmethod](v.Character.HumanoidRootPart, v.Character:GetAttribute("Health") or v.Character.Humanoid.Health) and raycasted(v.Character.HumanoidRootPart) then
-				sort = healthmethod and v.Character.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.Character.HumanoidRootPart)
+				sort = healthmethod and v.Character.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.Character.HumanoidRootPart)
 				entity.Player = v
 				entity.Human = true 
 				entity.RootPart = v.Character.HumanoidRootPart
@@ -3502,7 +3502,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 	if includemobs then
 		local maxdistance = dist or math.huge
 		for i,v in pairs(store.pots) do
-			if abletocalculate() and v.PrimaryPart and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.PrimaryPart) < maxdistance then
+			if abletocalculate() and v.PrimaryPart and GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.PrimaryPart) < maxdistance then
 			entity.Player = {Character = v, Name = "PotEntity", DisplayName = "PotEntity", UserId = 1}
 			entity.Human = false
 			entity.RootPart = v.PrimaryPart
@@ -3512,7 +3512,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 		for i,v in pairs(collectionService:GetTagged("DiamondGuardian")) do 
 			if v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health and abletocalculate() then
 				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.PrimaryPart)
+				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.PrimaryPart)
 				entity.Player = {Character = v, Name = "DiamondGuardian", DisplayName = "DiamondGuardian", UserId = 1}
 				entity.Human = false
 				entity.RootPart = v.PrimaryPart
@@ -3523,7 +3523,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 		for i,v in pairs(collectionService:GetTagged("GolemBoss")) do
 			if v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health and abletocalculate() then
 				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.PrimaryPart)
+				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.PrimaryPart)
 				entity.Player = {Character = v, Name = "Titan", DisplayName = "Titan", UserId = 1}
 				entity.Human = false
 				entity.RootPart = v.PrimaryPart
@@ -3535,7 +3535,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 			local plr = playersService:GetPlayerByUserId(v:GetAttribute("PlayerUserId"))
 			if plr and plr ~= lplr and plr.Team and lplr.Team and plr.Team ~= lplr.Team and ({VoidwareFunctions:GetPlayerType(plr)})[2] and abletocalculate() and v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health then
 				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-					sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.PrimaryPart)
+					sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.PrimaryPart)
 					entity.Player = {Character = v, Name = "Drone", DisplayName = "Drone", UserId = 1}
 					entity.Human = false
 					entity.RootPart = v.PrimaryPart
@@ -3546,7 +3546,7 @@ local function FindTarget(dist, blockRaycast, includemobs, healthmethod)
 		for i,v in pairs(collectionService:GetTagged("Monster")) do
 			if v:GetAttribute("Team") ~= lplr:GetAttribute("Team") and abletocalculate() and v.PrimaryPart and v:FindFirstChild("Humanoid") and v.Humanoid.Health then
 				if sortmethods[sortmethod](v.PrimaryPart, v.Humanoid.Health) and raycasted(v.PrimaryPart) then
-				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, v.PrimaryPart)
+				sort = healthmethod and v.Humanoid.Health or GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), v.PrimaryPart)
 				entity.Player = {Character = v, Name = "Monster", DisplayName = "Monster", UserId = 1}
 				entity.Human = false
 				entity.RootPart = v.PrimaryPart
@@ -3706,15 +3706,15 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 						if not Autowin.Enabled then return end
 						vapeAssert(not store.queueType:find("skywars"), "Autowin", "Skywars not supported.", 7, true, true, "Autowin")
 						if isAlive(lplr, true) then
-							lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-							lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+							lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+							lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
 						end
 						table.insert(Autowin.Connections, runService.Heartbeat:Connect(function()
 							pcall(function()
-								if not isnetworkowner(lplr.Character.HumanoidRootPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
+								if not isnetworkowner(lplr.Character:WaitForChild("HumanoidRootPart")) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), FindEnemyBed()) > 75 or not FindEnemyBed()) then
 									if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and store.matchState < 2 then
-										lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-										lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+										lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+										lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
 									end
 								end
 							end)
@@ -3723,17 +3723,17 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 							if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
 							local bed = FindEnemyBed()
 							if bed and (bed:GetAttribute("BedShieldEndTime") and bed:GetAttribute("BedShieldEndTime") < game.Workspace:GetServerTimeNow() or not bed:GetAttribute("BedShieldEndTime")) then
-								bedtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
+								bedtween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.75, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
 								task.wait(0.1)
 								bedtween:Play()
 								bedtween.Completed:Wait()
 								task.spawn(function()
 									task.wait(1.5)
 									if lplr.Character:FindFirstChild("HumanoidRootPart") then
-										local magnitude = GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, bed)
+										local magnitude = GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), bed)
 										if magnitude >= 50 and FindTeamBed() and Autowin.Enabled then
-											lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-											lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+											lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+											lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 										end
 									end
 								end)
@@ -3761,18 +3761,18 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 									repeat
 										local target = EntityNearPosition(45)
 										if not target.RootPart then break end
-										playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+										playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 										playertween:Play()
 										task.wait()
 									until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
 								end
 								if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
-									lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-									lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+									lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+									lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 								end
 							elseif EntityNearPosition(45) and EntityNearPosition(45).RootPart then
 								local target = EntityNearPosition(45)
-								playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+								playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 								playertween:Play()
 								if AutowinNotification.Enabled then
 									task.spawn(InfoNotification, "Autowin", "Killing "..target.Player.DisplayName.." ("..(target.Player.Team and target.Player.Team.Name or "neutral").." Team)", 5)
@@ -3783,18 +3783,18 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 									repeat
 										target = EntityNearPosition(50)
 										if not target.RootPart or not isAlive() then break end
-										playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+										playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 										playertween:Play()
 										task.wait()
 									until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
 								end
 								if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
-									lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-									lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+									lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+									lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 								end
 							elseif GetTarget(nil, false, true) and GetTarget(nil, false, true).RootPart then
 								local target = GetTarget(nil, false, true)
-								playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+								playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 								playertween:Play()
 								if AutowinNotification.Enabled then task.spawn(InfoNotification, "Autowin", "Killing "..target.Player.DisplayName.." ("..(target.Player.Team and target.Player.Team.Name or "neutral").." Team)", 5) end
 								playertween.Completed:Wait()
@@ -3803,28 +3803,28 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 									repeat
 										target = EntityNearPosition(50)
 										if not target.RootPart or not isAlive() then break end
-										playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+										playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.75), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 										playertween:Play()
 										task.wait()
 									until not (EntityNearPosition(45) and EntityNearPosition(45).RootPart) or not Autowin.Enabled or not isAlive()
 								end
 								if isAlive(lplr, true) and GetTarget(nil, false, true) and GetTarget(nil, false, true).RootPart and Autowin.Enabled then
-									lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-									lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+									lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+									lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 								end
 							else
 								if shared.GlobalStore.matchState == 2 then return end
 								InfoNotification("Autowin", "No targets found! Retrying...", 1)
-								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+								lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+								lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 							end
 						end))
 						table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
 							if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
-							if not VoidwareStore.GameFinished then return end
-							local oldpos = lplr.Character.HumanoidRootPart.CFrame
+							if not store.matchState == 2 then return end
+							local oldpos = lplr.Character:WaitForChild("HumanoidRootPart").CFrame
 							repeat 
-							lplr.Character.HumanoidRootPart.CFrame = oldpos
+							lplr.Character:WaitForChild("HumanoidRootPart").CFrame = oldpos
 							task.wait()
 							until not isAlive(lplr, true) or not Autowin.Enabled
 						end))
@@ -3855,33 +3855,33 @@ run(function()
 					if not Autowin.Enabled then return end
 					vapeAssert(not store.queueType:find("skywars"), "Autowin", "Skywars not supported.", 7, true, true, "Autowin")
 					if isAlive(lplr, true) then
-						lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-						lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+						lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+						lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
 					end
 					table.insert(Autowin.Connections, runService.Heartbeat:Connect(function()
 						pcall(function()
-						if not isnetworkowner(lplr.Character.HumanoidRootPart) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, FindEnemyBed()) > 75 or not FindEnemyBed()) then
-							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and not VoidwareStore.GameFinished then
-								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+							if not isnetworkowner(lplr.Character:WaitForChild("HumanoidRootPart")) and (FindEnemyBed() and GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), FindEnemyBed()) > 75 or not FindEnemyBed()) then
+								if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled and (not store.matchState == 2) then
+									lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+									lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+								end
 							end
-						end
-					end)
+						end)
 					end))
 					table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
 						if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
 						local bed = FindEnemyBed()
 						if bed and (bed:GetAttribute("BedShieldEndTime") and bed:GetAttribute("BedShieldEndTime") < workspace:GetServerTimeNow() or not bed:GetAttribute("BedShieldEndTime")) then
-						bedtween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.65, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
+						bedtween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.65, Enum.EasingStyle.Linear, Enum.EasingDirection.In, 0, false, 0), {CFrame = CFrame.new(bed.Position) + Vector3.new(0, 10, 0)})
 						task.wait(0.1)
 						bedtween:Play()
 						bedtween.Completed:Wait()
 						task.spawn(function()
 						task.wait(1.5)
-						local magnitude = GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, bed)
+						local magnitude = GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), bed)
 						if magnitude >= 50 and FindTeamBed() and Autowin.Enabled then
-							lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-							lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+							lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+							lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 						end
 						end)
 						if AutowinNotification.Enabled then
@@ -3892,7 +3892,7 @@ run(function()
 							GuiLibrary.ObjectsThatCanBeSaved.NukerOptionsButton.Api.ToggleButton(false)
 						end
 						repeat task.wait() until FindEnemyBed() ~= bed or not isAlive()
-						if FindTarget(45, store.blockRaycast).RootPart and isAlive() then
+						if FindTarget(45, store.blockRaycast) and FindTarget(45, store.blockRaycast).RootPart and isAlive() then
 							if AutowinNotification.Enabled then
 								local team = VoidwareStore.bedtable[bed] or "unknown"
 								task.spawn(InfoNotification, "Autowin", "Killing "..team:lower().." team's teamates", 5)
@@ -3900,19 +3900,19 @@ run(function()
 							repeat
 							local target = FindTarget(45, store.blockRaycast)
 							if not target.RootPart then break end
-							playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.30), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+							playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.30), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 							playertween:Play()
 							task.wait()
-							until not FindTarget(45, store.blockRaycast).RootPart or not Autowin.Enabled or not isAlive()
+							until not (FindTarget(45, store.blockRaycast) and FindTarget(45, store.blockRaycast).RootPart) or not Autowin.Enabled or not isAlive()
 						end
 						if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
-							lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-							lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+							lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+							lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 						end
-						elseif FindTarget(nil, store.blockRaycast).RootPart then
+						elseif FindTarget(nil, store.blockRaycast) and FindTarget(nil, store.blockRaycast).RootPart then
 							task.wait()
 							local target = FindTarget(nil, store.blockRaycast)
-							playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(GetMagnitudeOf2Objects(lplr.Character.HumanoidRootPart, target.RootPart) / 23.4 / 35, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+							playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(GetMagnitudeOf2Objects(lplr.Character:WaitForChild("HumanoidRootPart"), target.RootPart) / 23.4 / 35, Enum.EasingStyle.Linear), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 							playertween:Play()
 							if AutowinNotification.Enabled then
 								task.spawn(InfoNotification, "Autowin", "Killing "..target.Player.DisplayName.." ("..(target.Player.Team and target.Player.Team.Name or "neutral").." Team)", 5)
@@ -3923,29 +3923,29 @@ run(function()
 									repeat
 									target = FindTarget(50, store.blockRaycast)
 									if not target.RootPart or not isAlive() then break end
-									playertween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.30), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
+									playertween = tweenService:Create(lplr.Character:WaitForChild("HumanoidRootPart"), TweenInfo.new(0.30), {CFrame = target.RootPart.CFrame + Vector3.new(0, 3, 0)})
 									playertween:Play()
 									task.wait()
-									until not FindTarget(50, store.blockRaycast).RootPart or not Autowin.Enabled or not isAlive()
+									until not (FindTarget(50, store.blockRaycast) and FindTarget(50, store.blockRaycast).RootPart) or (not Autowin.Enabled) or (not isAlive())
 								end
 							if isAlive(lplr, true) and FindTeamBed() and Autowin.Enabled then
-								lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+								lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+								lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 							end
 						else
 						if store.matchState == 2 then return end
-						lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-						lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+						lplr.Character:WaitForChild("Humanoid"):TakeDamage(lplr.Character:WaitForChild("Humanoid").Health)
+						lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
 						end
 					end))
 					table.insert(Autowin.Connections, lplr.CharacterAdded:Connect(function()
-						if not isAlive(lplr, true) then repeat task.wait() until isAlive(lplr, true) end
-						if not VoidwareStore.GameFinished then return end
-						local oldpos = lplr.Character.HumanoidRootPart.CFrame
+						if (not isAlive(lplr, true)) then repeat task.wait() until isAlive(lplr, true) end
+						if (not store.matchState == 2) then return end
+						local oldpos = lplr.Character:WaitForChild("HumanoidRootPart").CFrame
 						repeat 
-						lplr.Character.HumanoidRootPart.CFrame = oldpos
+						lplr.Character:WaitForChild("HumanoidRootPart").CFrame = oldpos
 						task.wait()
-						until not isAlive(lplr, true) or not Autowin.Enabled
+						until (not isAlive(lplr, true)) or (not Autowin.Enabled)
 					end))
 				end)
 			else
@@ -4004,7 +4004,7 @@ end)
 						if sd then
 							local item = getItemNear("scythe")
 							if item and lplr.Character.HandInvItem.Value == item.tool and bedwars.CombatController then 
-								bedwars.Client:Get("ScytheDash"):SendToServer({direction = lplr.Character.HumanoidRootPart.CFrame.LookVector*9e9})
+								bedwars.Client:Get("ScytheDash"):SendToServer({direction = lplr.Character:WaitForChild("HumanoidRootPart").CFrame.LookVector*9e9})
 								if entityLibrary.isAlive and entityLibrary.character.Head.Transparency ~= 0 then
 									shared.GlobalStore.scythe = tick() + 1
 								end
@@ -4314,8 +4314,8 @@ run(function()
 			pcall(function()
 				repeat 
 					if isAlive(plr, true) then 
-						local magnitude = (lplr.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
-						if magnitude >= 10000 and playerRaycast(plr) == nil and playerRaycast({Character = {PrimaryPart = {Position = lplr.Character.HumanoidRootPart.Position}}}) then 
+						local magnitude = (lplr.Character:WaitForChild("HumanoidRootPart").Position - plr.Character.HumanoidRootPart.Position).Magnitude
+						if magnitude >= 10000 and playerRaycast(plr) == nil and playerRaycast({Character = {PrimaryPart = {Position = lplr.Character:WaitForChild("HumanoidRootPart").Position}}}) then 
 							InfoNotification('HackerDetector', plr.DisplayName..' is using InfiniteFly!', 60) 
 							cachedetection(plr, 'InfiniteFly')
 							table.insert(detectedusers.InfiniteFly, plr)
@@ -4453,7 +4453,7 @@ run(function()
 		Function = function(callback)
 			if callback then 
 				task.spawn(function()
-					if entityLibrary.isAlive and lplr.Character.Humanoid.FloorMaterial == Enum.Material.Air or jumps > 0 then 
+					if entityLibrary.isAlive and lplr.Character:WaitForChild("Humanoid").FloorMaterial == Enum.Material.Air or jumps > 0 then 
 						DoubleHighJump.ToggleButton(false) 
 						return
 					end
@@ -4462,17 +4462,17 @@ run(function()
 							DoubleHighJump.ToggleButton(false) 
 							return  
 						end
-						if i == 2 and lplr.Character.Humanoid.FloorMaterial ~= Enum.Material.Air then 
+						if i == 2 and lplr.Character:WaitForChild("Humanoid").FloorMaterial ~= Enum.Material.Air then 
 							continue
 						end
-						lplr.Character.HumanoidRootPart.Velocity = Vector3.new(0, i == 1 and DoubleHighJumpHeight.Value or DoubleHighJumpHeight2.Value, 0)
+						lplr.Character:WaitForChild("HumanoidRootPart").Velocity = Vector3.new(0, i == 1 and DoubleHighJumpHeight.Value or DoubleHighJumpHeight2.Value, 0)
 						jumps = i
 						task.wait(i == 1 and 1 or 0.3)
 					end
 					task.spawn(function()
 						for i = 1, 20 do 
 							if entityLibrary.isAlive then 
-								lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Landed)
+								lplr.Character:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.Landed)
 							end
 						end
 					end)
@@ -4974,9 +4974,9 @@ run(function()
 				task.wait(0.5)
 				local anim = Instance.new('Animation')
 				anim.AnimationId = 'rbxassetid://11360825341'
-				local anim2 = lplr.Character.Humanoid.Animator:LoadAnimation(anim) 
+				local anim2 = lplr.Character:WaitForChild("Humanoid").Animator:LoadAnimation(anim) 
 				for i,v in next, lplr.Character:GetDescendants() do 
-					if v:IsA('BasePart') and v.CanCollide and v ~= lplr.Character.HumanoidRootPart then 
+					if v:IsA('BasePart') and v.CanCollide and v ~= lplr.Character:WaitForChild("HumanoidRootPart") then 
 						v.CanCollide = false 
 						table.insert(collideparts, v) 
 					end 
@@ -4990,10 +4990,10 @@ run(function()
 					if isEnabled('AnimationPlayer') then 
 						GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.ToggleButton()
 					end
-					if isAlive(lplr, true) and isnetworkowner(lplr.Character.HumanoidRootPart) then 
-						lplr.Character.HumanoidRootPart.Transparency = (invisvisual.Enabled and 0.6 or 1)
-						oldcolor = lplr.Character.HumanoidRootPart.Color
-						lplr.Character.HumanoidRootPart.Color = Color3.fromHSV(visualrootcolor.Hue, visualrootcolor.Sat, visualrootcolor.Value)
+					if isAlive(lplr, true) and isnetworkowner(lplr.Character:WaitForChild("HumanoidRootPart")) then 
+						lplr.Character:WaitForChild("HumanoidRootPart").Transparency = (invisvisual.Enabled and 0.6 or 1)
+						oldcolor = lplr.Character:WaitForChild("HumanoidRootPart").Color
+						lplr.Character:WaitForChild("HumanoidRootPart").Color = Color3.fromHSV(visualrootcolor.Hue, visualrootcolor.Sat, visualrootcolor.Value)
 						anim2:Play(0.1, 9e9, 0.1) 
 					elseif Invisibility.Enabled then 
 						Invisibility.ToggleButton() 
@@ -5008,8 +5008,8 @@ run(function()
 				end
 				table.clear(collideparts)
 				if isAlive(lplr, true) then 
-					lplr.Character.HumanoidRootPart.Transparency = 1 
-					lplr.Character.HumanoidRootPart.Color = oldcolor
+					lplr.Character:WaitForChild("HumanoidRootPart").Transparency = 1 
+					lplr.Character:WaitForChild("HumanoidRootPart").Color = oldcolor
 					task.wait()
 				    bedwars.SwordController:swingSwordAtMouse() 
 				end
@@ -5962,7 +5962,7 @@ run(function()
 					table.insert(invis.Connections, invisrenderstep);
 				end)
 				invisanim.AnimationId = 'rbxassetid://11335949902';
-				local anim = lplr.Character.Humanoid.Animator:LoadAnimation(invisanim);
+				local anim = lplr.Character:WaitForChild("Humanoid").Animator:LoadAnimation(invisanim);
 				invishumanim = anim;
 				repeat 
 					task.wait()
@@ -6665,7 +6665,7 @@ end)--]]
 					local lplr = game:GetService("Players").LocalPlayer
 					local function sendRequest(entity)
 						local targetPosition = entity.HumanoidRootPart.Position
-						local direction = (targetPosition - lplr.Character.HumanoidRootPart.Position).unit
+						local direction = (targetPosition - lplr.Character:WaitForChild("HumanoidRootPart").Position).unit
 						local args = {
 							[1] = {
 								["clientTime"] = tick(),
