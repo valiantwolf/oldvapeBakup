@@ -8019,8 +8019,8 @@ run(function()
 		Name = "AutoKit",
 		Function = function(callback)
 			if callback then
-				oldfish = bedwars.FishermanController.startMinigame
-				bedwars.FishermanController.startMinigame = function(Self, dropdata, func) func({win = true}) end
+				--oldfish = bedwars.FishermanController.startMinigame
+				--bedwars.FishermanController.startMinigame = function(Self, dropdata, func) func({win = true}) end
 				task.spawn(function()
 					repeat task.wait() until store.equippedKit ~= ""
 					if AutoKit.Enabled then
@@ -8028,7 +8028,7 @@ run(function()
 					end
 				end)
 			else
-				bedwars.FishermanController.startMinigame = oldfish
+				--bedwars.FishermanController.startMinigame = oldfish
 				oldfish = nil
 			end
 		end,
