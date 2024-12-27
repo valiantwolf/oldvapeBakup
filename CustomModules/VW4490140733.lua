@@ -69,5 +69,5 @@ task.spawn(function()
         if (not v.Suc) then loadSuc = false; errorNotification("Voidware - My Restaurant", "Failure loading "..i.."! Error: "..tostring(v.Err), 7) end
     end
     if getgenv and not getgenv().require then InfoNotification("Voidware - My Restaurant", "Function 'require' not found! Script 1 will not be able to load.", 3) end
-    if loadSuc then InfoNotification2("Voidware - My Restaurant", "The core scripts had just loaded! Would you like to uninject vw?", 10000000, interactable_buttons_table) end
+    --if loadSuc then InfoNotification2("Voidware - My Restaurant", "The core scripts had just loaded! Would you like to uninject vw?", 10000000, interactable_buttons_table) end
 end)

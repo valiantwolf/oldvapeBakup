@@ -71,24 +71,6 @@ end
 
 VWFunctions.Base64 = Base64
 
-local signalReceived = false
-VWFunctions.ClosetCheatModeEvent = Instance.new("BindableEvent")
-table.insert(VWFunctions.Connections, VWFunctions.ClosetCheatModeEvent.Event:Connect(function(call)
-    --warn(debug.traceback(tostring(call)))
-    if call == nil then return warn(debug.traceback("Error! ClosetCheatModeEvent not used properly! ['call' missing]")) end
-    if type(call) ~= "boolean" then return warn(debug.traceback("Error! ClosetCheatModeEvent not used properly! ['call' isn't a boolean]")) end
-    signalReceived = true
-    if shared.ClosetCheatMode ~= call then 
-        shared.ClosetCheatMode = call 
-        GuiLibrary.Restart()
-    end
-    --[[if shared.ClosetCheatMode ~= call then
-        repeat task.wait() until shared.VapeFullyLoaded
-        shared.ClosetCheatMode = call
-        GuiLibrary.Restart
-    end--]]
-end))
-
 VWFunctions.handlepcall = function(suc, err)
     if suc == nil then return "nil suc" end
     if (not suc) then
@@ -353,32 +335,6 @@ VWFunctions.fetchCheatEngineSupportFile = function(fileName)
     end)
     return suc and res or ""
 end
-
-task.spawn(function()
-    repeat task.wait() until GuiLibrary and GuiLibrary.ObjectsThatCanBeSaved and GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow and GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api
-    local ClosetCheatMode = {Enabled = false}
-    ClosetCheatMode = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-        Name = "ClosetCheatMode",
-        Function = function(call, clicked)
-            --print(clicked == false and "Ignored V2" or "Accepted V2")
-            --print(signalReceived and "Ignored" or "Accepted")
-            if clicked ~= false then
-                VWFunctions.ClosetCheatModeEvent:Fire(call) 
-                ClosetCheatMode.ToggleButton(false)
-            end
-        end,
-        NoSave = true,
-        Restricted = true
-    })
-    if (not shared.RiseMode) then
-        local function safeResolve(cond, name) if cond then return cond else warn(debug.traceback("[safeResolve]: Error! Condition not met. Name: "..tostring(name))) end end
-        local children = safeResolve(safeResolve(safeResolve(safeResolve(GuiLibrary.MainGui:FindFirstChild("ScaledGui"), "ScaledGui"):FindFirstChild("ClickGui"), "ClickGui"):FindFirstChild("MainWindow"), "MainWindow"):FindFirstChild("Children"), "Children")
-        GuiLibrary.ObjectsThatCanBeSaved.ClosetCheatModeOptionsButton.Object.Parent = children
-        GuiLibrary.ObjectsThatCanBeSaved.ClosetCheatModeOptionsButton.Object.LayoutOrder = 13
-        repeat task.wait() until shared.VapeFullyLoaded
-        if ClosetCheatMode.Enabled ~= shared.ClosetCheatMode then ClosetCheatMode.ToggleButton(false) end
-    end
-end)
 
 getgenv().VoidwareFunctions = VWFunctions
 
