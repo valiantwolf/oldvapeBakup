@@ -5350,6 +5350,7 @@ function mainapi:Load(skipgui, profile)
 				if not object then continue end
 				if object.Options and v.Options then
 					self:LoadOptions(object, v.Options)
+					task.wait(shared.LoadSlowmode or 0.03)
 				end
 				if v.Enabled then
 					object.Button:Toggle()
