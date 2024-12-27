@@ -130,7 +130,7 @@ local gui = readfile('vape/profiles/gui.txt')
 if not isfolder('vape/assets/'..gui) then
 	makefolder('vape/assets/'..gui)
 end
-local VWFunctions = pload("libraries/VoidwareFunctions.lua", true, true)
+local VWFunctions = pload("Libraries/VoidwareFunctions.lua", true, true)
 VWFunctions.GlobaliseObject("VoidwareFunctions", VWFunctions)
 VWFunctions.GlobaliseObject("VWFunctions", VWFunctions)
 
