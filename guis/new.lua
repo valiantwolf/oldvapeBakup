@@ -4802,8 +4802,9 @@ function mainapi:CreateCategoryList(categorysettings)
 end
 
 mainapi.RemoveObject = function(name)
+	name = tostring(name)
 	local suc, err = pcall(function()
-		mainapi:Remove(name)
+		mainapi:Remove(name:match("^(.-)OptionsButton") or name)
 	end)
 	return suc, err
 end
