@@ -4801,6 +4801,13 @@ function mainapi:CreateCategoryList(categorysettings)
 	return categoryapi
 end
 
+mainapi.RemoveObject = function(name)
+	local suc, err = pcall(function()
+		mainapi:Remove(name)
+	end)
+	return suc, err
+end
+
 function mainapi:CreateSearch()
 	local searchbkg = Instance.new('Frame')
 	searchbkg.Name = 'Search'
