@@ -26,9 +26,6 @@ local function downloadFile(path, func)
 	end
 	return (func or readfile)(path)
 end
-local run = function(func)
-	func()
-end
 local queue_on_teleport = queue_on_teleport or function() end
 local cloneref = cloneref or function(obj)
 	return obj
@@ -3268,7 +3265,7 @@ run(function()
 	})
 	ZToggle = SpinBot:CreateToggle({Name = 'Spin Z'})
 end)
-	
+
 run(function()
 	local Swim
 	local terrain = cloneref(game.Workspace:FindFirstChildWhichIsA('Terrain'))

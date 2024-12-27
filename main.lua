@@ -6,6 +6,12 @@ if identifyexecutor and ({identifyexecutor()})[1] == 'Argon' then
 end
 
 getgenv().setthreadidentity = function() end
+getgenv().run = function(func)
+	local suc, err = pcall(function() func() end)
+	if (not suc) then
+		warn('Error in module! Error log: '..debug.traceback(tostring(err)))
+	end
+end
 
 local vape
 local loadstring = function(...)
