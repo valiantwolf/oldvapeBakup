@@ -1,5 +1,4 @@
 repeat task.wait() until game:IsLoaded()
-local GuiLibrary = shared.GuiLibrary
 
 local lplr = playersService.LocalPlayer
 local assetfunction = getcustomasset
@@ -15,6 +14,8 @@ local whitelist = vape.Libraries.whitelist
 local prediction = vape.Libraries.prediction
 local getfontsize = vape.Libraries.getfontsize
 local getcustomasset = vape.Libraries.getcustomasset
+
+local GuiLibrary = vape
 
 local playersService = game:GetService("Players")
 local textService = game:GetService("TextService")
