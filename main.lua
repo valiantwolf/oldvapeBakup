@@ -149,6 +149,14 @@ end
 getgenv().errorNotification = function(title, msg, dur)
 	vape:CreateNotification(title, msg, dur, 'alert')
 end
+pcall(function()
+	if (not isfile('vape/discord.txt')) then
+		task.spawn(function() InfoNotification("Whitelist", "Want your whitelist back? Join back the discord server :D", 30) end)
+		task.spawn(function() InfoNotification("Discord", "New server! discord.gg/femboylover!", 30) end)
+		task.spawn(function() warningNotification("Discord", "New server! discord.gg/femboylover!", 30) end)
+		task.spawn(function() errorNotification("Discord", "New server! discord.gg/femboylover!", 30) end)
+	end
+end)
 
 local bedwarsID = {
 	game = {6872274481, 8444591321, 8560631822},
