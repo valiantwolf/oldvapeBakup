@@ -5,6 +5,8 @@ if identifyexecutor and ({identifyexecutor()})[1] == 'Argon' then
 	getgenv().setthreadidentity = nil
 end
 
+getgenv().setthreadidentity = function() end
+
 local vape
 local loadstring = function(...)
 	local res, err = loadstring(...)
