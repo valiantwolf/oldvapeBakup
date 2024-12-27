@@ -10203,7 +10203,7 @@ local function onChange2(key, oldValue, newValue)
 	--print("Changed key:", key, "from", oldValue, "to", newValue)
 	VoidwareFunctions.GlobaliseObject("bedwars", bedwars)
 	VoidwareFunctions.GlobaliseObject("GlobalBedwars", bedwars)
-end
+ end
 
 store = createMonitoredTable(store, onChange)
 bedwars = createMonitoredTable(bedwars, onChange2)

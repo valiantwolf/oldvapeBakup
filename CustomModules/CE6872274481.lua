@@ -1275,17 +1275,32 @@ local function run(func)
 end
 
 local function isFriend(plr, recolor)
-	return false
+	if shared.RiseMode then return false end
+	if GuiLibrary.ObjectsThatCanBeSaved["Use FriendsToggle"].Api.Enabled then
+		local friend = table.find(GuiLibrary.ObjectsThatCanBeSaved.FriendsListTextCircleList.Api.ObjectList, plr.Name)
+		friend = friend and GuiLibrary.ObjectsThatCanBeSaved.FriendsListTextCircleList.Api.ObjectListEnabled[friend]
+		if recolor then
+			friend = friend and GuiLibrary.ObjectsThatCanBeSaved["Recolor visualsToggle"].Api.Enabled
+		end
+		return friend
+	end
+	return nil
 end
 
 local function isTarget(plr)
-	return false
+	if shared.RiseMode then return false end
+	local friend = table.find(GuiLibrary.ObjectsThatCanBeSaved.TargetsListTextCircleList.Api.ObjectList, plr.Name)
+	friend = friend and GuiLibrary.ObjectsThatCanBeSaved.TargetsListTextCircleList.Api.ObjectListEnabled[friend]
+	return friend
 end
 
 local function isVulnerable(plr) return plr.Humanoid.Health > 0 and not plr.Character.FindFirstChildWhichIsA(plr.Character, "ForceField") end
 VoidwareFunctions.GlobaliseObject("isVulnarable", isVulnarable)
 
 local function getPlayerColor(plr)
+	if isFriend(plr, true) then
+		return Color3.fromHSV(GuiLibrary.ObjectsThatCanBeSaved["Friends ColorSliderColor"].Api.Hue, GuiLibrary.ObjectsThatCanBeSaved["Friends ColorSliderColor"].Api.Sat, GuiLibrary.ObjectsThatCanBeSaved["Friends ColorSliderColor"].Api.Value)
+	end
 	return tostring(plr.TeamColor) ~= "White" and plr.TeamColor.Color
 end
 
