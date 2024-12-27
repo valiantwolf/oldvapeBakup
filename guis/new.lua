@@ -4384,7 +4384,7 @@ function mainapi:CreateCategoryList(categorysettings)
 	cursedpadding.BackgroundTransparency = 1
 	cursedpadding.Parent = children
 	categorysettings.Function = categorysettings.Function or function() end
-	categorysettings.Function = pcall(function() return categorysettings.Function() end)
+	categorysettings.Function = function() return pcall(function() categorysettings.Function() end) end
 
 	function categoryapi:ChangeValue(val)
 		if val then
