@@ -6964,4 +6964,28 @@ mainapi:Clean(inputService.InputEnded:Connect(function(inputObj)
 	end
 end))
 
+if inputService.TouchEnabled then
+	local button = Instance.new("TextButton")
+	button.Position = UDim2.new(1, -30, 0, 0)
+	button.Text = "Vape"
+	button.BackgroundColor3 = Color3.fromRGB(26, 25, 26)
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.Size = UDim2.new(0, 30, 0, 20)
+	button.BorderSizePixel = 0
+	button.BackgroundTransparency = 0.5
+	button.Parent = gui
+	button.MouseButton1Click:Connect(function()
+		if mainapi.ThreadFix then
+			setthreadidentity(8)
+		end
+		for _, v in mainapi.Windows do
+			v.Visible = false
+		end
+		clickgui.Visible = not clickgui.Visible
+		tooltip.Visible = false
+		mainapi:BlurCheck()
+	end)
+	shared.VapeButton = button
+end
+
 return mainapi
