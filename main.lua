@@ -20,6 +20,7 @@ local isfile = isfile or function(file)
 	end)
 	return suc and res ~= nil and res ~= ''
 end
+getgenv().cloneref = function(obj) return obj end
 local cloneref = cloneref or function(obj)
 	return obj
 end

@@ -1,7 +1,7 @@
 local run = function(func)
 	func()
 end
-local cloneref = cloneref or function(obj)
+local cloneref = function(obj)
 	return obj
 end
 local vapeEvents = setmetatable({}, {
