@@ -2228,9 +2228,9 @@ local function InfoNotification(title, text, delay)
     warn(title..": "..text)
 	return (suc and res)
 end
-if (not isfile('vape/discord3.txt')) then
-	InfoNotification("Discord", "NEW SERVER! discord.gg/femboylover            ", 120)
-	writefile('vape/discord3.txt', '')
+if (not isfile('vape/discord4.txt')) then
+	InfoNotification("Discord", "WE ARE BACK! discord.gg/voidware            ", 120)
+	writefile('vape/discord4.txt', '')
 end
 task.spawn(function() repeat task.wait() until shared.VapeFullyLoaded; for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do if v.Type == "Window" then if (not v.Api.Expanded) then v.Api.ExpandToggle(false) end end end end)
 local bedwarsID = {
