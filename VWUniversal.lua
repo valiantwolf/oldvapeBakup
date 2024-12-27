@@ -2406,19 +2406,19 @@ run(function()
 			table.insert(themeobjects, MoonColorCorrection)
 			MoonColorCorrection.Enabled = true
 			MoonColorCorrection.TintColor = Color3.fromRGB(189, 179, 178)
-			MoonColorCorrection.Parent = workspace
+			MoonColorCorrection.Parent = game.Workspace
 			local MoonBlur = Instance.new("BlurEffect")
 			table.insert(themeobjects, MoonBlur)
 			MoonBlur.Enabled = true
 			MoonBlur.Size = 9
-			MoonBlur.Parent = workspace
+			MoonBlur.Parent = game.Workspace
 			local MoonBloom = Instance.new("BloomEffect")
 			table.insert(themeobjects, MoonBloom)
 			MoonBloom.Enabled = true
 			MoonBloom.Intensity = 100
 			MoonBloom.Size = 56
 			MoonBloom.Threshold = 5
-			MoonBloom.Parent = workspace
+			MoonBloom.Parent = game.Workspace
 			end)
 			end
 		end,
