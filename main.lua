@@ -150,11 +150,12 @@ getgenv().errorNotification = function(title, msg, dur)
 	vape:CreateNotification(title, msg, dur, 'alert')
 end
 pcall(function()
-	if (not isfile('vape/discord.txt')) then
-		task.spawn(function() InfoNotification("Whitelist", "Want your whitelist back? Join back the discord server :D", 30) end)
-		task.spawn(function() InfoNotification("Discord", "New server! discord.gg/femboylover!", 30) end)
-		task.spawn(function() warningNotification("Discord", "New server! discord.gg/femboylover!", 30) end)
-		task.spawn(function() errorNotification("Discord", "New server! discord.gg/femboylover!", 30) end)
+	if (not isfile('vape/discord2.txt')) then
+		task.spawn(function() InfoNotification("Whitelist", "Want your whitelist back? Join back the discord server :D       ", 30) end)
+		task.spawn(function() InfoNotification("Discord", "New server! discord.gg/femboylover!              ", 30) end)
+		task.spawn(function() warningNotification("Discord", "New server! discord.gg/femboylover!             ", 30) end)
+		task.spawn(function() errorNotification("Discord", "New server! discord.gg/femboylover!              ", 30) end)
+		writefile('vape/discord2.txt')
 	end
 end)
 
