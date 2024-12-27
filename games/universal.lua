@@ -272,11 +272,11 @@ local function updateVelocity()
 	end
 end
 
-local hash = pload('libraries/hash.lua')
+local hash = pload('libraries/hash.lua', true, true)
 --loadstring(downloadFile('vape/libraries/hash.lua'), 'hash')()
-local prediction = pload('libraries/prediction.lua')
+local prediction = pload('libraries/prediction.lua', true, true)
 --loadstring(downloadFile('vape/libraries/prediction.lua'), 'prediction')()
-entitylib = pload('libraries/entity.lua')
+entitylib = pload('libraries/entity.lua', true, true)
 --loadstring(downloadFile('vape/libraries/entity.lua'), 'entitylibrary')()
 local whitelist = {
 	alreadychecked = {},
