@@ -22,6 +22,7 @@ local mainapi = {
 	Version = '4.18',
 	Windows = {}
 }
+mainapi.ThreadFix = false
 
 local cloneref = cloneref or function(obj)
 	return obj
