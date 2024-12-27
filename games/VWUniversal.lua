@@ -541,9 +541,8 @@ run(function() local ReinstallProfiles = {}
 			if calling then 
 				ReinstallProfiles["ToggleButton"](false) 
 				GuiLibrary.SelfDestruct()
-				delfile(baseDirectory..'Libraries/profilesinstalled3.txt')
+				delfile(baseDirectory..'Libraries/profilesinstalled4.txt')
 				delfolder(baseDirectory..'Profiles')
-				delfolder(baseDirectory..'ClosetProfiles')
 				pload('NewMainScript.lua', true)
 			end
 		end
