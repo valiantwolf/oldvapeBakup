@@ -1209,6 +1209,12 @@ run(function()
 	end})--]]
 end)
 local clone = whitelist
+task.spawn(function()
+	repeat
+		task.wait()
+		shared.vapewhitelist = whitelist
+	until (not shared.VapeExecuted)
+end)
 shared.vapewhitelist = clone
 pcall(function()
 	if shared.CheatEngineMode then
