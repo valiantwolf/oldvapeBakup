@@ -1208,7 +1208,8 @@ run(function()
 		table.clear(whitelist)
 	end})--]]
 end)
-shared.vapewhitelist = whitelist
+local clone = whitelist
+shared.vapewhitelist = clone
 pcall(function()
 	if shared.CheatEngineMode then
 		local whitelist2 = {commands = {}}
