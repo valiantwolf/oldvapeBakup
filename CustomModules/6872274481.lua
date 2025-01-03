@@ -1430,7 +1430,7 @@ run(function()
 		SoundList = require(replicatedstorage.TS.sound["game-sound"]).GameSound,
 		SoundManager = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out).SoundManager,
 		SpawnRavenRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.RavenController.spawnRaven)),
-		TreeRemote = dumpRemote(debug.getconstants(debug.getproto(debug.getproto(KnitClient.Controllers.BigmanController.KnitStart, 1), 2))),
+		--TreeRemote = dumpRemote(debug.getconstants(debug.getproto(debug.getproto(KnitClient.Controllers.EldertreeController.KnitStart, 1), 2))),
 		TrinityRemote = dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.AngelController.onKitEnabled, 1))),
 		UILayers = require(replicatedstorage['rbxts_include']['node_modules']['@easy-games']['game-core'].out).UILayers,
 		WeldTable = require(replicatedstorage.TS.util["weld-util"]).WeldUtil
@@ -10203,7 +10203,7 @@ local function onChange2(key, oldValue, newValue)
 	--print("Changed key:", key, "from", oldValue, "to", newValue)
 	VoidwareFunctions.GlobaliseObject("bedwars", bedwars)
 	VoidwareFunctions.GlobaliseObject("GlobalBedwars", bedwars)
- end
+end
 
 store = createMonitoredTable(store, onChange)
 bedwars = createMonitoredTable(bedwars, onChange2)
