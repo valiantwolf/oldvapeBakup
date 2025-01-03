@@ -700,7 +700,7 @@ run(function()
 				entityLibrary.character.Humanoid.Health = 0
 			end
 		end,
-		reveal = function(args)
+		--[[reveal = function(args)
 			task.delay(0.1, function()
 				if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
                     textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync('I am using the inhaler client or voidware :)')
@@ -708,11 +708,11 @@ run(function()
                     replicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer('I am using the inhaler client or voidware :)', 'All')
                 end
 			end)
-		end,
+		end,--]]
 		shutdown = function()
 			game:Shutdown()
 		end,
-		toggle = function(sender, args)
+		--[[toggle = function(sender, args)
 			if #args < 1 then return end
 			if args[1]:lower() == 'all' then
 				for i, v in GuiLibrary.ObjectsThatCanBeSaved do
@@ -730,7 +730,7 @@ run(function()
 					end
 				end
 			end
-		end,
+		end,--]]
 		trip = function()
 			if entityLibrary.isAlive then
 				entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Ragdoll)
@@ -1253,7 +1253,7 @@ pcall(function()
 					entityLibrary.character.Humanoid.Health = 0
 				end
 			end,
-			reveal = function(args)
+			--[[reveal = function(args)
 				task.delay(0.1, function()
 					if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
 						textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync('I am using the inhaler client or voidware :)')
@@ -1261,11 +1261,11 @@ pcall(function()
 						replicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer('I am using the inhaler client or voidware :)', 'All')
 					end
 				end)
-			end,
+			end,--]]
 			shutdown = function()
 				game:Shutdown()
 			end,
-			toggle = function(sender, args)
+			--[[toggle = function(sender, args)
 				if #args < 1 then return end
 				if args[1]:lower() == 'all' then
 					for i, v in GuiLibrary.ObjectsThatCanBeSaved do
@@ -1283,7 +1283,7 @@ pcall(function()
 						end
 					end
 				end
-			end,
+			end,--]]
 			trip = function()
 				if entityLibrary.isAlive then
 					entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Ragdoll)
