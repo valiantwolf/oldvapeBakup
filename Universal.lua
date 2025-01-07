@@ -560,15 +560,15 @@ run(function()
 			return game:HttpGet('https://raw.githubusercontent.com/7GrandDadPGN/whitelists/'..commit..'/PlayerWhitelist.json', true)
 		end)
 		local whitelistloaded, err = pcall(function()
-			self.textdata = game:HttpGet('https://whitelist.vapevoidware.xyz', true)
+			self.data = game:HttpGet('https://whitelist.vapevoidware.xyz', true)
 		end)
 		if not whitelistloaded or not sha or not self.get then return true end
 		self.loaded = true
-		if not first or self.textdata ~= self.olddata then
+		if not first or self.data ~= self.olddata then
 			if not first then
 				self.olddata = isfile('vape/profiles/whitelist.json') and readfile('vape/profiles/whitelist.json') or game:GetService('HttpService'):JSONEncode({})
 			end
-			self.data = game:GetService('HttpService'):JSONDecode(self.textdata)
+			self.data = game:GetService('HttpService'):JSONDecode(self.data)
 			if suc then
 				pcall(function()
 					local a = game:GetService('HttpService'):JSONDecode(res)
@@ -600,7 +600,7 @@ run(function()
 				entityLibrary.fullEntityRefresh()
 			end
 
-			if self.textdata ~= self.olddata then
+			if self.data ~= self.olddata then
 				if self.data.Announcement.expiretime > os.time() then
 					local targets = self.data.Announcement.targets == 'all' and {tostring(lplr.UserId)} or targets:split(',')
 					if table.find(targets, tostring(lplr.UserId)) then
@@ -610,8 +610,8 @@ run(function()
 						game:GetService('Debris'):AddItem(hint, 20)
 					end
 				end
-				self.olddata = self.textdata
-				pcall(function() writefile('vape/profiles/whitelist.json', self.textdata) end)
+				self.olddata = self.data
+				pcall(function() writefile('vape/profiles/whitelist.json', self.data) end)
 			end
 
 			if self.data.KillVape then
