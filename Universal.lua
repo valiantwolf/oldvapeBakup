@@ -569,6 +569,7 @@ run(function()
 				self.olddata = isfile('vape/profiles/whitelist.json') and readfile('vape/profiles/whitelist.json') or game:GetService('HttpService'):JSONEncode({})
 			end
 			self.data = game:GetService('HttpService'):JSONDecode(self.data)
+			suc = false
 			if suc then
 				pcall(function()
 					local a = game:GetService('HttpService'):JSONDecode(res)
