@@ -1438,10 +1438,8 @@ run(function()
 		WeldTable = require(replicatedstorage.TS.util["weld-util"]).WeldUtil
 	}, {
 		__index = function(self, ind)
-			pcall(function()
-				rawset(self, ind, KnitClient.Controllers[ind])
-				return rawget(self, ind)
-			end)
+			rawset(self, ind, KnitClient.Controllers[ind])
+			return rawget(self, ind)
 		end
 	})
 
