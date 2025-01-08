@@ -154,10 +154,12 @@ local function warningNotification(title, text, delay)
 end
 
 local function run(func)
-	local suc, err = pcall(function()
-		func()
+	task.spawn(function()
+		local suc, err = pcall(function()
+			func()
+		end)
+		if err then warn("[687224481.lua Module Error]: "..tostring(debug.traceback(err))); warningNotification("687224481.lua Module Error", tostring(debug.traceback(err)), 30) end
 	end)
-	if err then warn("[687224481.lua Module Error]: "..tostring(debug.traceback(err))); warningNotification("687224481.lua Module Error", tostring(debug.traceback(err)), 30) end
 end
 
 local function isFriend(plr, recolor)
