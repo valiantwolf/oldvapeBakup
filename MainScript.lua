@@ -102,39 +102,42 @@ local queueonteleport = syn and syn.queue_on_teleport or queue_on_teleport or fu
 local delfile = delfile or function(file) writefile(file, "") end
 
 local function displayErrorPopup(text, funclist)
-	local oldidentity = getidentity()
-	setidentity(8)
-	local ErrorPrompt = getrenv().require(game:GetService("CoreGui").RobloxGui.Modules.ErrorPrompt)
-	local prompt = ErrorPrompt.new("Default")
-	prompt._hideErrorCode = true
-	local gui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-	prompt:setErrorTitle("Vape")
-	local funcs
-	if funclist then
-		funcs = {}
-		local num = 0
-		for i,v in pairs(funclist) do
-			num = num + 1
-			table.insert(funcs, {
-				Text = i,
-				Callback = function()
-					prompt:_close()
-					v()
-				end,
-				Primary = num == #funclist
-			})
+	pcall(function()
+		if errorNotification and type(errorNotification) == 'function' then errorNotification('Voidware', tostring(text), 15) end
+		local oldidentity = getidentity()
+		setidentity(8)
+		local ErrorPrompt = getrenv().require(game:GetService("CoreGui").RobloxGui.Modules.ErrorPrompt)
+		local prompt = ErrorPrompt.new("Default")
+		prompt._hideErrorCode = true
+		local gui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+		prompt:setErrorTitle("Vape")
+		local funcs
+		if funclist then
+			funcs = {}
+			local num = 0
+			for i,v in pairs(funclist) do
+				num = num + 1
+				table.insert(funcs, {
+					Text = i,
+					Callback = function()
+						prompt:_close()
+						v()
+					end,
+					Primary = num == #funclist
+				})
+			end
 		end
-	end
-	prompt:updateButtons(funcs or {{
-		Text = "OK",
-		Callback = function()
-			prompt:_close()
-		end,
-		Primary = true
-	}}, 'Default')
-	prompt:setParent(gui)
-	prompt:_open(text)
-	setidentity(oldidentity)
+		prompt:updateButtons(funcs or {{
+			Text = "OK",
+			Callback = function()
+				prompt:_close()
+			end,
+			Primary = true
+		}}, 'Default')
+		prompt:setParent(gui)
+		prompt:_open(text)
+		setidentity(oldidentity)
+	end)
 end
 
 local function vapeGithubRequest(scripturl)
