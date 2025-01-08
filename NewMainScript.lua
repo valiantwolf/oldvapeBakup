@@ -25,7 +25,7 @@ local function checkExecutor()
             return identifyexecutor()
         end)   
         if suc then
-            if string.find(string.lower(tostring(res)), "appleware") or string.find(string.lower(tostring(res)), "delta") then CheatEngineMode = true end
+            if string.find(string.lower(tostring(res)), "appleware") or string.find(string.lower(tostring(res)), "delta") or string.find(string.lower(tostring(res)), 'cryptic') then CheatEngineMode = true end
         end
     end
 end
