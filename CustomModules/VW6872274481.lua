@@ -3165,6 +3165,7 @@ run(function()
 		return true
 	end
 	local GodMode = {Enabled = false}
+	local Slowmode = {Value = 2}
 	GodMode = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
 		Name = "AntiHit/Godmode",
 		Function = function(callback)
@@ -3205,7 +3206,7 @@ run(function()
 															end
 														end)
 					
-														task.wait(0.2)
+														task.wait(Slowmode.Value/10)
 														lplr.Character:WaitForChild("HumanoidRootPart").Velocity = Vector3.new(lplr.Character:WaitForChild("HumanoidRootPart").Velocity.X, -1, lplr.Character:WaitForChild("HumanoidRootPart").Velocity.Z)
 														lplr.Character:WaitForChild("HumanoidRootPart").CFrame = Clone.HumanoidRootPart.CFrame
 														gameCamera.CameraSubject = lplr.Character:FindFirstChild("Humanoid")
@@ -3223,6 +3224,13 @@ run(function()
 				end)
 			end
 		end
+	})
+	Slowmode = GodMode.CreateSlider({
+		Name = "Slowmode",
+		Function = function() end,
+		Default = 2,
+		Min = 1,
+		Max = 10
 	})
 end)
 
