@@ -24,8 +24,11 @@ local function checkExecutor()
         local suc, res = pcall(function()
             return identifyexecutor()
         end)   
+        local blacklist = {'appleware', 'delta', 'cryptic', 'wave'}
         if suc then
-            if string.find(string.lower(tostring(res)), "appleware") or string.find(string.lower(tostring(res)), "delta") or string.find(string.lower(tostring(res)), 'cryptic') then CheatEngineMode = true end
+            for i,v in pairs(blacklist) do
+                if string.find(string.lower(tostring(res)), v) then CheatEngineMode = true end
+            end
         end
     end
 end
