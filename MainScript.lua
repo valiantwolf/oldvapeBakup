@@ -101,6 +101,11 @@ local customassetcheck = (getsynasset or getcustomasset) and true
 local queueonteleport = syn and syn.queue_on_teleport or queue_on_teleport or function() end
 local delfile = delfile or function(file) writefile(file, "") end
 
+local suc, err = pcall(function()
+	return getrenv().require(game:GetService("CoreGui").RobloxGui.Modules.ErrorPrompt)
+end)
+if (not suc) then shared.CheatEngineMode = true end
+
 local function displayErrorPopup(text, funclist)
 	pcall(function()
 		if errorNotification and type(errorNotification) == 'function' then errorNotification('Voidware', tostring(text), 15) end
