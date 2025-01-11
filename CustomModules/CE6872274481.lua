@@ -6413,8 +6413,24 @@ run(function()
 	})
 end)
 
+local function addBlur(parent)
+	local blur = Instance.new('ImageLabel')
+	blur.Name = 'Blur'
+	blur.Size = UDim2.new(1, 89, 1, 52)
+	blur.Position = UDim2.fromOffset(-48, -31)
+	blur.BackgroundTransparency = 1
+	blur.Image = 'rbxassetid://14898786664'
+	blur.ScaleType = Enum.ScaleType.Slice
+	blur.SliceCenter = Rect.new(52, 31, 261, 502)
+	blur.Parent = parent
+	return blur
+end
+
 run(function()
 	local KitESP = {Enabled = false}
+	local Connections = {}
+	local Background = {Enabled = true}
+	local Color = {Hue = 30, Sat = 30, Value = 30}
 	local espobjs = {}
 	local espfold = Instance.new("Folder")
 	espfold.Parent = GuiLibrary.MainGui
@@ -6427,11 +6443,14 @@ run(function()
 		billboard.Size = UDim2.new(0, 32, 0, 32)
 		billboard.AlwaysOnTop = true
 		billboard.Adornee = v
+		local blur = addBlur(billboard)
+		blur.Visible = Background.Enabled
 		local image = Instance.new("ImageLabel")
 		image.BackgroundTransparency = 0.5
 		image.BorderSizePixel = 0
 		image.Image = bedwars.getIcon({itemType = icon}, true)
-		image.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+		image.BackgroundColor3 = Background.Enabled and Color3.fromHSV(Color.Hue, Color.Sat, Color.Value) or Color3.fromRGB(30, 30, 30)
+		image.BackgroundTransparency = not Background.Enabled and 1 or 0
 		image.Size = UDim2.new(0, 32, 0, 32)
 		image.AnchorPoint = Vector2.new(0.5, 0.5)
 		image.Parent = billboard
@@ -6443,38 +6462,64 @@ run(function()
 
 	local function addKit(tag, icon, custom)
 		if (not custom) then
-			table.insert(KitESP.Connections, collectionService:GetInstanceAddedSignal(tag):Connect(function(v)
+			local con1, con2, con3 = collectionService:GetInstanceAddedSignal(tag):Connect(function(v)
 				espadd(v.PrimaryPart, icon)
-			end))
-			table.insert(KitESP.Connections, collectionService:GetInstanceRemovedSignal(tag):Connect(function(v)
+			end), collectionService:GetInstanceAddedSignal(tag):Connect(function(v)
+				espadd(v.PrimaryPart, icon)
+			end), collectionService:GetInstanceRemovedSignal(tag):Connect(function(v)
 				if espobjs[v.PrimaryPart] then
 					espobjs[v.PrimaryPart]:Destroy()
 					espobjs[v.PrimaryPart] = nil
 				end
-			end))
-			for i,v in pairs(collectionService:GetTagged(tag)) do
-				espadd(v.PrimaryPart, icon)
-			end
+			end)
+			table.insert(Connections, con1)
+			table.insert(Connections, con2)
+			table.insert(Connections, con3)
 		else
 			local function check(v)
 				if v.Name == tag and v.ClassName == "Model" then
 					espadd(v.PrimaryPart, icon)
 				end
 			end
-			table.insert(KitESP.Connections, game.Workspace.ChildAdded:Connect(check))
-			table.insert(KitESP.Connections, game.Workspace.ChildRemoved:Connect(function(v)
+			local con1, con2 = game.Workspace.ChildAdded:Connect(check), game.Workspace.ChildRemoved:Connect(function(v)
 				pcall(function()
 					if espobjs[v.PrimaryPart] then
 						espobjs[v.PrimaryPart]:Destroy()
 						espobjs[v.PrimaryPart] = nil
 					end
 				end)
-			end))
+			end)
+			table.insert(Connections, con1)
+			table.insert(Connections, con2)
 			for i,v in pairs(game.Workspace:GetChildren()) do
 				check(v)
 			end
 		end
 	end
+
+	local esptbl = {
+		["metal_detector"] = {
+			{"hidden-metal", "iron"}
+		},
+		["beekeeper"] = {
+			{"bee", "bee"}
+		},
+		["bigman"] = {
+			{"treeOrb", "natures_essence_1"}
+		},
+		["alchemist"] = {
+			{"Thorns", "thorns", true},
+			{"Mushrooms", "mushrooms", true},
+			{"Flower", "wild_flower", true}
+		},
+		["star_collector"] = {
+			{"CritStar", "crit_star", true},
+			{"VitalityStar", "vitality_star", true}
+		},
+		["spirit_gardener"] = {
+			{"SpiritGardenerEnergy", "spirit", true}
+		}
+	}
 
 	KitESP = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
 		Name = "KitESP",
@@ -6483,27 +6528,43 @@ run(function()
 				task.spawn(function()
 					repeat task.wait() until store.equippedKit ~= ""
 					if KitESP.Enabled then
-						if store.equippedKit == "metal_detector" then
-							addKit("hidden-metal", "iron")
-						elseif store.equippedKit == "beekeeper" then
-							addKit("bee", "bee")
-						elseif store.equippedKit == "bigman" then
-							addKit("treeOrb", "natures_essence_1")
-						elseif store.equippedKit == "alchemist" then
-							addKit("Thorns", "thorns", true)
-							addKit("Mushrooms", "mushrooms", true)
-							addKit("Flower", "wild_flower", true)
-						elseif store.equippedKit == "star_collector" then
-							addKit("CritStar", "crit_star", true)
-							addKit("VitalityStar", "vitality_star", true)
+						local p1 = esptbl[store.equippedKit]
+						if (not p1) then return end
+						for i,v in pairs(p1) do 
+							addKit(unpack(v))
 						end
 					end
 				end)
 			else
 				espfold:ClearAllChildren()
 				table.clear(espobjs)
+				for i,v in pairs(Connections) do
+					pcall(function() v:Disconnect() end)
+				end
 			end
 		end
+	})
+	
+	Background = KitESP.CreateToggle({
+		Name = 'Background',
+		Function = function(callback)
+			if Color and Color.Object then Color.Object.Visible = callback end
+			for _, v in espobjs do
+				v.Blur.Visible = callback
+			end
+		end,
+		Default = true
+	})
+	Color = KitESP.CreateColorSlider({
+		Name = 'Background Color',
+		DefaultValue = 0,
+		DefaultOpacity = 0.5,
+		Function = function(hue, sat, val)
+			for _, v in espobjs do
+				v.ImageLabel.BackgroundColor3 = Color3.fromHSV(hue, sat, val)
+			end
+		end,
+		Darker = true
 	})
 end)
 
