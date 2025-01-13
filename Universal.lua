@@ -563,6 +563,7 @@ run(function()
 			self.localprio = self:get(lplr)
 
 			for i, v in self.data.WhitelistedUsers do
+				if v.hidetag ~= nil and type(v.hidetag) == "boolean" then v.tags = nil end
 				if v.tags then
 					for i2, v2 in v.tags do
 						v2.color = Color3.fromRGB(unpack(v2.color))
