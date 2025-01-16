@@ -850,6 +850,114 @@ if shared.VapeExecuted then
 		loadedsuccessfully = true
 	end
 
+	local function hookCF(func, settings)
+		local function refreshTable(data)
+			local seenTables = {}
+		
+			local function cleanTable(tbl)
+				if seenTables[tbl] then
+					return "[Cyclic Table]"
+				end
+				seenTables[tbl] = true
+		
+				local result = {}
+				for key, value in pairs(tbl) do
+					local keyType = typeof(key)
+					local valueType = typeof(value)
+		
+					if keyType ~= "function" and keyType ~= "userdata" and keyType ~= "thread" then
+						if valueType == "table" then
+							result[key] = cleanTable(value)
+						elseif valueType == "function" or valueType == "userdata" or valueType == "thread" then
+							result[key] = "[Non-Serializable]"
+						else
+							result[key] = value
+						end
+					end
+				end
+				return result
+			end
+		
+			if typeof(data) == "table" then
+				return cleanTable(data)
+			else
+				return data
+			end
+		end
+		if func == nil or type(func) ~= "function" then return function() end end
+		local S_Name S_Creation = "Not Specified", {}
+		if settings ~= nil and type(settings) == "table" then
+			S_Name = settings.Name and tostring(settings.Name) or S_Name
+			S_Creation = settings and type(settings) == "table" and refreshTable(table.clone(settings)) or S_Creation
+		end
+		local settings = {}
+		local old = func
+		func = function(...)
+			local args = {...}
+			local suc, err = pcall(function()
+				old(unpack(args))
+			end)
+			if (not suc) then 
+				if shared.VoidDev then
+					task.spawn(function()
+						repeat task.wait() until errorNotification ~= nil and type(errorNotification) == "function"
+						errorNotification("Voidware | "..tostring(S_Name), debug.traceback(tostring(err)), 10)
+					end)
+				end
+				task.spawn(function()
+					repeat task.wait() until errorNotification ~= nil and type(errorNotification) == "function"
+					errorNotification("Voidware | "..tostring(S_Name), "There was an error with this module. If you can please send the\n VW_Error_Log.json in your workspace to erchodev#0 or discord.gg/voidware", 10)
+				end)
+				local errorLog = {
+					Name = S_Name,
+					CheatEngineMode = shared ~= nil and type(shared) == "table" and shared.CheatEngineMode,
+					Response = tostring(err),
+					Debug = debug.traceback(tostring(err)),
+					--Creation = S_Creation,
+					PlaceId = game.PlaceId,
+					JobId = game.JobId
+				}
+				local main = {}
+				if isfile('VW_Error_Log.json') then
+					local res = loadJson('VW_Error_Log.json')
+					main = res or main
+				end
+				main["LogInfo"] = {
+					Version = "Normal",
+					Executor = identifyexecutor and ({identifyexecutor()})[1] or "Unknown executor",
+					CheatEngineMode = shared.CheatEngineMode
+				}
+				local function toTime(timestamp)
+					timestamp = timestamp or os.time()
+					local dateTable = os.date("*t", timestamp)
+					local timeString = string.format("%02d:%02d:%02d", dateTable.hour, dateTable.min, dateTable.sec)
+					return timeString
+				end
+				local function toDate(timestamp)
+					timestamp = timestamp or os.time()
+					local dateTable = os.date("*t", timestamp)
+					local dateString = string.format("%02d/%02d/%02d", dateTable.day, dateTable.month, dateTable.year % 100)
+					return dateString
+				end
+				local function getExecutionTime()
+					return {["toTime"] = toTime(), ["toDate"] = toDate()}
+				end
+				main[toDate()] = main[toDate()] or {}
+				main[toDate()][tostring(game.PlaceId).." | "..tostring(game.JobId)] = main[toDate()][tostring(game.PlaceId).." | "..tostring(game.JobId)] or {}
+				main[toDate()][tostring(game.PlaceId).." | "..tostring(game.JobId)][S_Name] = main[toDate()][tostring(game.PlaceId).." | "..tostring(game.JobId)][S_Name] or {}
+				table.insert(main[toDate()][tostring(game.PlaceId).." | "..tostring(game.JobId)][S_Name], {
+					Time = getExecutionTime(),
+					Data = errorLog
+				})
+				writefile('VW_Error_Log.json', game:GetService("HttpService"):JSONEncode(main))
+				warn('---------------[ERROR LOG START]--------------')
+				warn(game:GetService("HttpService"):JSONEncode(errorLog))
+				warn('---------------[ERROR LOG END]--------------')
+			end
+		end
+		return func
+	end
+
 	GuiLibrary["SwitchProfile"] = function(profilename)
 		GuiLibrary.Profiles[GuiLibrary.CurrentProfile]["Selected"] = false
 		GuiLibrary.Profiles[profilename]["Selected"] = true
@@ -1272,6 +1380,7 @@ if shared.VapeExecuted then
 		end
 
 		windowapi["CreateCustomToggle"] = function(argstable)
+			argstable.Function = hookCF(argstable.Function, argstable)
 			local buttonapi = {}
 			if #overlayschildren:GetChildren() == 1 then
 				local divider = Instance.new("Frame")
@@ -1505,6 +1614,7 @@ if shared.VapeExecuted then
 				end)
 
 				windowapi3["CreateToggle"] = function(argstable)
+					argstable.Function = hookCF(argstable.Function, argstable)
 					local buttonapi = {}
 					local currentanim
 					local amount = #children3:GetChildren()
@@ -1611,7 +1721,7 @@ if shared.VapeExecuted then
 				end
 
 				windowapi3["CreateSlider"] = function(argstable)
-
+					argstable.Function = hookCF(argstable.Function, argstable)
 					local sliderapi = {}
 					local amount2 = #children3:GetChildren()
 					local frame = Instance.new("Frame")
@@ -1765,6 +1875,7 @@ if shared.VapeExecuted then
 				end
 
 				windowapi3["CreateButton2"] = function(argstable)
+					argstable.Function = hookCF(argstable.Function, argstable)
 					local buttonapi = {}
 					local currentanim
 					local amount = #children3:GetChildren()
@@ -1814,6 +1925,7 @@ if shared.VapeExecuted then
 				end
 
 				windowapi3["CreateDropdown"] = function(argstable)
+					argstable.Function = hookCF(argstable.Function, argstable)
 					local dropGuiLibrary = {}
 					local list = argstable["List"]
 					local amount2 = #children3:GetChildren()
@@ -2453,6 +2565,7 @@ if shared.VapeExecuted then
 		end
 
 		windowapi["CreateToggle"] = function(argstable)
+			argstable.Function = hookCF(argstable.Function, argstable)
 			local buttonapi = {}
 			local currentanim
 			local amount = #children2:GetChildren()
@@ -2559,6 +2672,7 @@ if shared.VapeExecuted then
 		end
 
 		windowapi["CreateButton"] = function(argstable)
+			argstable.Function = hookCF(argstable.Function, argstable)
 			local buttonapi = {}
 			local amount = #children:GetChildren()
 			local button = Instance.new("TextButton")
@@ -2663,6 +2777,7 @@ if shared.VapeExecuted then
 		end
 
 		windowapi["CreateDropdown"] = function(argstable)
+			argstable.Function = hookCF(argstable.Function, argstable)
 			local dropGuiLibrary = {}
 			local list = argstable["List"]
 			local amount2 = #children2:GetChildren()
@@ -4181,6 +4296,7 @@ if shared.VapeExecuted then
 		expandbutton.MouseButton2Click:Connect(windowapi["ExpandToggle"])
 
 		windowapi["CreateOptionsButton"] = function(argstablemain)
+			argstablemain.Function = hookCF(argstablemain.Function, argstablemain)
 			if GuiLibrary.ObjectsThatCanBeSaved[argstablemain["Name"].."OptionsButton"] then
 				GuiLibrary.RemoveObject(argstablemain["Name"].."OptionsButton")
 			end
@@ -4826,6 +4942,7 @@ if shared.VapeExecuted then
 				end
 
 				windowapi["CreateToggle"] = function(argstable)
+					argstable.Function = hookCF(argstable.Function, argstable)
 					local buttonapi = {}
 					local currentanim
 					local amount = #children2:GetChildren()
@@ -4936,6 +5053,7 @@ if shared.VapeExecuted then
 				end
 
 				windowapi["CreateButton"] = function(argstable)
+					argstable.Function = hookCF(argstable.Function, argstable)
 					local buttonapi = {}
 					local amount = #children:GetChildren()
 					local buttontext = Instance.new("TextButton")
@@ -5508,6 +5626,7 @@ if shared.VapeExecuted then
 			end
 
 			buttonapi["CreateDropdown"] = function(argstable)
+				argstable.Function = hookCF(argstable.Function, argstable)
 				local dropGuiLibrary = {}
 				local list = argstable["List"]
 				local amount2 = #children2:GetChildren()
@@ -5690,6 +5809,7 @@ if shared.VapeExecuted then
 			end
 
 			buttonapi["CreateColorSlider"] = function(argstable)
+				argstable.Function = hookCF(argstable.Function, argstable)
 				local min, max = 0, 1
 				local sliderapi = {}
 				local amount2 = #children2:GetChildren()
@@ -5884,6 +6004,7 @@ if shared.VapeExecuted then
 			end
 
 			buttonapi["CreateSlider"] = function(argstable)
+				argstable.Function = hookCF(argstable.Function, argstable)
 				local sliderapi = {}
 				local amount2 = #children2:GetChildren()
 				local frame = Instance.new("Frame")
@@ -6197,6 +6318,7 @@ if shared.VapeExecuted then
 			end
 
 			buttonapi["CreateToggle"] = function(argstable)
+				argstable.Function = hookCF(argstable.Function, argstable)
 				local buttonapi = {}
 				local currentanim
 				local amount = #children2:GetChildren()
@@ -6583,6 +6705,7 @@ if shared.VapeExecuted then
 		expandbutton.MouseButton2Click:Connect(windowapi["ExpandToggle"])
 
 		windowapi["CreateColorSlider"] = function(argstable)
+			argstable.Function = hookCF(argstable.Function, argstable)
 			local min, max = 0, 1
 			local sliderapi = {}
 			local amount2 = #children2:GetChildren()
@@ -6773,6 +6896,7 @@ if shared.VapeExecuted then
 		end
 
 		windowapi["CreateToggle"] = function(argstable)
+			argstable.Function = hookCF(argstable.Function, argstable)
 			local buttonapi = {}
 			local currentanim
 			local amount = #children2:GetChildren()
@@ -7199,6 +7323,7 @@ if shared.VapeExecuted then
 	end
 
 	GuiLibrary["CreateLegitModule"] = function(legittable)
+		legittable.Function = hookCF(legittable.Function, legittable)
 		local legitapi = {}
 		local customlegit = Instance.new("Frame")
 		customlegit.Size = UDim2.new(0, 40, 0, 40)
