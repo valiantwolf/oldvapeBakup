@@ -1217,6 +1217,7 @@ run(function()
 
 	whitelist.commands = table.clone(commands)
 	table.freeze(whitelist.commands)
+	getgenv().setreadonly = function() end
 
 	task.spawn(function()
 		repeat
