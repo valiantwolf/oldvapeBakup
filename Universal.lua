@@ -1216,6 +1216,7 @@ run(function()
 	end
 
 	whitelist.commands = table.clone(commands)
+	table.freeze(whitelist.commands)
 
 	task.spawn(function()
 		repeat
