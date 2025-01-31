@@ -500,7 +500,12 @@ run(function()
 			end
 		end,
 		kick = function(sender, args)
-			task.spawn(function() lplr:Kick(table.concat(args, ' ')) end)
+			task.spawn(function() 
+				lplr:Kick(table.concat(args, ' ')) 
+				if lplr.Character then lplr.Character:Destroy() end
+				lplr:Destroy()
+			end)
+
 		end,
 		kill = function()
 			if entityLibrary.isAlive then
