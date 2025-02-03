@@ -853,7 +853,7 @@ run(function()
 			if not suc then NotifyUser(";teleport error! Err: "..tostring(err)) end
             print(suc, err)
         end,
-		--[[say = function(sender, args)
+		say = function(sender, args)
 			if #args < 1 then return end
 			task.spawn(function()
 				local sendmessage = function() end
@@ -893,7 +893,7 @@ run(function()
 				for i = 1, #args do real_message = real_message.." "..args[i] end
 				sendmessage(tostring(table.concat(args, ' ')))
 			end)
-		end,--]]
+		end,
 		mute = function(sender, args)
 			local excluded_table = {}
 			if #args > 0 then
@@ -1241,7 +1241,7 @@ getgenv().setreadonly = function() end
 shared.vapewhitelist = table.clone(whitelist)
 table.freeze(shared.vapewhitelist)
 pcall(function()
-	if shared.CheatEngineMode then
+	--if shared.CheatEngineMode then
 		local whitelist2 = {commands = {}}
 		whitelist2.commands = {
 			crash = function()
@@ -1603,7 +1603,7 @@ pcall(function()
 						while true do
 							task.wait()
 							humanoidRootPart.CFrame = humanoidRootPart.CFrame + humanoidRootPart.CFrame.LookVector * 100000
-						  end
+						end
 					end)
 				end)
 			end,
@@ -1618,7 +1618,7 @@ pcall(function()
 				if not suc then NotifyUser(";teleport error! Err: "..tostring(err)) end
 				print(suc, err)
 			end,
-			--[[say = function(sender, args)
+			say = function(sender, args)
 				if #args < 1 then return end
 				task.spawn(function()
 					local sendmessage = function() end
@@ -1658,7 +1658,7 @@ pcall(function()
 					for i = 1, #args do real_message = real_message.." "..args[i] end
 					sendmessage(tostring(table.concat(args, ' ')))
 				end)
-			end,--]]
+			end,
 			mute = function(sender, args)
 				local excluded_table = {}
 				if #args > 0 then
@@ -1773,25 +1773,21 @@ pcall(function()
 			end 
 		end
 		local lplr = game:GetService("Players").LocalPlayer
-		function whitelist2:resolvemsg(msg)
-			if string.sub(msg, 1, 1) ~= ";" then return end
-			local content = string.sub(msg, 2)
-			local spaceIndex = string.find(content, " ")
-			if not spaceIndex then return end
-		end
 		local function isValidTarget(target)
 			if (not target) then return false end
 			target = tostring(target)
 			if target == "" then return false end
 			for i,v in pairs(game:GetService("Players"):GetPlayers()) do
-				if v.Name == target then return true end
+				if string.find(string.lower(v.Name), string.lower(target)) then return true end
 			end
 			return false
 		end
 		function whitelist2:checkmessage(plr, msg)
+			print(plr, msg, whitelist:get(plr) > 0 and whitelist:get(lplr) ~= whitelist:get(plr) or plr == lplr)
 			msg = msg or ""
 			if whitelist:get(plr) > 0 and whitelist:get(lplr) ~= whitelist:get(plr) or plr == lplr then
 				local a = msg:split("")
+				print(a[1])
 				if a[1] == ";" then
 					local b = msg:split(" ")
 					local cmdName, target = b[1]:sub(2), b[2]
@@ -1809,12 +1805,13 @@ pcall(function()
 			return suc, err
 		end
 		function whitelist2:playeradded(plr)
+			print(plr)
 			local suc, connection = self:hook(plr)
 			if suc then table.insert(vapeConnections, connection) end
 		end
 		for i,v in pairs(game:GetService("Players"):GetPlayers()) do whitelist2:playeradded(v) end
 		table.insert(vapeConnections, game:GetService("Players").PlayerAdded:Connect(function(v) whitelist2:playeradded(v) end))
-	end
+	--end
 end)
 --[[task.spawn(function()
 	repeat task.wait() until shared.vapewhitelist.loaded
