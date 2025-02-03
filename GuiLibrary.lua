@@ -946,7 +946,7 @@ if shared.VapeExecuted then
 					local timeString = string.format("%02d:%02d:%02d", dateTable.hour, dateTable.min, dateTable.sec)
 					return timeString
 				end
-				local function toDate(timestamp)--
+				local function toDate(timestamp)
 					timestamp = timestamp or os.time()
 					local dateTable = os.date("*t", timestamp)
 					local dateString = string.format("%02d/%02d/%02d", dateTable.day, dateTable.month, dateTable.year % 100)
