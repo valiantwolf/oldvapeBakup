@@ -1838,44 +1838,11 @@ local RunLoops = {
     HeartTable = {}
 }
 
-local RunService = game:GetService("RunService")
-
-local function runCap(callback)
-    local interval = 1/60
-    local lastTime = os.clock()
-    local connection = {
-        _connected = true,
-        Disconnect = function(self)
-            self._connected = false
-        end
-    }
-
-    coroutine.wrap(function()
-        while connection._connected do
-            local currentTime = os.clock()
-            local delta = currentTime - lastTime
-            
-            if delta >= interval then
-                callback(delta)
-                lastTime = currentTime
-            end
-            
-            RunService.RenderStepped:Wait()
-        end
-    end)()
-
-    return connection
-end
-
 local function BindToLoop(tableName, service, name, func)
 	local oldfunc = func
 	func = function(delta) VoidwareFunctions.handlepcall(pcall(function() oldfunc(delta) end)) end
     if RunLoops[tableName][name] == nil then
-		if tableName == "RenderStepTable" then
-			RunLoops[tableName][name] = runCap(func)
-		else
-			RunLoops[tableName][name] = service:Connect(func)
-		end
+        RunLoops[tableName][name] = service:Connect(func)
         table.insert(vapeConnections, RunLoops[tableName][name])
     end
 end
