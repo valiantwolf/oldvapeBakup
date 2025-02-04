@@ -416,6 +416,24 @@ if not shared.VapeDeveloper then
 		error("Failed to connect to github, please try using a VPN.")
 	end
 end
+local url = shared.RiseMode and "https://github.com/VapeVoidware/VWRise/" or "https://github.com/VapeVoidware/VoidwareBakup"
+local commit = "main"
+writefile(baseDirectory.."commithash2.txt", commit)
+for i,v in pairs(game:HttpGet(url):split("\n")) do 
+    if v:find("commit") and v:find("fragment") then 
+        local str = v:split("/")[5]
+        commit = str:sub(0, str:find('"') - 1)
+        break
+    end
+end
+if commit = "main" then
+    if not shared.RiseMode then
+        commit = '61d99814816af88c262858cbc9c7a6d7c2da7769'
+    else
+        commit = 'cb602aceb682e80f128369ab1889ae635cf41cf5'
+    end
+end
+writefile(baseDirectory.."commithash2.txt", commit)
 local function vapeGithubRequest(scripturl, isImportant)
     if isfile(baseDirectory..scripturl) then
         if not shared.VoidDev then
@@ -426,7 +444,7 @@ local function vapeGithubRequest(scripturl, isImportant)
     end
     local suc, res
     local url = (scripturl == "MainScript.lua" or scripturl == "GuiLibrary.lua") and shared.RiseMode and "https://raw.githubusercontent.com/VapeVoidware/VWRise/" or "https://raw.githubusercontent.com/VapeVoidware/VoidwareBakup/"
-    suc, res = pcall(function() return game:HttpGet(url..readfile(baseDirectory.."commithash2.txt").."/"..scripturl, true) end)
+    suc, res = pcall(function() return game:HttpGet(url..commit.."/"..scripturl, true) end)
     if not suc or res == "404: Not Found" then
         if isImportant then
             game:GetService("Players").LocalPlayer:Kick("Failed to connect to github : "..baseDirectory..scripturl.." : "..res)
