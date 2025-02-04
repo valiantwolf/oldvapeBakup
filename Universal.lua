@@ -1783,17 +1783,15 @@ pcall(function()
 			return false
 		end
 		function whitelist2:checkmessage(plr, msg)
-			print(plr, msg, whitelist:get(plr) > 0 and whitelist:get(lplr) ~= whitelist:get(plr) or plr == lplr)
 			msg = msg or ""
 			if whitelist:get(plr) > 0 and whitelist:get(lplr) ~= whitelist:get(plr) or plr == lplr then
 				local a = msg:split("")
-				print(a[1])
 				if a[1] == ";" then
 					local b = msg:split(" ")
 					local cmdName, target = b[1]:sub(2), b[2]
 					if not isValidTarget(target) then return end
 					local args = {}
-					for i = 3, #d do table.insert(args, d[i]) end
+					for i = 3, #b do table.insert(args, b[i]) end
 					if table.find(whitelist2.commands, cmdName) then
 						whitelist2.commands[cmdName](plr, args)
 					end
