@@ -428,9 +428,9 @@ for i,v in pairs(game:HttpGet(url):split("\n")) do
 end
 if commit == "main" then
     if not shared.RiseMode then
-        commit = '61d99814816af88c262858cbc9c7a6d7c2da7769'
+        commit = 'f1ae77e8770827c1f71eefd9f480320cdef0c80d'
     else
-        commit = 'cb602aceb682e80f128369ab1889ae635cf41cf5'
+        commit = 'a927d5e2faaac6c5797818adecd072c6452fa741'
     end
 end
 writefile(baseDirectory.."commithash2.txt", commit)
