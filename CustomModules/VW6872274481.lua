@@ -583,7 +583,7 @@ run(function()
 	})
 	PlayerLevel = PlayerLevelSet.CreateSlider({
 		Name = 'Sets your desired player level',
-		Function = function() game.Players.LocalPlayer:SetAttribute("PlayerLevel", PlayerLevel.Value) end,
+		Function = function() if PlayerLevelSet.Enabled then game.Players.LocalPlayer:SetAttribute("PlayerLevel", PlayerLevel.Value) end end,
 		Min = 1,
 		Max = 100,
 		Default = 100

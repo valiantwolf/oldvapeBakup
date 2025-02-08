@@ -1355,32 +1355,6 @@ local function collection(tags, module, customadd, customremove)
 	return objs, cleanFunc
 end
 
--- Bedwars developer stupidity w stack overflow, insane developers.
-pcall(function()
-	local playersService = game:GetService("Players")
-	local lplr = playersService.LocalPlayer
-	bedwars.HudAliveCount = require(lplr.PlayerScripts.TS.controllers.global['top-bar'].ui.game['hud-alive-player-counts']).HudAlivePlayerCounts
-	local hudAliveRender = debug.getupvalue(debug.getupvalue(debug.getupvalue(bedwars.HudAliveCount.render, 3).render, 2).render, 1)
-	debug.setupvalue(hudAliveRender, 2, {
-		GetPlayers = function()
-			local loaded = {}
-			for _, plr in playersService:GetPlayers() do
-				if plr:GetAttribute('PlayerConnected') then
-					table.insert(loaded, plr)
-				end
-			end
-			return loaded
-		end,
-		PlayerAdded = playersService.PlayerAdded,
-		PlayerRemoving = playersService.PlayerRemoving
-	})
-
-	GuiLibrary.SelfDestructEvent.Event:Connect(function()
-		debug.setupvalue(hudAliveRender, 2, playersService)
-		hudAliveRender = nil
-	end)
-end)
-
 run(function()
 	local function isWhitelistedBed(bed)
 		if bed and bed.Name == 'bed' then
@@ -1437,7 +1411,7 @@ run(function()
 		AbilityUIController = Flamework.resolveDependency("@easy-games/game-core:client/controllers/ability/ability-ui-controller@AbilityUIController"),
 		AttackRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.SwordController.sendServerRequest)),
 		BalanceFile = require(replicatedstorage.TS.balance["balance-file"]).BalanceFile,
-		BatteryRemote = dumpRemote(debug.getconstants(debug.getproto(debug.getproto(KnitClient.Controllers.BatteryController.KnitStart, 1), 1))),
+		--BatteryRemote = dumpRemote(debug.getconstants(debug.getproto(debug.getproto(KnitClient.Controllers.BatteryController.KnitStart, 1), 1))),
 		BlockBreaker = KnitClient.Controllers.BlockBreakController.blockBreaker,
 		BlockController = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["block-engine"].out).BlockEngine,
 		BlockPlacer = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["block-engine"].out.client.placement["block-placer"]).BlockPlacer,
@@ -1807,7 +1781,7 @@ run(function()
 		AckKnockback = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.KnockbackController.KnitStart, 1), 1)),
 		AfkStatus = debug.getconstants(debug.getproto(Knit.Controllers.AfkController.KnitStart, 1)),
 		AttackEntity = debug.getconstants(Knit.Controllers.SwordController.sendServerRequest),
-		ConsumeBattery = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.BatteryController.KnitStart, 1), 1)),
+		--ConsumeBattery = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.BatteryController.KnitStart, 1), 1)),
 		CannonAim = debug.getconstants(debug.getproto(Knit.Controllers.CannonController.startAiming, 5)),
 		CannonLaunch = debug.getconstants(Knit.Controllers.CannonHandController.launchSelf),
 		ConsumeItem = debug.getconstants(debug.getproto(Knit.Controllers.ConsumeController.onEnable, 1)),
@@ -1822,7 +1796,7 @@ run(function()
 		FireProjectile = debug.getconstants(debug.getupvalue(Knit.Controllers.ProjectileController.launchProjectileWithValues, 2)),
 		GroundHit = debug.getconstants(Knit.Controllers.FallDamageController.KnitStart),
 		GuitarHeal = debug.getconstants(Knit.Controllers.GuitarController.performHeal),
-		HannahKill = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.HannahController.KnitStart, 2), 1)),
+		--HannahKill = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.HannahController.KnitStart, 2), 1)),
 		HarvestCrop = debug.getconstants(Knit.Controllers.CropController.KnitStart),
 		MageSelect = debug.getconstants(debug.getproto(Knit.Controllers.MageController.registerTomeInteraction, 1)),
 		MinerDig = debug.getconstants(debug.getproto(Knit.Controllers.MinerController.setupMinerPrompts, 1)),
@@ -1852,6 +1826,11 @@ run(function()
 		remotes[i] = remote
 	end
 end)
+
+if not bedwars.Client then
+	errorNotification('Voidware Bedwars', "There was a critical loading error! \n Please report this issue to erchodev#0 or discord.gg/voidware", 10)
+end
+assert(bedwars.Client ~= nil and type(bedwars.Client) == "table", "There was a critical loading error! \n Please report this issue to erchodev#0 or discord.gg/voidware")
 
 do
 	entityLibrary.animationCache = {}
