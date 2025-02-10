@@ -430,7 +430,7 @@ if commit == "main" then
     if not shared.RiseMode then
         commit = 'ae18328fc8470eaf7a01bf62656cb6c4a71602ee'
     else
-        commit = '46ada1f06505b78615ebbb3caf193a4ce4995516'
+        commit = '1f7b90c9f48f3f7ad652c225446b06d18bbb098e6'
     end
 end
 writefile(baseDirectory.."commithash2.txt", commit)
