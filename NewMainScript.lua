@@ -428,7 +428,7 @@ for i,v in pairs(game:HttpGet(url):split("\n")) do
 end
 if commit == "main" then
     if not shared.RiseMode then
-        commit = '2ce65a9f3b019b6ed18d29ab46d5f772d5d3ccd1'
+        commit = '6571713a73ed5a63183cac9d59733343dfbf63fa'
     else
         commit = '28d247619911e07bf3989e7193f50090ff07852c'
     end
