@@ -419,19 +419,10 @@ end
 local url = shared.RiseMode and "https://github.com/VapeVoidware/VWRise/" or "https://github.com/VapeVoidware/VoidwareBakup"
 local commit = "main"
 writefile(baseDirectory.."commithash2.txt", commit)
-for i,v in pairs(game:HttpGet(url):split("\n")) do 
-    if v:find("commit") and v:find("fragment") then 
-        local str = v:split("/")[5]
-        commit = str:sub(0, str:find('"') - 1)
-        break
-    end
-end
-if commit == "main" then
-    if not shared.RiseMode then
-        commit = 'd562d30f2c41c0d78ff6c4e838d3f91c052ffe24'
-    else
-        commit = 'cbfac44e3377f47a69303b5e1330a37adc129dd0'
-    end
+if not shared.RiseMode then
+    commit = 'd562d30f2c41c0d78ff6c4e838d3f91c052ffe24'
+else
+    commit = 'cbfac44e3377f47a69303b5e1330a37adc129dd0'
 end
 writefile(baseDirectory.."commithash2.txt", commit)
 local function vapeGithubRequest(scripturl, isImportant)
