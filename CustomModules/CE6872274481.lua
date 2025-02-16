@@ -10264,7 +10264,7 @@ end)
 	})
 end)--]]
 
-run(function() 
+--[[run(function() 
     local Settings = {
         BypassActive = {Enabled = false},
         ZephyrMode = {Enabled = false},
@@ -10429,7 +10429,7 @@ run(function()
         Default = true,
         Function = function() end
     })
-end)
+end)--]]
 
 run(function()
 	local WhisperAura = {Enabled = false}

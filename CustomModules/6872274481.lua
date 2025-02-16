@@ -10342,7 +10342,7 @@ run(function()
 	})
 end)
 
-run(function() 
+--[[run(function() 
     local Settings = {
         BypassActive = {Enabled = false},
         ZephyrMode = {Enabled = false},
@@ -10506,7 +10506,7 @@ run(function()
         Default = true,
         Function = function() end
     })
-end)
+end)--]]
 
 VoidwareFunctions.GlobaliseObject("store", store)
 VoidwareFunctions.GlobaliseObject("GlobalStore", store)
