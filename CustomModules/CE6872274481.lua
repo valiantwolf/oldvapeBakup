@@ -3919,6 +3919,32 @@ run(function()
 	})
 end)
 
+local IgnoreObject = RaycastParams.new()
+IgnoreObject.RespectCanCollide = true
+local lplr = game:GetService("Players").LocalPlayer
+local List = {}
+local Wallcheck = function(origin, position, ignoreobject)
+	List = entitylib and entitylib.List or entityLibrary and entityLibrary.entityList
+	if typeof(ignoreobject) ~= 'Instance' then
+		local ignorelist = {gameCamera, lplr.Character}
+		for _, v in List do
+			if v.Targetable then
+				table.insert(ignorelist, v.Character)
+			end
+		end
+
+		if typeof(ignoreobject) == 'table' then
+			for _, v in ignoreobject do
+				table.insert(ignorelist, v)
+			end
+		end
+
+		ignoreobject = IgnoreObject
+		ignoreobject.FilterDescendantsInstances = ignorelist
+	end
+	return game.Workspace.Raycast(game.Workspace, origin, (position - origin), ignoreobject)
+end
+
 local killauraNearPlayer
 run(function()
 	local Killaura = {Enabled = false}
@@ -4257,9 +4283,9 @@ run(function()
 										continue
 									end
 									local selfrootpos = entityLibrary.character.HumanoidRootPart.Position
-									--[[if killauratargetframe.Walls.Enabled then
-										if not bedwars.SwordController:canSee({player = plr.Player, getInstance = function() return plr.Character end}) then continue end
-									end--]]
+									if killauratargetframe.Walls.Enabled then
+										if not WallCheck(lplr.Character:WaitForChild("HumanoidRootPart"), plr.Character.RootPart.Position, true) then return end
+									end
 									if killauranovape.Enabled and store.whitelist.clientUsers[plr.Player.Name] then
 										continue
 									end
