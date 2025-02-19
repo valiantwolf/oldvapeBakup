@@ -4284,7 +4284,7 @@ run(function()
 									end
 									local selfrootpos = entityLibrary.character.HumanoidRootPart.Position
 									if killauratargetframe.Walls.Enabled then
-										if not WallCheck(lplr.Character:WaitForChild("HumanoidRootPart"), plr.Character.RootPart.Position, true) then return end
+										if not WallCheck(lplr.Character:WaitForChild("HumanoidRootPart"), plr.Character.RootPart.Position, true) then continue end
 									end
 									if killauranovape.Enabled and store.whitelist.clientUsers[plr.Player.Name] then
 										continue
