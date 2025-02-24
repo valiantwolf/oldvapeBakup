@@ -2130,6 +2130,7 @@ run(function()
 	local AimAssistStrafe = {Enabled = false}
 	local AimSpeed = {Value = 1}
 	local AimAssistTargetFrame = {Players = {Enabled = false}}
+	local IgnoreEntities = {Enabled = false}
 	AimAssist = GuiLibrary.ObjectsThatCanBeSaved.CombatWindow.Api.CreateOptionsButton({
 		Name = "AimAssist",
 		Function = function(callback)
@@ -2137,7 +2138,7 @@ run(function()
 				RunLoops:BindToRenderStep("AimAssist", function(dt)
 					vapeTargetInfo.Targets.AimAssist = nil
 					if ((not AimAssistClickAim.Enabled) or (tick() - bedwars.SwordController.lastSwing) < 0.4) then
-						local plr = EntityNearPosition(18)
+						local plr = EntityNearPosition(18, IgnoreEntities.Enabled)
 						if plr then
 							vapeTargetInfo.Targets.AimAssist = {
 								Humanoid = {
@@ -2164,6 +2165,11 @@ run(function()
 			end
 		end,
 		HoverText = "Smoothly aims to closest valid target with sword"
+	})
+	IgnoreEntities = AimAssist.CreateToggle({
+		Name = "Ignore bots (skeletons, void creautures)",
+		Function = function() end,
+		Default = false
 	})
 	AimAssistTargetFrame = AimAssist.CreateTargetWindow({Default3 = true})
 	AimAssistClickAim = AimAssist.CreateToggle({

@@ -2351,6 +2351,7 @@ end)
 		local AimSpeed = {Value = 1}
 		local HandCheck = {Enabled = false}
 		local AimAssistTargetFrame = {Players = {Enabled = false}}
+		local IgnoreEntities = {Enabled = false}
 		AimAssist = GuiLibrary.ObjectsThatCanBeSaved.CombatWindow.Api.CreateOptionsButton({
 			Name = "AimAssist",
 			Function = function(callback)
@@ -2359,7 +2360,7 @@ end)
 						vapeTargetInfo.Targets.AimAssist = nil
 						if ((not AimAssistClickAim.Enabled) or (tick() - bedwars.SwordController.lastSwing) < 0.4) and GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton and not (GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api and GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled) then
 							if HandCheck.Enabled and not (store.localHand and store.localHand.Type and store.localHand.Type == "sword") then return end
-							local plr = EntityNearPosition(18)
+							local plr = EntityNearPosition(18, IgnoreEntities.Enabled)
 							if plr then
 								vapeTargetInfo.Targets.AimAssist = {
 									Humanoid = {
@@ -2388,6 +2389,11 @@ end)
 			HoverText = "Smoothly aims to closest valid target with sword"
 		})
 		AimAssist.Restart = function() if AimAssist.Enabled then AimAssist.ToggleButton(false); AimAssist.ToggleButton(false) end end
+		IgnoreEntities = AimAssist.CreateToggle({
+			Name = "Ignore bots (skeletons, void creautures)",
+			Function = function() end,
+			Default = false
+		})
 		AimAssistTargetFrame = AimAssist.CreateTargetWindow({Default3 = true})
 		HandCheck = AimAssist.CreateToggle({
 			Name = "Sword Check",
