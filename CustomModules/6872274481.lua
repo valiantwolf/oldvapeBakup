@@ -4426,6 +4426,7 @@ run(function()
 				
 				CoreConnection = game:GetService("RunService").Heartbeat:Connect(function()
 					if not entityLibrary.isAlive then return end
+					if LongJump.Enabled then return end
 					local humanoid = entityLibrary.character.Humanoid
 					local rootPart = entityLibrary.character.HumanoidRootPart
 					if humanoid:GetState() == Enum.HumanoidStateType.Freefall and rootPart.Velocity.Y < velocityThreshold then
