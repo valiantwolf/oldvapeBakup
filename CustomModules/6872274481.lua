@@ -1683,20 +1683,24 @@ run(function()
 	table.insert(vapeConnections, bedwars.ClientStoreHandler.changed:connect(updateStore))
 	updateStore(bedwars.ClientStoreHandler:getState(), {})
 
-	for i, v in pairs({"MatchEndEvent", "EntityDeathEvent", "EntityDamageEvent", "BedwarsBedBreak", "BalloonPopped", "AngelProgress"}) do
-		bedwars.Client:WaitFor(v):andThen(function(connection)
-			table.insert(vapeConnections, connection:Connect(function(...)
-				vapeEvents[v]:Fire(...)
-			end))
+	task.spawn(function()
+		pcall(function()
+			for i, v in pairs({"MatchEndEvent", "EntityDeathEvent", "EntityDamageEvent", "BedwarsBedBreak", "BalloonPopped", "AngelProgress"}) do
+				bedwars.Client:WaitFor(v):andThen(function(connection)
+					table.insert(vapeConnections, connection:Connect(function(...)
+						vapeEvents[v]:Fire(...)
+					end))
+				end)
+			end
+			for i, v in pairs({"PlaceBlockEvent", "BreakBlockEvent"}) do
+				bedwars.ClientDamageBlock:WaitFor(v):andThen(function(connection)
+					table.insert(vapeConnections, connection:Connect(function(...)
+						vapeEvents[v]:Fire(...)
+					end))
+				end)
+			end
 		end)
-	end
-	for i, v in pairs({"PlaceBlockEvent", "BreakBlockEvent"}) do
-		bedwars.ClientDamageBlock:WaitFor(v):andThen(function(connection)
-			table.insert(vapeConnections, connection:Connect(function(...)
-				vapeEvents[v]:Fire(...)
-			end))
-		end)
-	end
+	end)
 
 	store.shop = collection({'BedwarsItemShop', 'TeamUpgradeShopkeeper'}, GuiLibrary, function(tab, obj)
 		table.insert(tab, {
