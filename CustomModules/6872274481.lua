@@ -491,12 +491,17 @@ local function getBestTool(block)
 end
 
 local function switchItem(tool)
-	if lplr.Character.HandInvItem.Value ~= tool then
-		bedwars.Client:Get(bedwars.EquipItemRemote):CallServerAsync({
-			hand = tool
-		})
-		local started = tick()
-		repeat task.wait() until (tick() - started) > 0.3 or lplr.Character.HandInvItem.Value == tool
+	delayTime = delayTime or 0.05
+	local check = lplr.Character and lplr.Character:FindFirstChild('HandInvItem') or nil
+	if check and check.Value ~= tool and tool.Parent ~= nil then
+		task.spawn(function()
+			bedwars.Client:Get(bedwars.EquipItemRemote):CallServerAsync({hand = tool})
+		end)
+		check.Value = tool
+		if delayTime > 0 then
+			task.wait(delayTime)
+		end
+		return true
 	end
 end
 VoidwareFunctions.GlobaliseObject("switchItem", switchItem)

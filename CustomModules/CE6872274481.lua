@@ -481,14 +481,17 @@ table.insert(vapeConnections, updateitem.Event:Connect(function(inputObj)
 	end
 end))
 local function switchItem(tool)
-	if (entityLibrary.isAlive and lplr.Character:FindFirstChild("HandInvItem")) then
-		if lplr.Character:FindFirstChild("HandInvItem").Value ~= tool then
-			bedwars.Client:Get(bedwars.EquipItemRemote):InvokeServer({
-				hand = tool
-			})
-			local started = tick()
-			repeat task.wait() until (tick() - started) > 0.3 or lplr.Character:FindFirstChild("HandInvItem") and lplr.Character:FindFirstChild("HandInvItem").Value == tool
+	delayTime = delayTime or 0.05
+	local check = lplr.Character and lplr.Character:FindFirstChild('HandInvItem') or nil
+	if check and check.Value ~= tool and tool.Parent ~= nil then
+		task.spawn(function()
+			bedwars.Client:Get(bedwars.EquipItemRemote):InvokeServer({hand = tool})
+		end)
+		check.Value = tool
+		if delayTime > 0 then
+			task.wait(delayTime)
 		end
+		return true
 	end
 end
 VoidwareFunctions.GlobaliseObject("switchItem", switchItem)
@@ -3925,30 +3928,46 @@ run(function()
 	})
 end)
 
-local IgnoreObject = RaycastParams.new()
-IgnoreObject.RespectCanCollide = true
-local lplr = game:GetService("Players").LocalPlayer
-local List = {}
-local Wallcheck = function(origin, position, ignoreobject)
-	List = entitylib and entitylib.List or entityLibrary and entityLibrary.entityList
-	if typeof(ignoreobject) ~= 'Instance' then
-		local ignorelist = {gameCamera, lplr.Character}
-		for _, v in List do
-			if v.Targetable then
-				table.insert(ignorelist, v.Character)
-			end
-		end
+local function Wallcheck(attackerCharacter, targetCharacter, additionalIgnore)
+    if not (attackerCharacter and targetCharacter) then
+        return false
+    end
 
-		if typeof(ignoreobject) == 'table' then
-			for _, v in ignoreobject do
-				table.insert(ignorelist, v)
-			end
-		end
+    local humanoidRootPart = attackerCharacter:FindFirstChild("HumanoidRootPart")
+    local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+    if not (humanoidRootPart and targetRootPart) then
+        return false
+    end
 
-		ignoreobject = IgnoreObject
-		ignoreobject.FilterDescendantsInstances = ignorelist
-	end
-	return game.Workspace.Raycast(game.Workspace, origin, (position - origin), ignoreobject)
+    local origin = humanoidRootPart.Position
+    local targetPosition = targetRootPart.Position
+    local direction = targetPosition - origin
+
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+    raycastParams.RespectCanCollide = true
+
+    local ignoreList = {attackerCharacter}
+    
+    if additionalIgnore and typeof(additionalIgnore) == "table" then
+        for _, item in pairs(additionalIgnore) do
+            table.insert(ignoreList, item)
+        end
+    end
+
+    raycastParams.FilterDescendantsInstances = ignoreList
+
+    local raycastResult = workspace:Raycast(origin, direction, raycastParams)
+
+    if raycastResult then
+        if raycastResult.Instance:IsDescendantOf(targetCharacter) then
+            return true
+        else
+            return false
+        end
+    else
+        return false
+    end
 end
 
 local killauraNearPlayer
@@ -4290,7 +4309,7 @@ run(function()
 									end
 									local selfrootpos = entityLibrary.character.HumanoidRootPart.Position
 									if killauratargetframe.Walls.Enabled then
-										if not WallCheck(lplr.Character:WaitForChild("HumanoidRootPart"), plr.Character.RootPart.Position, true) then continue end
+										if not Wallcheck(lplr.Character, plr.Character) then continue end
 									end
 									if killauranovape.Enabled and store.whitelist.clientUsers[plr.Player.Name] then
 										continue
