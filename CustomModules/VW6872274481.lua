@@ -2474,6 +2474,7 @@ run(function()
             Boost = function() self:applyBoost() end,
             Sky = function() self:moveToSky() end
         }
+		if antiDeathConfig.Mode.Value == "Infinite" then return end
         modeActions[antiDeathConfig.Mode.Value]()
     end
 
