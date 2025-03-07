@@ -2024,6 +2024,9 @@ if shared.BACKUPTELEPORTMODE then
 			if shared.NoAutoExecute then
 				teleportScript = 'shared.NoAutoExecute = true\n'..teleportScript
 			end
+			if shared.CheatEngineMode then
+				teleportScript = 'shared.CheatEngineMode = true\n'..teleportScript
+			end
 			if shared.TeleportExploitAutowinEnabled then
 				teleportScript = 'shared.TeleportExploitAutowinEnabled = true\n'..teleportScript
 			end
