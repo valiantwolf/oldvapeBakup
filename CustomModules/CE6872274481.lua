@@ -4065,69 +4065,84 @@ run(function()
 				task.spawn(function()
 					repeat
 						task.wait(0.01)
-						local suc, err = pcall(function()
-							if not Killaura.Enabled then break end
-							vapeTargetInfo.Targets.Killaura = nil
-							local plrs = {EntityNearPosition(killaurarange.Value, false)}
-							local firstPlayerNear
-							if #plrs > 0 then
-								task.spawn(function()
-									pcall(function()
-										--if getItemNear('warlock_staff') then bedwars.WarlockController:link(plrs[1].Character) end
-										if getItemNear('infernal_saber') then bedwars.EmberController:BladeRelease(getItemNear('infernal_saber')) end
-										if getItemNear('summoner_claw') then bedwars.KaidaController:request(plrs[1].Character) end
-										if getItemNear('noctium_blade') then for i,v in pairs({"void_knight_consume_emerald", "void_knight_consume_iron"}) do if bedwars.AbilityController:canUseAbility(v) then bedwars.AbilityController:useAbility(v) end end end
-									end)
+						if not Killaura.Enabled then break end
+						vapeTargetInfo.Targets.Killaura = nil
+						local plrs = {EntityNearPosition(killaurarange.Value, false)}
+						local firstPlayerNear
+						if #plrs > 0 then
+							task.spawn(function()
+								pcall(function()
+									--if getItemNear('warlock_staff') then bedwars.WarlockController:link(plrs[1].Character) end
+									if getItemNear('infernal_saber') then bedwars.EmberController:BladeRelease(getItemNear('infernal_saber')) end
+									if getItemNear('summoner_claw') then bedwars.KaidaController:request(plrs[1].Character) end
+									if getItemNear('noctium_blade') then for i,v in pairs({"void_knight_consume_emerald", "void_knight_consume_iron"}) do if bedwars.AbilityController:canUseAbility(v) then bedwars.AbilityController:useAbility(v) end end end
 								end)
-								local sword, swordmeta = getAttackData()
-								if sword and swordmeta and swordmeta.sword then
-									switchItem(sword.tool)
-									for i, plr in pairs(plrs) do
-										local root = plr.RootPart
-										if not root then
-											continue
-										end
-										local localfacing = entityLibrary.character.HumanoidRootPart.CFrame.lookVector
-										local vec = (plr.RootPart.Position - entityLibrary.character.HumanoidRootPart.Position).unit
-										local angle = math.acos(localfacing:Dot(vec))
-										if angle >= (math.rad(killauraangle.Value) / 2) then
-											continue
-										end
-										local selfrootpos = entityLibrary.character.HumanoidRootPart.Position
-										if killauratargetframe.Walls.Enabled then
-											if not Wallcheck(lplr.Character, plr.Character) then continue end
-										end
-										if killauranovape.Enabled and store.whitelist.clientUsers[plr.Player.Name] then
-											continue
-										end
-										if not firstPlayerNear then
-											firstPlayerNear = true
-											killauraNearPlayer = true
-											targetedPlayer = plr
-											vapeTargetInfo.Targets.Killaura = {
-												Humanoid = {
-													Health = (plr.Character:GetAttribute("Health") or plr.Humanoid.Health) + getShieldAttribute(plr.Character),
-													MaxHealth = plr.Character:GetAttribute("MaxHealth") or plr.Humanoid.MaxHealth
-												},
-												Player = plr.Player
-											}
-											if animationdelay <= tick() then
-												animationdelay = tick() + (swordmeta.sword.respectAttackSpeedForEffects and swordmeta.sword.attackSpeed or (killaurasync.Enabled and 0.24 or 0.14))
-												if not killauraswing.Enabled then
-													bedwars.SwordController:playSwordEffect(swordmeta, false)
-												end
-												if swordmeta.displayName:find(" Scythe") then
-													bedwars.ScytheController:playLocalAnimation()
-												end
+							end)
+							local sword, swordmeta = getAttackData()
+							if sword and swordmeta and swordmeta.sword then
+								switchItem(sword.tool)
+								for i, plr in pairs(plrs) do
+									local root = plr.RootPart
+									if not root then
+										continue
+									end
+									local localfacing = entityLibrary.character.HumanoidRootPart.CFrame.lookVector
+									local vec = (plr.RootPart.Position - entityLibrary.character.HumanoidRootPart.Position).unit
+									local angle = math.acos(localfacing:Dot(vec))
+									if angle >= (math.rad(killauraangle.Value) / 2) then
+										continue
+									end
+									local selfrootpos = entityLibrary.character.HumanoidRootPart.Position
+									if killauratargetframe.Walls.Enabled then
+										if not Wallcheck(lplr.Character, plr.Character) then continue end
+									end
+									if killauranovape.Enabled and store.whitelist.clientUsers[plr.Player.Name] then
+										continue
+									end
+									if not firstPlayerNear then
+										firstPlayerNear = true
+										killauraNearPlayer = true
+										targetedPlayer = plr
+										vapeTargetInfo.Targets.Killaura = {
+											Humanoid = {
+												Health = (plr.Character:GetAttribute("Health") or plr.Humanoid.Health) + getShieldAttribute(plr.Character),
+												MaxHealth = plr.Character:GetAttribute("MaxHealth") or plr.Humanoid.MaxHealth
+											},
+											Player = plr.Player
+										}
+										if animationdelay <= tick() then
+											animationdelay = tick() + (swordmeta.sword.respectAttackSpeedForEffects and swordmeta.sword.attackSpeed or (killaurasync.Enabled and 0.24 or 0.14))
+											if not killauraswing.Enabled then
+												bedwars.SwordController:playSwordEffect(swordmeta, false)
+											end
+											if swordmeta.displayName:find(" Scythe") then
+												bedwars.ScytheController:playLocalAnimation()
 											end
 										end
-										--if (game.Workspace:GetServerTimeNow() - bedwars.SwordController.lastAttack) < 0.02 then break end
-										local selfpos = selfrootpos + (killaurarange.Value > 14 and (selfrootpos - root.Position).magnitude > 14.4 and (CFrame.lookAt(selfrootpos, root.Position).lookVector * ((selfrootpos - root.Position).magnitude - 14)) or Vector3.zero)
-										bedwars.SwordController.lastAttack = game.Workspace:GetServerTimeNow()
-										store.attackReach = math.floor((selfrootpos - root.Position).magnitude * 100) / 100
-										store.attackReachUpdate = tick() + 1
+									end
+									--if (game.Workspace:GetServerTimeNow() - bedwars.SwordController.lastAttack) < 0.02 then break end
+									local selfpos = selfrootpos + (killaurarange.Value > 14 and (selfrootpos - root.Position).magnitude > 14.4 and (CFrame.lookAt(selfrootpos, root.Position).lookVector * ((selfrootpos - root.Position).magnitude - 14)) or Vector3.zero)
+									bedwars.SwordController.lastAttack = game.Workspace:GetServerTimeNow()
+									store.attackReach = math.floor((selfrootpos - root.Position).magnitude * 100) / 100
+									store.attackReachUpdate = tick() + 1
+									killaurarealremote:FireServer({
+										weapon = sword.tool,
+										chargedAttack = {chargeRatio = swordmeta.sword.chargedAttack and not swordmeta.sword.chargedAttack.disableOnGrounded and 0.999 or 0},
+										entityInstance = plr.Character,
+										validate = {
+											raycast = {
+												cameraPosition = attackValue(root.Position),
+												cursorDirection = attackValue(CFrame.new(selfpos, root.Position).lookVector)
+											},
+											targetPosition = attackValue(root.Position),
+											selfPosition = attackValue(selfpos)
+										}
+									})
+									local spear = getItemNear('spear')
+									if spear then
+										switchItem(spear.tool)
 										killaurarealremote:FireServer({
-											weapon = sword.tool,
+											weapon = spear.tool,
 											chargedAttack = {chargeRatio = swordmeta.sword.chargedAttack and not swordmeta.sword.chargedAttack.disableOnGrounded and 0.999 or 0},
 											entityInstance = plr.Character,
 											validate = {
@@ -4139,102 +4154,77 @@ run(function()
 												selfPosition = attackValue(selfpos)
 											}
 										})
-										local spear = getItemNear('spear')
-										if spear then
-											switchItem(spear.tool)
-											killaurarealremote:FireServer({
-												weapon = spear.tool,
-												chargedAttack = {chargeRatio = swordmeta.sword.chargedAttack and not swordmeta.sword.chargedAttack.disableOnGrounded and 0.999 or 0},
-												entityInstance = plr.Character,
-												validate = {
-													raycast = {
-														cameraPosition = attackValue(root.Position),
-														cursorDirection = attackValue(CFrame.new(selfpos, root.Position).lookVector)
-													},
-													targetPosition = attackValue(root.Position),
-													selfPosition = attackValue(selfpos)
-												}
-											})
-										end
-										break
+									end
+									break
+								end
+							end
+							task.wait(killaurahitslowmode.Value/10)
+						end
+						if not firstPlayerNear then
+							targetedPlayer = nil
+							killauraNearPlayer = false
+							pcall(function()
+								if originalArmC0 == nil then
+									originalArmC0 = gameCamera.Viewmodel.RightHand.RightWrist.C0
+								end
+								if gameCamera.Viewmodel.RightHand.RightWrist.C0 ~= originalArmC0 then
+									pcall(function()
+										killauracurrentanim:Cancel()
+									end)
+									if killauraanimationtween.Enabled then
+										gameCamera.Viewmodel.RightHand.RightWrist.C0 = originalArmC0
+									else
+										killauracurrentanim = tweenservice:Create(gameCamera.Viewmodel.RightHand.RightWrist, TweenInfo.new(0.1), {C0 = originalArmC0})
+										killauracurrentanim:Play()
 									end
 								end
-								task.wait(killaurahitslowmode.Value/10)
-							end
-							if not firstPlayerNear then
-								targetedPlayer = nil
-								killauraNearPlayer = false
-								pcall(function()
-									if originalArmC0 == nil then
-										originalArmC0 = gameCamera.Viewmodel.RightHand.RightWrist.C0
-									end
-									if gameCamera.Viewmodel.RightHand.RightWrist.C0 ~= originalArmC0 then
-										pcall(function()
-											killauracurrentanim:Cancel()
-										end)
-										if killauraanimationtween.Enabled then
-											gameCamera.Viewmodel.RightHand.RightWrist.C0 = originalArmC0
-										else
-											killauracurrentanim = tweenservice:Create(gameCamera.Viewmodel.RightHand.RightWrist, TweenInfo.new(0.1), {C0 = originalArmC0})
-											killauracurrentanim:Play()
-										end
-									end
-								end)
-							end
-							for i,v in pairs(killauraboxes) do
-								pcall(function()
-									local attacked = killauratarget.Enabled and plrs[i] or nil
-									v.Adornee = attacked and ((not killauratargethighlight.Enabled) and attacked.RootPart or (not GuiLibrary.ObjectsThatCanBeSaved.ChamsOptionsButton.Api.Enabled) and attacked.Character or nil)
-								end)
-							end	
-						end)
-						if not suc then
-							warn("[Killaura Error]: "..tostring(err))
+							end)
 						end
+						for i,v in pairs(killauraboxes) do
+							pcall(function()
+								local attacked = killauratarget.Enabled and plrs[i] or nil
+								v.Adornee = attacked and ((not killauratargethighlight.Enabled) and attacked.RootPart or (not GuiLibrary.ObjectsThatCanBeSaved.ChamsOptionsButton.Api.Enabled) and attacked.Character or nil)
+							end)
+						end	
 					until (not Killaura.Enabled)
 				end)
 			else
-				local suc, err = pcall(function()
-					vapeTargetInfo.Targets.Killaura = nil
-					RunLoops:UnbindFromHeartbeat("Killaura")
-					killauraNearPlayer = false
-					for i,v in pairs(killauraboxes) do v.Adornee = nil end
-					if killauraaimcirclepart then killauraaimcirclepart.Parent = nil end
-					if killaurarangecirclepart then killaurarangecirclepart.Parent = nil end
-					if killauraparticlepart then killauraparticlepart.Parent = nil end
-					--[[bedwars.ViewmodelController.playAnimation = oldViewmodelAnimation
-					bedwars.SoundManager.playSound = oldPlaySound
-					oldViewmodelAnimation = nil--]]
-					pcall(function()
-						if entityLibrary.isAlive then
-							local Root = entityLibrary.character.HumanoidRootPart
-							if Root then
-								local Neck = Root.Parent.Head.Neck
-								if originalNeckC0 and originalRootC0 then
-									Neck.C0 = CFrame.new(originalNeckC0)
-									Root.Parent.LowerTorso.Root.C0 = CFrame.new(originalRootC0)
-								end
+				vapeTargetInfo.Targets.Killaura = nil
+				RunLoops:UnbindFromHeartbeat("Killaura")
+				killauraNearPlayer = false
+				for i,v in pairs(killauraboxes) do v.Adornee = nil end
+				if killauraaimcirclepart then killauraaimcirclepart.Parent = nil end
+				if killaurarangecirclepart then killaurarangecirclepart.Parent = nil end
+				if killauraparticlepart then killauraparticlepart.Parent = nil end
+				--[[bedwars.ViewmodelController.playAnimation = oldViewmodelAnimation
+				bedwars.SoundManager.playSound = oldPlaySound
+				oldViewmodelAnimation = nil--]]
+				pcall(function()
+					if entityLibrary.isAlive then
+						local Root = entityLibrary.character.HumanoidRootPart
+						if Root then
+							local Neck = Root.Parent.Head.Neck
+							if originalNeckC0 and originalRootC0 then
+								Neck.C0 = CFrame.new(originalNeckC0)
+								Root.Parent.LowerTorso.Root.C0 = CFrame.new(originalRootC0)
 							end
 						end
-						if originalArmC0 == nil then
-							originalArmC0 = gameCamera.Viewmodel.RightHand.RightWrist.C0
+					end
+					if originalArmC0 == nil then
+						originalArmC0 = gameCamera.Viewmodel.RightHand.RightWrist.C0
+					end
+					if gameCamera.Viewmodel.RightHand.RightWrist.C0 ~= originalArmC0 then
+						pcall(function()
+							killauracurrentanim:Cancel()
+						end)
+						if killauraanimationtween.Enabled then
+							gameCamera.Viewmodel.RightHand.RightWrist.C0 = originalArmC0
+						else
+							killauracurrentanim = tweenservice:Create(gameCamera.Viewmodel.RightHand.RightWrist, TweenInfo.new(0.1), {C0 = originalArmC0})
+							killauracurrentanim:Play()
 						end
-						if gameCamera.Viewmodel.RightHand.RightWrist.C0 ~= originalArmC0 then
-							pcall(function()
-								killauracurrentanim:Cancel()
-							end)
-							if killauraanimationtween.Enabled then
-								gameCamera.Viewmodel.RightHand.RightWrist.C0 = originalArmC0
-							else
-								killauracurrentanim = tweenservice:Create(gameCamera.Viewmodel.RightHand.RightWrist, TweenInfo.new(0.1), {C0 = originalArmC0})
-								killauracurrentanim:Play()
-							end
-						end
-					end)
+					end
 				end)
-				if not suc then
-					warn("[Killaura Disable Error]: "..tostring(err))
-				end
 			end
 		end,
 		HoverText = "Attack players around you\nwithout aiming at them."
