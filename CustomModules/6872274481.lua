@@ -4206,7 +4206,7 @@ run(function()
 		end
 	end))
 
-	NoFall = vape.Categories.Blatant:CreateModule({
+	NoFall = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = "NoFall",
 		Function = function(callback)
 			if callback then
