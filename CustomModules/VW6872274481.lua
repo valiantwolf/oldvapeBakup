@@ -3165,15 +3165,14 @@ run(function()
 		if plr.Character:FindFirstChild("Humanoid").Health < 0.11 then return false end
 		return true
 	end
-	local GodMode = {Enabled = false}
 	local Slowmode = {Value = 2}
-	GodMode = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
+	GodMode = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = "AntiHit/Godmode",
 		Function = function(callback)
 			if callback then
 				task.spawn(function()
 					repeat task.wait()
-						pcall(function()
+						local res, msg = pcall(function()
 							if (not GuiLibrary.ObjectsThatCanBeSaved.FlyOptionsButton.Api.Enabled) and (not GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled) then
 								for i, v in pairs(game:GetService("Players"):GetChildren()) do
 									if v.Team ~= lplr.Team and IsAlive(v) and IsAlive(lplr) then
@@ -3199,13 +3198,13 @@ run(function()
 															end
 														end
 					
-														lplr.Character:WaitForChild("HumanoidRootPart").CFrame = lplr.Character:WaitForChild("HumanoidRootPart").CFrame + Vector3.new(0,100000,0)
+														lplr.Character:WaitForChild("HumanoidRootPart").CFrame = lplr.Character:WaitForChild("HumanoidRootPart").CFrame + Vector3.new(0,100,0)
 					
-														game:GetService("RunService").RenderStepped:Connect(function()
+														GodMode:Clean(game:GetService("RunService").RenderStepped:Connect(function()
 															if Clone ~= nil and Clone:FindFirstChild("HumanoidRootPart") then
 																Clone.HumanoidRootPart.Position = Vector3.new(lplr.Character:WaitForChild("HumanoidRootPart").Position.X, Clone.HumanoidRootPart.Position.Y, lplr.Character:WaitForChild("HumanoidRootPart").Position.Z)
 															end
-														end)
+														end))
 					
 														task.wait(Slowmode.Value/10)
 														lplr.Character:WaitForChild("HumanoidRootPart").Velocity = Vector3.new(lplr.Character:WaitForChild("HumanoidRootPart").Velocity.X, -1, lplr.Character:WaitForChild("HumanoidRootPart").Velocity.Z)
@@ -3221,6 +3220,7 @@ run(function()
 								end
 							end
 						end)
+						if not res then warn(msg) end
 					until (not GodMode.Enabled)
 				end)
 			end
@@ -3231,7 +3231,7 @@ run(function()
 		Function = function() end,
 		Default = 2,
 		Min = 1,
-		Max = 10
+		Max = 25
 	})
 end)
 
