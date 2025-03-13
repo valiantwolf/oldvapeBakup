@@ -354,76 +354,78 @@ end
 if not are_installed_1() then install_profiles(1) end
 if not are_installed_2() then install_profiles(2) end
 local url = shared.RiseMode and "https://github.com/VapeVoidware/VWRise/" or "https://github.com/VapeVoidware/VoidwareBakup"
-if not shared.VapeDeveloper then 
-	local commit = "main"
-	for i,v in pairs(game:HttpGet(url):split("\n")) do 
-		if v:find("commit") and v:find("fragment") then 
-			local str = v:split("/")[5]
-			commit = str:sub(0, str:find('"') - 1)
-			break
-		end
-	end
-	if commit then
-		if isfolder(baseDirectory) then 
-		    writefile(baseDirectory.."commithash2.txt", commit)
-			if ((not isfile(baseDirectory.."commithash.txt")) or (readfile(baseDirectory.."commithash.txt") ~= commit or commit == "main")) then
-				for i,v in pairs({baseDirectory.."Universal.lua", baseDirectory.."MainScript.lua", baseDirectory.."GuiLibrary.lua"}) do 
-					if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
-                        if not shared.VoidDev then
-						    delfile(v)
+pcall(function()
+    if not shared.VapeDeveloper then 
+        local commit = "main"
+        for i,v in pairs(game:HttpGet(url):split("\n")) do 
+            if v:find("commit") and v:find("fragment") then 
+                local str = v:split("/")[5]
+                commit = str:sub(0, str:find('"') - 1)
+                break
+            end
+        end
+        if commit then
+            if isfolder(baseDirectory) then 
+                writefile(baseDirectory.."commithash2.txt", commit)
+                if ((not isfile(baseDirectory.."commithash.txt")) or (readfile(baseDirectory.."commithash.txt") ~= commit or commit == "main")) then
+                    for i,v in pairs({baseDirectory.."Universal.lua", baseDirectory.."MainScript.lua", baseDirectory.."GuiLibrary.lua"}) do 
+                        if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
+                            if not shared.VoidDev then
+                                delfile(v)
+                            end
+                        end 
+                    end
+                    if isfolder(baseDirectory.."CustomModules") then 
+                        for i,v in pairs(listfiles(baseDirectory.."CustomModules")) do 
+                            if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
+                                if not shared.VoidDev then
+                                    delfile(v)
+                                end
+                            end 
                         end
-					end 
-				end
-				if isfolder(baseDirectory.."CustomModules") then 
-					for i,v in pairs(listfiles(baseDirectory.."CustomModules")) do 
-						if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
-                            if not shared.VoidDev then
-							    delfile(v)
-                            end
-						end 
-					end
-				end
-				if isfolder(baseDirectory.."Libraries") then 
-					for i,v in pairs(listfiles(baseDirectory.."Libraries")) do 
-						if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
-                            if not shared.VoidDev then
-							    delfile(v)
-                            end
-						end 
-					end
-				end
-				writefile(baseDirectory.."commithash2.txt", commit)
-			end
-		else
-			makefolder("vape")
-			writefile(baseDirectory.."commithash2.txt", commit)
-		end
-	else
-		error("Failed to connect to github, please try using a VPN.")
-	end
-end
-if not shared.VapeDeveloper then 
-	local commit = "main"
-	for i,v in pairs(game:HttpGet("https://github.com/VapeVoidware/vapevoidware"):split("\n")) do 
-		if v:find("commit") and v:find("fragment") then 
-			local str = v:split("/")[5]
-			commit = str:sub(0, str:find('"') - 1)
-			break
-		end
-	end
-	if commit then
-		if isfolder("vape") then 
-			if ((not isfile(baseDirectory.."commithash.txt")) or (readfile(baseDirectory.."commithash.txt") ~= commit or commit == "main")) then
-				writefile(baseDirectory.."commithash.txt", commit)
-			end
-		else
-			makefolder("vape")
-			writefile(baseDirectory.."commithash.txt", commit)
-		end
-	else
-		error("Failed to connect to github, please try using a VPN.")
-	end
-end
+                    end
+                    if isfolder(baseDirectory.."Libraries") then 
+                        for i,v in pairs(listfiles(baseDirectory.."Libraries")) do 
+                            if isfile(v) and readfile(v):find("--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.") then
+                                if not shared.VoidDev then
+                                    delfile(v)
+                                end
+                            end 
+                        end
+                    end
+                    writefile(baseDirectory.."commithash2.txt", commit)
+                end
+            else
+                makefolder("vape")
+                writefile(baseDirectory.."commithash2.txt", commit)
+            end
+        else
+            error("Failed to connect to github, please try using a VPN.")
+        end
+    end
+    if not shared.VapeDeveloper then 
+        local commit = "main"
+        for i,v in pairs(game:HttpGet("https://github.com/VapeVoidware/vapevoidware"):split("\n")) do 
+            if v:find("commit") and v:find("fragment") then 
+                local str = v:split("/")[5]
+                commit = str:sub(0, str:find('"') - 1)
+                break
+            end
+        end
+        if commit then
+            if isfolder("vape") then 
+                if ((not isfile(baseDirectory.."commithash.txt")) or (readfile(baseDirectory.."commithash.txt") ~= commit or commit == "main")) then
+                    writefile(baseDirectory.."commithash.txt", commit)
+                end
+            else
+                makefolder("vape")
+                writefile(baseDirectory.."commithash.txt", commit)
+            end
+        else
+            error("Failed to connect to github, please try using a VPN.")
+        end
+    end
+end)
 local url = shared.RiseMode and "https://github.com/VapeVoidware/VWRise/" or "https://github.com/VapeVoidware/VoidwareBakup"
 local commit = "main"
 writefile(baseDirectory.."commithash2.txt", commit)
