@@ -1364,19 +1364,6 @@ local function collection(tags, module, customadd, customremove)
 	return objs, cleanFunc
 end
 
-local old = debug.getproto
-debug.getproto = function(...)
-	local args = {...}
-	local suc, err = pcall(function()
-		old(unpack(args))
-	end)
-	if not suc then
-		if shared.VoidDev then errorNotification("Found bug!", tostring(debug.traceback(err)), 10) end
-		warn("[Prun]: "..tostring(debug.traceback(err)))
-	end
-	return suc and err or ""
-end
-
 run(function()
 	local function isWhitelistedBed(bed)
 		if bed and bed.Name == 'bed' then
@@ -1804,7 +1791,7 @@ run(function()
 		repeat task.wait() until debug.getupvalue(Knit.Start, 1)
 	end
 	local remoteNames = {
-		AckKnockback = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.KnockbackController.KnitStart, 1), 1)),
+		--AckKnockback = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.KnockbackController.KnitStart, 1), 1)),
 		AfkStatus = debug.getconstants(debug.getproto(Knit.Controllers.AfkController.KnitStart, 1)),
 		AttackEntity = debug.getconstants(Knit.Controllers.SwordController.sendServerRequest),
 		--ConsumeBattery = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.BatteryController.KnitStart, 1), 1)),
