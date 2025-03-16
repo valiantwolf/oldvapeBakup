@@ -4824,6 +4824,7 @@ run(function()
 	local GuiSync = {Enabled = false}
 
 	local function addfunc(ent)
+		if not ent.Character or ent.Character and typeof(ent.Character) ~= "Instance" then return end
 		local chamfolder = Instance.new("Highlight")
 		chamfolder.Name = ent.Player.Name
 		chamfolder.Enabled = true
