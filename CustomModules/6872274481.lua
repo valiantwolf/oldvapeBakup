@@ -490,19 +490,219 @@ local function getBestTool(block)
 	return tool
 end
 
-local function switchItem(tool)
-	delayTime = delayTime or 0.05
-	local check = lplr.Character and lplr.Character:FindFirstChild('HandInvItem') or nil
-	if check and check.Value ~= tool and tool.Parent ~= nil then
-		task.spawn(function()
-			bedwars.Client:Get(bedwars.EquipItemRemote):CallServerAsync({hand = tool})
-		end)
-		check.Value = tool
-		if delayTime > 0 then
-			task.wait(delayTime)
+local function encode(tbl)
+    return game:GetService("HttpService"):JSONEncode(tbl)
+end
+local lplr = game:GetService("Players").LocalPlayer
+local function corehotbarswitch(tool)
+	local function findChild(name, className, children, nodebug)
+		children = children:GetChildren()
+        for i,v in pairs(children) do if v.Name == name and v.ClassName == className then return v end end
+        local args = {Name = tostring(name), ClassName == tostring(className), Children = children}
+		if not nodebug then
+			warn("[findChild]: CHILD NOT FOUND! Args: ", game:GetService("HttpService"):JSONEncode(args), name, className, children)
 		end
-		return true
+        return nil
+    end
+	local function resolveHotbar()
+		local hotbar
+		hotbar = findChild("hotbar", "ScreenGui", lplr:WaitForChild("PlayerGui"))
+		if not hotbar then return false end
+
+		local _1 = findChild("1", "Frame", hotbar)
+		if not _1 then return false end
+
+		local ItemsHotbar = findChild("ItemsHotbar", "Frame", _1)
+		if not ItemsHotbar then return false end
+
+		return {
+			hotbar = hotbar,
+			items = ItemsHotbar
+		}
 	end
+	local function resolveItemHotbar(hotbar)
+		if tostring(hotbar) == "10" then return "blacklisted" end
+		local res = {
+			id = hotbar.Name,
+			toolImage = "",
+			toolAmount = 0,
+			object = hotbar
+		}
+		if not tonumber(res.id) then return false end
+
+		local _1 = findChild("1", "ImageButton", hotbar)
+		if not _1 then return false end
+
+		local __1 = findChild("1", "TextLabel", _1, true)
+		if __1 then 
+			res.toolAmount = tonumber(__1.Text) or nil
+		end
+
+		local _3 = findChild("3", "Frame", _1, true)
+		if not _3 then return false end
+
+		local ___1 = findChild("1", "ImageLabel", _3, true)
+		if not ___1 then return false end
+		res.toolImage = ___1.Image
+
+		return res
+	end
+	local function resolveItemsHotbar(hotbar)
+		local res = {}
+		for i,v in pairs(hotbar:GetChildren()) do
+			local rev = resolveItemHotbar(v)
+			local name = tostring(v.Name)
+			if rev and type(rev) == "table" then 
+				if res[name] then warn("Duplication found! Overwriting... ["..name.."]") end
+				res[name] = rev
+			else
+				if rev == "blacklisted" then continue end
+				if res[name] then warn("Duplication found! Overwriting... ["..name.."]") end
+				res[name] = {
+					object = v
+				}
+			end
+		end
+		return res
+	end
+	local function findTool(items_rev, img)
+		local res = {
+			tool = nil,
+			activated = nil
+		}
+		for i,v in pairs(items_rev) do
+			if v.toolImage and tostring(v.toolImage) == tostring(img) then 
+				res.tool = v
+			end
+			local img = findChild("1", "ImageButton", v.object)
+			if img and img.Position ~= UDim2.new(0, 0, 0, 0) then
+				res.activated = v
+			end
+		end
+		return res
+	end
+	local function deactivatify(object)
+		local img = findChild("1", "ImageButton", object)
+		if img then
+			img.Position = UDim2.new(0, 0, 0, 0)
+			img.BorderColor3 = Color3.fromRGB(114, 127, 172)
+			local text = findChild("1", "TextLabel", img)
+			text.TextColor3 = Color3.fromRGB(255, 255, 255)
+			text.BackgroundColor3 = Color3.fromRGB(114, 127, 172)
+		end
+	end
+	local function activatify(object)
+		local img = findChild("1", "ImageButton", object)
+		if img then
+			img.Position = UDim2.new(0, 0, -0.075, 0)
+			img.BorderColor3 = Color3.fromRGB(255, 255, 255)
+			local text = findChild("1", "TextLabel", img)
+			text.TextColor3 = Color3.fromRGB(0, 0, 0)
+			text.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		end
+	end
+	task.spawn(function()
+		run(function()
+			if not lplr.Character then return false end
+
+			if not tool then
+				tool = lplr.Character and lplr.Character:FindFirstChild('HandInvItem') and lplr.Character:FindFirstChild('HandInvItem').Value or nil
+			end
+			if not tool then return false end
+			tool = tostring(tool)
+
+			local hotbar_rev = resolveHotbar()
+			if not hotbar_rev then return false end
+
+			local ItemsHotbar = hotbar_rev.items
+			local items_rev = resolveItemsHotbar(ItemsHotbar)
+			if not items_rev then return false end
+		
+			repeat task.wait() until (bedwars.ItemMeta ~= nil and type(bedwars.ItemMeta) == "table") or (bedwars.ItemTable ~= nil and type(bedwars.ItemTable) == "table")
+			local meta = ((bedwars.ItemMeta and bedwars.ItemMeta[tool]) or (bedwars.ItemTable and bedwars.ItemTable[tool]))
+			if ((not meta) or (meta ~= nil and (not meta.image))) then return false end
+
+			local img = meta.image
+			
+			local tool_rev = findTool(items_rev, img)
+			if ((not tool_rev) or ((tool_rev ~= nil) and (not tool_rev.tool))) then return false end
+			local rev = {
+				image = findChild("1", "ImageButton", tool_rev.tool.object)
+			}
+			if tool_rev.activated then 
+				rev.activate = findChild("1", "ImageButton", tool_rev.activated.object)
+			end
+			if (not rev.image) then return false end
+
+			if rev.activate then
+				deactivatify(tool_rev.activated.object)
+			end
+			activatify(tool_rev.tool.object)
+		end)	
+	end)
+end
+
+local function coreswitch(tool)
+    local character = lplr.Character
+    if not character then return end
+
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+
+    local currentHandItem
+    for _, acc in character:GetChildren() do
+        if acc:IsA("Accessory") and acc:GetAttribute("InvItem") == true and acc:GetAttribute("ArmorSlot") == nil and acc:GetAttribute("IsBackpack") == nil then
+            currentHandItem = acc
+            break
+        end
+    end
+    if currentHandItem then
+        currentHandItem:Destroy()
+    end
+
+    local inventoryFolder = character:FindFirstChild("InventoryFolder")
+    if not inventoryFolder or not inventoryFolder.Value then return end
+    local toolInstance = inventoryFolder.Value:FindFirstChild(tool.Name)
+    if not toolInstance then return end
+    local clone = toolInstance:Clone()
+
+    clone:SetAttribute("InvItem", true)
+
+    humanoid:AddAccessory(clone)
+
+    local handle = clone:FindFirstChild("Handle")
+    if handle and handle:IsA("BasePart") then
+        local attachment = handle:FindFirstChildWhichIsA("Attachment")
+        if attachment then
+            local characterAttachment = character:FindFirstChild(attachment.Name, true)
+            if characterAttachment and characterAttachment:IsA("Attachment") then
+                local weld = Instance.new("Weld")
+                weld.Name = "AccessoryWeld"
+                weld.Part0 = characterAttachment.Parent 
+                weld.Part1 = handle
+                weld.C0 = characterAttachment.CFrame
+                weld.C1 = attachment.CFrame
+                weld.Parent = handle
+            end
+        end
+    end
+
+    local handInvItem = character:FindFirstChild("HandInvItem")
+    if handInvItem then
+        handInvItem.Value = tool
+    end
+
+    task.spawn(function()
+		bedwars.Client:Get(bedwars.EquipItemRemote):CallServerAsync({hand = tool})
+    end)
+
+	corehotbarswitch()
+
+	return true
+end
+
+local function switchItem(tool, delayTime)
+	return coreswitch(tool)
 end
 VoidwareFunctions.GlobaliseObject("switchItem", switchItem)
 
@@ -4438,20 +4638,122 @@ run(function()
 	})
 end)
 
+local function EntityNearPosition(distance, ignore, overridepos)
+	local closestEntity, closestMagnitude = nil, distance
+	if entityLibrary.isAlive then
+		for i, v in pairs(entityLibrary.List) do
+			if not v.Targetable then continue end
+			local mag = (entityLibrary.character.HumanoidRootPart.Position - v.RootPart.Position).magnitude
+			if overridepos and mag > distance then
+				mag = (overridepos - v.RootPart.Position).magnitude
+			end
+			if mag <= closestMagnitude then
+				closestEntity, closestMagnitude = v, mag
+			end
+		end
+		if not ignore then
+			for i, v in pairs(game.Workspace:GetChildren()) do
+				if v.Name == "Void Enemy Dummy" or v.Name == "Emerald Enemy Dummy" or v.Name == "Diamond Enemy Dummy" or v.Name == "Leather Enemy Dummy" or v.Name == "Regular Enemy Dummy" or v.Name == "Iron Enemy Dummy" then
+					if v.PrimaryPart then
+						local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+						if overridepos and mag > distance then
+							mag = (overridepos - v2.PrimaryPart.Position).magnitude
+						end
+						if mag <= closestMagnitude then
+							closestEntity, closestMagnitude = {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645)}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+						end
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("Monster")) do
+				if v.PrimaryPart and v:GetAttribute("Team") ~= lplr:GetAttribute("Team") then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645)}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("GuardianOfDream")) do
+				if v.PrimaryPart and v:GetAttribute("Team") ~= lplr:GetAttribute("Team") then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = v.Name, UserId = (v.Name == "Duck" and 2020831224 or 1443379645)}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("DiamondGuardian")) do
+				if v.PrimaryPart then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = "DiamondGuardian", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("GolemBoss")) do
+				if v.PrimaryPart then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v2.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then
+						closestEntity, closestMagnitude = {Player = {Name = "GolemBoss", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i, v in pairs(collectionService:GetTagged("Drone")) do
+				if v.PrimaryPart and tonumber(v:GetAttribute("PlayerUserId")) ~= lplr.UserId then
+					local droneplr = playersService:GetPlayerByUserId(v:GetAttribute("PlayerUserId"))
+					if droneplr and droneplr.Team == lplr.Team then continue end
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then -- magcheck
+						closestEntity, closestMagnitude = {Player = {Name = "Drone", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+			for i,v in pairs(game.Workspace:GetChildren()) do
+				if v.Name == "InfectedCrateEntity" and v.ClassName == "Model" and v.PrimaryPart then
+					local mag = (entityLibrary.character.HumanoidRootPart.Position - v.PrimaryPart.Position).magnitude
+					if overridepos and mag > distance then
+						mag = (overridepos - v.PrimaryPart.Position).magnitude
+					end
+					if mag <= closestMagnitude then -- magcheck
+						closestEntity, closestMagnitude = {Player = {Name = "InfectedCrateEntity", UserId = 1443379645}, Character = v, RootPart = v.PrimaryPart, JumpTick = tick() + 5, Jumping = false, Humanoid = {HipHeight = 2}}, mag
+					end
+				end
+			end
+		end
+	end
+	return closestEntity
+end
+	
 run(function()
 	local ProjectileAura
 	local Targets
 	local Range
-	local List
+	local List = {ListEnabled = {'arrow', 'snowball'}}
 	local rayCheck = RaycastParams.new()
 	rayCheck.FilterType = Enum.RaycastFilterType.Include
+
 	local projectileRemote = {InvokeServer = function() end}
 	local FireDelays = {}
 	task.spawn(function()
 		projectileRemote = bedwars.Client:Get(remotes.FireProjectile).instance
 	end)
-	
-	local function getAmmo(check)
+
+	local function getAmmo(check, item)
+		if not check.ammoItemTypes then return item.itemType end
 		for _, item in store.localInventory.inventory.items do
 			if check.ammoItemTypes and table.find(check.ammoItemTypes, item.itemType) then
 				return item.itemType
@@ -4463,72 +4765,160 @@ run(function()
 		local items = {}
 		for _, item in store.localInventory.inventory.items do
 			local proj = bedwars.ItemTable[item.itemType].projectileSource
-			local ammo = proj and getAmmo(proj)
-			if ammo and table.find({'arrow', 'snowball'}, ammo) then
+			local ammo = proj and getAmmo(proj, item)
+			if not table.find(List.ListEnabled, 'sword_wave1') then table.insert(List.ListEnabled, 'sword_wave1') end
+			if not table.find(List.ListEnabled, 'ninja_chakram_4') then table.insert(List.ListEnabled, 'ninja_chakram_4') end
+			if ammo and table.find(List.ListEnabled, ammo) then
 				table.insert(items, {
-					item, 
-					ammo, 
-					proj.projectileType(ammo), 
+					item,
+					ammo,
+					proj.projectileType(ammo),
 					proj
 				})
 			end
 		end
 		return items
 	end
+
+	local HttpService = game:GetService("HttpService")
+
+	local function specialGUID()
+		return string.upper((tostring(HttpService:GenerateGUID(false)):split("-"))[1])
+	end
+	
+	local function selfPosition()
+		return lplr.Character and lplr.Character.PrimaryPart and lplr.Character.PrimaryPart.Position
+	end
+
+	local handle = {
+		Lumen = function(ent, item, ammo, projectile, itemMeta)
+			if not item.tool then return end
+			if not ent then return end
+			local selfPos = selfPosition()
+			if not selfPos then return end
+	
+			local vec = ent.RootPart.Position * Vector3.new(1, 0, 1)
+			lplr.Character.PrimaryPart.CFrame = CFrame.lookAt(lplr.Character.PrimaryPart.Position, Vector3.new(vec.X, lplr.Character.PrimaryPart.Position.Y + 0.001, vec.Z))
+	
+			local mag = lplr.Character.PrimaryPart.CFrame.LookVector*80
+	
+			game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("ProjectileFire"):InvokeServer(
+				item.tool,
+				"light_sword",
+				"sword_wave1",
+				Vector3.new(selfPos.X, selfPos.Y + 2, selfPos.Z),
+				selfPos,
+				mag,
+				specialGUID(),
+				{
+					["shotId"] = specialGUID(),
+					["drawDurationSec"] = 0
+				},
+				workspace:GetServerTimeNow() - 0.045
+			)
+
+			targetinfo.Targets[ent] = tick() + 1
+			
+			pcall(function()
+				FireDelays[item.itemType] = tick() + itemMeta.fireDelaySec
+			end)
+		end,
+		Umeko = function(ent, item, ammo, projectile, itemMeta)
+			if not item.tool then return end
+			if not ent then return end
+			local selfPos = selfPosition()
+			if not selfPos then return end
+	
+			local vec = ent.RootPart.Position * Vector3.new(1, 0, 1)
+			lplr.Character.PrimaryPart.CFrame = CFrame.lookAt(lplr.Character.PrimaryPart.Position, Vector3.new(vec.X, lplr.Character.PrimaryPart.Position.Y + 0.001, vec.Z))
+	
+			local mag = lplr.Character.PrimaryPart.CFrame.LookVector*80
+	
+			game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("ProjectileFire"):InvokeServer(
+				item.tool,
+				nil,
+				"ninja_chakram_4",
+				Vector3.new(selfPos.X, selfPos.Y + 2, selfPos.Z),
+				selfPos,
+				mag,
+				specialGUID(),
+				{
+					["shotId"] = specialGUID(),
+					["drawDurationSec"] = 0.9
+				},
+				workspace:GetServerTimeNow() - 0.045
+			)
+
+			targetinfo.Targets[ent] = tick() + 1
+			
+			pcall(function()
+				FireDelays[item.itemType] = tick() + itemMeta.fireDelaySec
+			end)
+		end
+	}
 	
 	ProjectileAura = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = 'ProjectileAura',
 		Function = function(callback)
 			if callback then
-				repeat
-					if (game.Workspace:GetServerTimeNow() - bedwars.SwordController.lastAttack) > 0.5 then
-						local ent = entitylib.EntityPosition({
-							Part = 'RootPart',
-							Range = Range.Value,
-							Players = Targets.Players.Enabled,
-							NPCs = Targets.NPCs.Enabled,
-							Wallcheck = Targets.Walls.Enabled
-						})
-	
-						if ent then
-							local pos = entitylib.character.RootPart.Position
-							for _, data in getProjectiles() do
-								local item, ammo, projectile, itemMeta = unpack(data)
-								if (FireDelays[item.itemType] or 0) < tick() then
-									rayCheck.FilterDescendantsInstances = {game.Workspace.Map}
-									local meta = bedwars.ProjectileMeta[projectile]
-									local projSpeed, gravity = meta.launchVelocity, meta.gravitationalAcceleration or 196.2
-									local calc = prediction.SolveTrajectory(pos, projSpeed, gravity, ent.RootPart.Position, ent.RootPart.Velocity, game.Workspace.Gravity, ent.HipHeight, ent.Jumping and 42.6 or nil, rayCheck)
-									if calc then
-										local switched = switchItem(item.tool)
-	
-										task.spawn(function()
-											local dir, id = CFrame.lookAt(pos, calc).LookVector, httpService:GenerateGUID(true)
-											local shootPosition = (CFrame.new(pos, calc) * CFrame.new(Vector3.new(-bedwars.BowConstantsTable.RelX, -bedwars.BowConstantsTable.RelY, -bedwars.BowConstantsTable.RelZ))).Position
-											bedwars.ProjectileController:createLocalProjectile(meta, ammo, projectile, shootPosition, id, dir * projSpeed, {drawDurationSeconds = 1})
-											local res = projectileRemote:InvokeServer(item.tool, ammo, projectile, shootPosition, pos, dir * projSpeed, id, {drawDurationSeconds = 1, shotId = httpService:GenerateGUID(false)}, game.Workspace:GetServerTimeNow() - 0.045)
-											if not res then
-												FireDelays[item.itemType] = tick()
-											else
-												local shoot = itemMeta.launchSound
-												shoot = shoot and shoot[math.random(1, #shoot)] or nil
-												if shoot then 
-													bedwars.SoundManager:playSound(shoot) 
+				task.spawn(function()
+					repeat
+						if (workspace:GetServerTimeNow() - bedwars.SwordController.lastAttack) > 0.5 then
+							task.spawn(function()
+								local ent = entitylib.EntityPosition({
+									Range = Range.Value,
+									Part = 'RootPart',
+									Players = true,
+									NPCs = true
+								})
+								if ent then
+									local pos = entitylib.character.RootPart.Position
+									for _, data in getProjectiles() do
+										local item, ammo, projectile, itemMeta = unpack(data)
+										if (FireDelays[item.itemType] or 0) < tick() then
+											if item.itemType == "light_sword" then
+												handle.Lumen(ent, unpack(data))
+												continue
+											elseif item.itemType == "ninja_chakram_4" then
+												handle.Umeko(ent, unpack(data))
+												continue
+											end
+											rayCheck.FilterDescendantsInstances = {workspace.Map}
+											local meta = bedwars.ProjectileMeta[projectile]
+											local projSpeed, gravity = meta.launchVelocity, meta.gravitationalAcceleration or 196.2
+											local calc = prediction.SolveTrajectory(pos, projSpeed, gravity, ent.RootPart.Position, ent.RootPart.Velocity, workspace.Gravity, ent.HipHeight, ent.Jumping and 42.6 or nil, rayCheck)
+											if calc then
+												local switched = switchItem(item.tool)
+			
+												task.spawn(function()
+													local dir, id = CFrame.lookAt(pos, calc).LookVector, httpService:GenerateGUID(true)
+													local shootPosition = (CFrame.new(pos, calc) * CFrame.new(Vector3.new(-bedwars.BowConstantsTable.RelX, -bedwars.BowConstantsTable.RelY, -bedwars.BowConstantsTable.RelZ))).Position
+													bedwars.ProjectileController:createLocalProjectile(meta, ammo, projectile, shootPosition, id, dir * projSpeed, {drawDurationSeconds = 1})
+													local res = projectileRemote:InvokeServer(item.tool, ammo, projectile, shootPosition, pos, dir * projSpeed, id, {drawDurationSeconds = 1, shotId = httpService:GenerateGUID(false)}, workspace:GetServerTimeNow() - 0.045)
+													if not res then
+														FireDelays[item.itemType] = tick()
+													else
+														local shoot = itemMeta.launchSound
+														shoot = shoot and shoot[math.random(1, #shoot)] or nil
+														if shoot then
+															bedwars.SoundManager:playSound(shoot)
+														end
+													end
+												end)
+			
+												FireDelays[item.itemType] = tick() + itemMeta.fireDelaySec
+												if switched then
+													task.wait(0.05)
 												end
 											end
-										end)
-	
-										FireDelays[item.itemType] = tick() + itemMeta.fireDelaySec
-										if switched then 
-											task.wait(0.05) 
 										end
 									end
 								end
-							end
+							end)
 						end
-					end
-					task.wait(0.1)
-				until not ProjectileAura.Enabled
+						task.wait(0.1)
+					until not ProjectileAura.Enabled
+				end)
 			end
 		end,
 		HoverText = 'Shoots people around you'
