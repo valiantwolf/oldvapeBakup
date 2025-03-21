@@ -5078,84 +5078,132 @@ run(function()
 end)
 
 run(function()
-	local NoFall = {Enabled = false}
-	local SafeRange = {Value = 20}
-	local VelocityThreshold = {Value = 30}
-	local CoreConnection = {Disconnect = function() end}
+	local entitylib = entityLibrary
 
-	local collectionService = game:GetService("CollectionService")
-
-	local blockRaycast = RaycastParams.new()
-	blockRaycast.FilterType = Enum.RaycastFilterType.Include
-
-	local blocks = collectionService:GetTagged("block") or {}
-	blockRaycast.FilterDescendantsInstances = {blocks}
-	table.insert(vapeConnections, collectionService:GetInstanceAddedSignal("block"):Connect(function(block)
-		table.insert(blocks, block)
-		blockRaycast.FilterDescendantsInstances = {blocks}
-	end))
-	table.insert(vapeConnections, collectionService:GetInstanceRemovedSignal("block"):Connect(function(block)
-		block = table.find(blocks, block)
-		if block then
-			table.remove(blocks, block)
-			blockRaycast.FilterDescendantsInstances = {blocks}
-		end
-	end))
-
-	NoFall = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
-		Name = "NoFall",
-		Function = function(callback)
-			if callback then
-				task.spawn(function()
-					pcall(function() 
-						game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("TridentUnanchor"):Destroy()
-					end)
-				end)
-
-				local safeRange = SafeRange.Value
-				local velocityThreshold = -VelocityThreshold.Value
-				
-				CoreConnection = game:GetService("RunService").Heartbeat:Connect(function()
-					if not entityLibrary.isAlive then return end
-					if LongJump.Enabled then return end
-					local humanoid = entityLibrary.character.Humanoid
-					local rootPart = entityLibrary.character.HumanoidRootPart
-					if humanoid:GetState() == Enum.HumanoidStateType.Freefall and rootPart.Velocity.Y < velocityThreshold then
-						local ray = workspace:Raycast(rootPart.Position, Vector3.new(0, -1000, 0), blockRaycast)
-						if ray then
-							local distance = rootPart.Position.Y - ray.Position.Y
-							if distance > safeRange then
-								local newPosition = Vector3.new(
-									rootPart.Position.X,
-									ray.Position.Y + 0.1, 
-									rootPart.Position.Z
-								)
-								rootPart.CFrame = CFrame.new(newPosition) * rootPart.CFrame.Rotation
+    local NoFall = {}
+	local MitigationChoice = {Value = "VelocityClamp"}
+	local RishThreshold = {Value = 30}
+    local PredictiveAnalysis = {}
+    local MitigationStrategies = {}
+    local velocityHistory = {}
+    local maxHistory = 10
+    
+    local function recordVelocity()
+        if not entitylib.isAlive or not entitylib.character or not entitylib.character.HumanoidRootPart then return end
+		entitylib.character.RootPart = entitylib.character.HumanoidRootPart
+        local velocity = entitylib.character.RootPart.Velocity
+        table.insert(velocityHistory, velocity.Y)
+        if #velocityHistory > maxHistory then
+            table.remove(velocityHistory, 1)
+        end
+    end
+    
+    local function analyzeFallRisk()
+        if #velocityHistory < maxHistory then return 0 end
+        local downwardTrend = 0
+        for i = 2, #velocityHistory do
+            if velocityHistory[i] < velocityHistory[i - 1] and velocityHistory[i] < 0 then
+                downwardTrend = downwardTrend + (velocityHistory[i - 1] - velocityHistory[i])
+            end
+        end
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+        raycastParams.FilterDescendantsInstances = {lplr.Character}
+        local rootPos = entitylib.character.RootPart.Position
+        local rayResult = workspace:Raycast(rootPos, Vector3.new(0, -50, 0), raycastParams)
+        local distanceToGround = rayResult and (rootPos.Y - rayResult.Position.Y) or math.huge
+        local riskFactor = downwardTrend * (distanceToGround > 10 and 1.5 or 1)
+        return riskFactor, distanceToGround
+    end
+    
+    local function hasMitigationItem()
+        for _, item in pairs(store.inventory.inventory.items) do
+			if item and item.itemType and string.find(string.lower(tostring(item.itemType)), 'wool') then 
+				return item
+			end
+        end
+        return nil
+    end
+    
+    MitigationStrategies.VelocityClamp = function(risk)
+        if not entitylib.isAlive or not entitylib.character or not entitylib.character.RootPart then return end
+        local root = entitylib.character.RootPart
+        local currentVelocity = root.Velocity
+        if currentVelocity.Y < -50 then
+            root.Velocity = Vector3.new(currentVelocity.X, math.clamp(currentVelocity.Y, -50, math.huge), currentVelocity.Z)
+        end
+    end
+    
+    MitigationStrategies.TeleportBuffer = function(distance)
+        if not entitylib.isAlive or not entitylib.character or not entitylib.character.RootPart then return end
+        local root = entitylib.character.RootPart
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+        raycastParams.FilterDescendantsInstances = {lplr.Character}
+        local rayResult = workspace:Raycast(root.Position, Vector3.new(0, -distance - 2, 0), raycastParams)
+        if rayResult and distance > 10 then
+            local safePos = rayResult.Position + Vector3.new(0, 3, 0)
+            pcall(function()
+                root.CFrame = CFrame.new(safePos)
+            end)
+        end
+    end
+    
+    MitigationStrategies.ItemDeploy = function(item)
+        if not item then return end
+        local root = entitylib.character.RootPart
+        local belowPos = root.Position - Vector3.new(0, 3, 0)
+        bedwars.placeBlock(belowPos, item.itemType, true)
+    end
+    
+    NoFall = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+        Name = 'NoFall',
+        Function = function(callback)
+            if callback then
+                RunLoops:BindToHeartbeat('NoFallMonitor', function()
+                    recordVelocity()
+                    local risk, distance = analyzeFallRisk()
+                    if risk > RishThreshold.Value then
+						if MitigationChoice.Value ~= "ItemDeploy" then
+							MitigationStrategies[MitigationChoice.Value](MitigationChoice.Value == "VelocityClamp" and risk or MitigationChoice.Value == "TeleportBuffer" and distance)
+						else
+							local mitigationItem = hasMitigationItem()
+							if mitigationItem then
+								if distance < 10 then
+									MitigationStrategies.ItemDeploy(mitigationItem)
+								end
+							else
+								warningNotification("NoFall", "Mitigation Item not found. Using VelocityClamp instead...", 3)
+								MitigationStrategies.VelocityClamp(risk)
 							end
 						end
-					end
-				end)				
-			else
-				pcall(function()
-					CoreConnection:Disconnect()
-				end)
-			end
-		end,
-		HoverText = "Prevents taking fall damage."
-	})
-	SafeRange = NoFall.CreateSlider({
-		Name = "SafeRange",
+                    end
+                end)
+            else
+                RunLoops:UnbindFromHeartbeat('NoFallMonitor')
+                table.clear(velocityHistory)
+            end
+        end,
+        HoverText = 'Prevents fall damage'
+    })
+
+	RishThreshold = NoFall.CreateSlider({
+		Name = "Risk Threshold",
 		Function = function() end,
-		Min = 10, 
-		Max = 30,
-		Default = 20
-	})
-	VelocityThreshold = NoFall.CreateSlider({
-		Name = "VelocityThreshold",
-		Function = function() end,
-		Min = 20, 
-		Max = 50,
+		Min = 5,
+		Max = 100,
 		Default = 30
+	})
+
+	MitigationChoice = NoFall.CreateDropdown({
+		Name = "Mitigation Strategies",
+		Default = "VelocityClamp",
+		List = {"VelocityClamp", "TeleportBuffer", "ItemDeploy"},
+		Function = function()
+			if MitigationChoice.Value == "ItemDeploy" then
+				warningNotification("Mitigation Strategies - ItemDeploy", "Not yet finished! Its recommended to use VelocityClamp instead.", 1.5)
+			end
+		end
 	})
 end)
 
