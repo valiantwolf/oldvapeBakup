@@ -2026,7 +2026,7 @@ run(function()
 		MageSelect = debug.getconstants(debug.getproto(Knit.Controllers.MageController.registerTomeInteraction, 1)),
 		MinerDig = debug.getconstants(debug.getproto(Knit.Controllers.MinerController.setupMinerPrompts, 1)),
 		PickupItem = debug.getconstants(Knit.Controllers.ItemDropController.checkForPickup),
-		PickupMetal = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.MetalDetectorController.KnitStart, 1), 2)),
+		--PickupMetal = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.MetalDetectorController.KnitStart, 1), 2)),
 		ReportPlayer = debug.getconstants(require(lplr.PlayerScripts.TS.controllers.global.report['report-controller']).default.reportPlayer),
 		ResetCharacter = debug.getconstants(debug.getproto(Knit.Controllers.ResetController.createBindable, 1)),
 		SpawnRaven = debug.getconstants(Knit.Controllers.RavenController.spawnRaven)
