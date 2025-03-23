@@ -157,7 +157,7 @@ local function warningNotification(title, text, delay)
 end
 
 local run = function(func)
-	if shared.VoidDev then
+	if shared.VoidDev then 
 		func()
 	else
 		local suc, err = pcall(function() func() end)
@@ -648,64 +648,66 @@ local function corehotbarswitch(tool)
 	end)
 end
 
-local function coreswitch(tool)
+local function coreswitch(tool, ignore)
     local character = lplr.Character
     if not character then return end
 
     local humanoid = character:FindFirstChild("Humanoid")
     if not humanoid then return end
 
-    local currentHandItem
-    for _, acc in character:GetChildren() do
-        if acc:IsA("Accessory") and acc:GetAttribute("InvItem") == true and acc:GetAttribute("ArmorSlot") == nil and acc:GetAttribute("IsBackpack") == nil then
-            currentHandItem = acc
-            break
-        end
-    end
-    if currentHandItem then
-        currentHandItem:Destroy()
-    end
-
-    for _, weld in pairs(character:GetDescendants()) do
-        if weld:IsA("Weld") and weld.Name == "HandItemWeld" then
-            weld:Destroy()
-        end
-    end
-
-    local inventoryFolder = character:FindFirstChild("InventoryFolder")
-    if not inventoryFolder or not inventoryFolder.Value then return end
-    local toolInstance = inventoryFolder.Value:FindFirstChild(tool.Name)
-    if not toolInstance then return end
-    local clone = toolInstance:Clone()
-
-    clone:SetAttribute("InvItem", true)
-
-    humanoid:AddAccessory(clone)
-
-    local handle = clone:FindFirstChild("Handle")
-    if handle and handle:IsA("BasePart") then
-        local attachment = handle:FindFirstChildWhichIsA("Attachment")
-        if attachment then
-            local characterAttachment = character:FindFirstChild(attachment.Name, true)
-            if characterAttachment and characterAttachment:IsA("Attachment") then
-                local weld = Instance.new("Weld")
-                weld.Name = "HandItemWeld"
-                weld.Part0 = characterAttachment.Parent 
-                weld.Part1 = handle
-                weld.C0 = characterAttachment.CFrame
-                weld.C1 = attachment.CFrame
-                weld.Parent = handle
-            end
-        end
-    end
-
-    local handInvItem = character:FindFirstChild("HandInvItem")
-    if handInvItem then
-        handInvItem.Value = tool
-    end
+    if not ignore then
+		local currentHandItem
+		for _, acc in character:GetChildren() do
+			if acc:IsA("Accessory") and acc:GetAttribute("InvItem") == true and acc:GetAttribute("ArmorSlot") == nil and acc:GetAttribute("IsBackpack") == nil then
+				currentHandItem = acc
+				break
+			end
+		end
+		if currentHandItem then
+			currentHandItem:Destroy()
+		end
+	
+		for _, weld in pairs(character:GetDescendants()) do
+			if weld:IsA("Weld") and weld.Name == "HandItemWeld" then
+				weld:Destroy()
+			end
+		end
+	
+		local inventoryFolder = character:FindFirstChild("InventoryFolder")
+		if not inventoryFolder or not inventoryFolder.Value then return end
+		local toolInstance = inventoryFolder.Value:FindFirstChild(tool.Name)
+		if not toolInstance then return end
+		local clone = toolInstance:Clone()
+	
+		clone:SetAttribute("InvItem", true)
+	
+		humanoid:AddAccessory(clone)
+	
+		local handle = clone:FindFirstChild("Handle")
+		if handle and handle:IsA("BasePart") then
+			local attachment = handle:FindFirstChildWhichIsA("Attachment")
+			if attachment then
+				local characterAttachment = character:FindFirstChild(attachment.Name, true)
+				if characterAttachment and characterAttachment:IsA("Attachment") then
+					local weld = Instance.new("Weld")
+					weld.Name = "HandItemWeld"
+					weld.Part0 = characterAttachment.Parent 
+					weld.Part1 = handle
+					weld.C0 = characterAttachment.CFrame
+					weld.C1 = attachment.CFrame
+					weld.Parent = handle
+				end
+			end
+		end
+	
+		local handInvItem = character:FindFirstChild("HandInvItem")
+		if handInvItem then
+			handInvItem.Value = tool
+		end
+	end
 
     task.spawn(function()
-        bedwars.Client:Get(bedwars.EquipItemRemote):CallServerAsync({hand = tool})
+		bedwars.Client:Get(bedwars.EquipItemRemote):CallServerAsync({hand = tool})
     end)
 
     corehotbarswitch()
@@ -714,7 +716,10 @@ local function coreswitch(tool)
 end
 
 local function switchItem(tool, delayTime)
-	return coreswitch(tool)
+	local _tool = lplr.Character and lplr.Character:FindFirstChild('HandInvItem') and lplr.Character:FindFirstChild('HandInvItem').Value or nil
+	if _tool ~= nil and _tool ~= tool then
+		coreswitch(tool, true)
+	end
 end
 VoidwareFunctions.GlobaliseObject("switchItem", switchItem)
 
@@ -1576,6 +1581,168 @@ local function collection(tags, module, customadd, customremove)
 	return objs, cleanFunc
 end
 
+local function getRemotes(paths)
+    local allRemotes = {}
+    local function filterDescendants(descendants, classNames)
+        local filtered = {}
+        if typeof(classNames) ~= "table" then
+            classNames = {classNames}
+        end
+        for _, descendant in pairs(descendants) do
+            for _, className in pairs(classNames) do
+                if descendant:IsA(className) then
+                    table.insert(filtered, descendant)
+                    break 
+                end
+            end
+        end
+        return filtered
+    end
+    for _, path in pairs(paths) do
+        local objectToGetDescendantsFrom = game
+        for _, subfolder in pairs(string.split(path, ".")) do
+            objectToGetDescendantsFrom = objectToGetDescendantsFrom:FindFirstChild(subfolder)
+            if not objectToGetDescendantsFrom then
+                --warn("Path " .. path .. " does not exist.")
+                break
+            end
+        end
+        if objectToGetDescendantsFrom then
+            local remotes = filterDescendants(objectToGetDescendantsFrom:GetDescendants(), {"BindableEvent", "RemoteEvent", "RemoteFunction", "UnreliableRemoteEvent"})
+            for _, remote in pairs(remotes) do
+                table.insert(allRemotes, remote)
+            end
+        end
+    end
+    return allRemotes
+end
+
+local bedwars2 = {}
+bedwars2.Client = {}
+local cache = {} 
+local namespaceCache = {}
+
+local function decorateRemote(remote, src)
+	local isFunction = string.find(string.lower(remote.ClassName), "function")
+	local isEvent = string.find(string.lower(remote.ClassName), "remoteevent")
+	local isBindable = string.find(string.lower(remote.ClassName), "bindable")
+
+	if isFunction then
+		function src:CallServer(...)
+			local args = {...}
+			return remote:InvokeServer(unpack(args))
+		end
+	elseif isEvent then
+		function src:CallServer(...)
+			local args = {...}
+			return remote:FireServer(unpack(args))
+		end
+	elseif isBindable then
+		function src:CallServer(...)
+			local args = {...}
+			return remote:Fire(unpack(args))
+		end
+	end
+
+	function src:InvokeServer(...)
+		local args = {...}
+		src:CallServer(unpack(args))
+	end
+
+	function src:FireServer(...)
+		local args = {...}
+		src:CallServer(unpack(args))
+	end
+
+	function src:SendToServer(...)
+		local args = {...}
+		src:CallServer(unpack(...))
+	end
+
+	function src:CallServerAsync(...)
+		local args = {...}
+		src:CallServer(unpack(args))
+	end
+
+	src.instance = remote
+
+	return src
+end
+
+local remotes_cache
+
+function bedwars2.Client:Get(remName, customTable, resRequired, strict)
+	if customTable ~= nil and customTable == 0 then 
+		customTable = nil
+		resRequired = nil
+		strict = true
+	end
+    if cache[remName] then
+        return cache[remName] 
+    end
+	remotes_cache = remotes_cache or getRemotes({"ReplicatedStorage"})
+    local remotes = customTable or remotes_cache
+    for _, v in pairs(remotes) do
+        if (v.Name == remName) or ((not strict) and string.find(v.Name, remName)) then  
+            local remote
+            if not resRequired then
+                remote = decorateRemote(v, {})
+            else
+                local tbl = {}
+                function tbl:InvokeServer()
+                    local tbl2 = {}
+                    local res = v:InvokeServer()
+                    function tbl2:andThen(func)
+                        func(res)
+                    end
+                    return tbl2
+                end
+				tbl = decorateRemote(v, tbl)
+                remote = tbl
+            end
+            
+            cache[remName] = remote 
+            return remote
+        end
+    end
+    warn(debug.traceback("[bedwars.Client:Get]: Failure finding remote! Remote: " .. tostring(remName) .. " CustomTable: " .. tostring(customTable or "no table specified") .. " Using backup table..."))
+    local backupTable = {}
+    function backupTable:FireServer() return false end
+    function backupTable:InvokeServer() return false end
+    cache[remName] = backupTable
+    return backupTable
+end
+
+function bedwars2.Client:GetNamespace(nameSpace, blacklist)
+    local cacheKey = nameSpace .. (blacklist and table.concat(blacklist, ",") or "")
+    if namespaceCache[cacheKey] then
+        return namespaceCache[cacheKey]
+    end
+    local remotes = getRemotes({"ReplicatedStorage"})
+    local resolvedRemotes = {}
+    blacklist = blacklist or {}
+    for _, v in pairs(remotes) do
+        if (v.Name == nameSpace or string.find(v.Name, nameSpace)) and not table.find(blacklist, v.Name) then
+            table.insert(resolvedRemotes, v)
+        end
+    end
+    local resolveFunctionTable = {Namespace = resolvedRemotes}
+    function resolveFunctionTable:Get(remName)
+        return bedwars2.Client:Get(remName, resolvedRemotes)
+    end
+    namespaceCache[cacheKey] = resolveFunctionTable 
+    return resolveFunctionTable
+end
+
+function bedwars2.Client:WaitFor(remName)
+	local tbl = {}
+	function tbl:andThen(func)
+		repeat task.wait() until bedwars2.Client:Get(remName)
+		func(bedwars2.Client:Get(remName).OnClientEvent)
+	end
+	return tbl
+end
+local remotes = {}
 run(function()
 	local function isWhitelistedBed(bed)
 		if bed and bed.Name == 'bed' then
@@ -1623,24 +1790,88 @@ run(function()
 		end
 	end
 
-	bedwars = setmetatable({
+	local remz = {
+		ProjectileRemote = "ProjectileFire",
+		EquipItemRemote = "SetInvItem",
+		DamageBlockRemote = "DamageBlock",
+		ReportRemote = "ReportPlayer",
+		PickupRemote = "PickupItemDrop",
+		CannonAimRemote = "AimCannon",
+		CannonLaunchRemote = "LaunchSelfFromCannon",
+		AttackRemote = "SwordHit",
+		GuitarHealRemote = "PlayGuitar",
+		EatRemote = "ConsumeItem",
+		SpawnRavenRemote = "SpawnRaven",
+		MageRemote = "LearnElementTome",
+		DragonRemote = "RequestDragonPunch",
+		ConsumeSoulRemote = "ConsumeGrimReaperSoul",
+		TreeRemote = "ConsumeTreeOrb",
+		PickupMetalRemote = "CollectCollectableEntity",
+		BatteryRemote = "ConsumeBattery",
+		DragonBreath = "DragonBreath",
+		AckKnockback = "AckKnockback",
+		MinerDig = "DestroyPetrifiedPlayer",
+		ReportPlayer = "ReportPlayer",
+		ResetCharacter = "ResetCharacter",
+		HarvestCrop = "CropHarvest",
+		PickUpBee = "PickUpBee",
+		AfkStatus = "AfkInfo",
+		WarlockTarget = "WarlockLinkTarget",
+		SpawnRaven = "SpawnRaven",
+		HannahKill = "HannahPromptTrigger",
+		SummonerClawAttack = "SummonerClawAttackRequest"
+	}
+
+	local extraRemotes = {
+		AckKnockback = bedwars2.Client:Get(remz.AckKnockback, 0),
+		BatteryRemote = bedwars2.Client:Get(remz.BatteryRemote, 0),
+		DragonBreath = bedwars2.Client:Get(remz.DragonBreath, 0),
+		HarvestCrop = bedwars2.Client:Get(remz.HarvestCrop, 0),
+		BeePickup = bedwars2.Client:Get(remz.PickUpBee, 0),
+		FireProjectile = bedwars2.Client:Get(remz.ProjectileRemote, 0),
+		AfkStatus = bedwars2.Client:Get(remz.AfkStatus, 0),
+		WarlockTarget = bedwars2.Client:Get(remz.WarlockTarget, 0),
+		HannahKill = bedwars2.Client:Get(remz.HannahKill, 0),
+		SummonerClawAttack = bedwars2.Client:Get(remz.SummonerClawAttack, 0),
+
+		ProjectileRemote = bedwars2.Client:Get(remz.ProjectileRemote, 0),
+		SpawnRavenRemote = bedwars2.Client:Get(remz.SpawnRaven, 0),
+		CannonAimRemote = bedwars2.Client:Get(remz.CannonAimRemote, 0),
+		CannonLaunchRemote = bedwars2.Client:Get(remz.CannonLaunchRemote, 0),
+		ConsumeSoulRemote = bedwars2.Client:Get(remz.ConsumeSoulRemote, 0),
+		EatRemote = bedwars2.Client:Get(remz.EatRemote, 0),
+		EquipItemRemote = bedwars2.Client:Get(remz.EquipItemRemote, 0),
+		DragonRemote = bedwars2.Client:Get(remz.DragonRemote, 0),
+		GuitarHealRemote = bedwars2.Client:Get(remz.GuitarHealRemote, 0),
+		MinerRemote = bedwars2.Client:Get(remz.MinerDig, 0),
+		PickupMetalRemote = bedwars2.Client:Get(remz.PickupMetalRemote, 0),
+		TreeRemote = bedwars2.Client:Get(remz.TreeRemote, 0),
+		PickupRemote = bedwars2.Client:Get(remz.PickupRemote, 0),
+		ReportRemote = bedwars2.Client:Get(remz.ReportPlayer, 0),
+		ResetRemote = bedwars2.Client:Get(remz.ResetCharacter, 0)
+	}
+
+	local remoteNames = {
+		AttackRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.SwordController.sendServerRequest)),
+		MageRemote = dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.MageController.registerTomeInteraction, 1))),
+		DropItemRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.ItemDropController.dropItemInHand)),
+		TrinityRemote = dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.AngelController.onKitEnabled, 1)))
+	}
+
+	local main = {
 		TeamUpgradeMeta = debug.getupvalue(require(replicatedStorage.TS.games.bedwars['team-upgrade']['team-upgrade-meta']).getTeamUpgradeMeta, 1),
 		AnimationType = require(replicatedstorage.TS.animation["animation-type"]).AnimationType,
 		AnimationUtil = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out["shared"].util["animation-util"]).AnimationUtil,
 		AppController = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out.client.controllers["app-controller"]).AppController,
 		AbilityController = Flamework.resolveDependency("@easy-games/game-core:client/controllers/ability/ability-controller@AbilityController"),
 		AbilityUIController = Flamework.resolveDependency("@easy-games/game-core:client/controllers/ability/ability-ui-controller@AbilityUIController"),
-		AttackRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.SwordController.sendServerRequest)),
 		BalanceFile = require(replicatedstorage.TS.balance["balance-file"]).BalanceFile,
-		--BatteryRemote = dumpRemote(debug.getconstants(debug.getproto(debug.getproto(KnitClient.Controllers.BatteryController.KnitStart, 1), 1))),
 		BlockBreaker = KnitClient.Controllers.BlockBreakController.blockBreaker,
 		BlockController = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["block-engine"].out).BlockEngine,
 		BlockPlacer = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["block-engine"].out.client.placement["block-placer"]).BlockPlacer,
 		BlockEngine = require(lplr.PlayerScripts.TS.lib["block-engine"]["client-block-engine"]).ClientBlockEngine,
 		BlockEngineClientEvents = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["block-engine"].out.client["block-engine-client-events"]).BlockEngineClientEvents,
 		BowConstantsTable = debug.getupvalue(KnitClient.Controllers.ProjectileController.enableBeam, 8),
-		CannonAimRemote = dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.CannonController.startAiming, 5))),
-		CannonLaunchRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.CannonHandController.launchSelf)),
 		ClickHold = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out.client.ui.lib.util["click-hold"]).ClickHold,
 		Client = Client,
 		ClientConstructor = require(replicatedstorage["rbxts_include"]["node_modules"]["@rbxts"].net.out.client),
@@ -1648,15 +1879,10 @@ run(function()
 		ClientStoreHandler = require(lplr.PlayerScripts.TS.ui.store).ClientStore,
 		CombatConstant = require(replicatedstorage.TS.combat["combat-constant"]).CombatConstant,
 		ConstantManager = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out["shared"].constant["constant-manager"]).ConstantManager,
-		ConsumeSoulRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.GrimReaperController.consumeSoul)),
 		CooldownController = Flamework.resolveDependency("@easy-games/game-core:client/controllers/cooldown/cooldown-controller@CooldownController"),
 		DamageIndicator = KnitClient.Controllers.DamageIndicatorController.spawnDamageIndicator,
 		DefaultKillEffect = require(lplr.PlayerScripts.TS.controllers.game.locker["kill-effect"].effects["default-kill-effect"]),
 		DropItem = KnitClient.Controllers.ItemDropController.dropItemInHand,
-		DropItemRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.ItemDropController.dropItemInHand)),
-		--DragonRemote = dumpRemote(debug.getconstants(debug.getproto(debug.getproto(KnitClient.Controllers.DragonSlayerController.KnitStart, 2), 1))),
-		EatRemote = dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.ConsumeController.onEnable, 1))),
-		EquipItemRemote = dumpRemote(debug.getconstants(debug.getproto(require(replicatedstorage.TS.entity.entities["inventory-entity"]).InventoryEntity.equipItem, 3))),
 		EmoteMeta = require(replicatedstorage.TS.locker.emote["emote-meta"]).EmoteMeta,
 		GameAnimationUtil = require(replicatedstorage.TS.animation["animation-util"]).GameAnimationUtil,
 		EntityUtil = require(replicatedstorage.TS.entity["entity-util"]).EntityUtil,
@@ -1677,37 +1903,36 @@ run(function()
 				hand = nil
 			})
 		end,
-		GuitarHealRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.GuitarController.performHeal)),
 		ItemTable = debug.getupvalue(require(replicatedstorage.TS.item["item-meta"]).getItemMeta, 1),
 		KillEffectMeta = require(replicatedstorage.TS.locker["kill-effect"]["kill-effect-meta"]).KillEffectMeta,
 		KnockbackUtil = require(replicatedstorage.TS.damage["knockback-util"]).KnockbackUtil,
 		MatchEndScreenController = Flamework.resolveDependency("client/controllers/game/match/match-end-screen-controller@MatchEndScreenController"),
-		--MinerRemote = dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.MinerController.onKitEnabled, 1))),
-		MageRemote = dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.MageController.registerTomeInteraction, 1))),
 		MageKitUtil = require(replicatedstorage.TS.games.bedwars.kit.kits.mage["mage-kit-util"]).MageKitUtil,
-		--PickupMetalRemote = dumpRemote(debug.getconstants(debug.getproto(debug.getproto(KnitClient.Controllers.MetalDetectorController.KnitStart, 1), 2))),
-		PickupRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.ItemDropController.checkForPickup)),
-		--PinataRemote = dumpRemote(debug.getconstants(debug.getproto(debug.getproto(KnitClient.Controllers.PiggyBankController.KnitStart, 2), 5))),
-		PinataRemote = '',
 		ProjectileMeta = require(replicatedstorage.TS.projectile["projectile-meta"]).ProjectileMeta,
-		ProjectileRemote = dumpRemote(debug.getconstants(debug.getupvalue(KnitClient.Controllers.ProjectileController.launchProjectileWithValues, 2))),
 		QueryUtil = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out).GameQueryUtil,
 		QueueCard = require(lplr.PlayerScripts.TS.controllers.global.queue.ui["queue-card"]).QueueCard,
 		QueueMeta = require(replicatedstorage.TS.game["queue-meta"]).QueueMeta,
-		ReportRemote = dumpRemote(debug.getconstants(require(lplr.PlayerScripts.TS.controllers.global.report["report-controller"]).default.reportPlayer)),
-		ResetRemote = dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.ResetController.createBindable, 1))),
 		Roact = require(replicatedstorage["rbxts_include"]["node_modules"]["@rbxts"]["roact"].src),
 		RuntimeLib = require(replicatedstorage["rbxts_include"].RuntimeLib),
 		Shop = require(replicatedstorage.TS.games.bedwars.shop["bedwars-shop"]).BedwarsShop,
 		ShopItems = debug.getupvalue(debug.getupvalue(require(replicatedstorage.TS.games.bedwars.shop["bedwars-shop"]).BedwarsShop.getShopItem, 1), 3),
 		SoundList = require(replicatedstorage.TS.sound["game-sound"]).GameSound,
 		SoundManager = require(replicatedstorage["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out).SoundManager,
-		SpawnRavenRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.RavenController.spawnRaven)),
-		--TreeRemote = dumpRemote(debug.getconstants(debug.getproto(debug.getproto(KnitClient.Controllers.EldertreeController.KnitStart, 1), 2))),
-		TrinityRemote = dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.AngelController.onKitEnabled, 1))),
 		UILayers = require(replicatedstorage['rbxts_include']['node_modules']['@easy-games']['game-core'].out).UILayers,
 		WeldTable = require(replicatedstorage.TS.util["weld-util"]).WeldUtil
-	}, {
+	}
+
+	for i,v in pairs(remoteNames) do
+		main[i] = v
+		remotes[i] = v
+	end
+
+	for i,v in pairs(extraRemotes) do
+		main[i] = v
+		remotes[i] = v
+	end
+
+	bedwars = setmetatable(main, {
 		__index = function(self, ind)
 			rawset(self, ind, KnitClient.Controllers[ind])
 			return rawget(self, ind)
@@ -1715,10 +1940,12 @@ run(function()
 	})
 
 	bedwars.BowConstantsTable = bowConstants
-	--print(bedwars.BowConstantsTable)
 	OldBreak = bedwars.BlockController.isBlockBreakable
 
 	getmetatable(Client).Get = function(self, remoteName)
+		if type(remoteName) == "table" then
+			remoteName = remoteName.instance.Name
+		end
 		if not vapeInjected then return OldGet(self, remoteName) end
 		local originalRemote = OldGet(self, remoteName)
 		if remoteName == bedwars.AttackRemote then
@@ -1988,70 +2215,6 @@ run(function()
 	end))
 end)
 
-local remotes = {}
-run(function()
-	local KnitInit, Knit
-	repeat
-		KnitInit, Knit = pcall(function()
-			return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6)
-		end)
-		if KnitInit then break end
-		task.wait()
-	until KnitInit
-
-	if not debug.getupvalue(Knit.Start, 1) then
-		repeat task.wait() until debug.getupvalue(Knit.Start, 1)
-	end
-	local remoteNames = {
-		--AckKnockback = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.KnockbackController.KnitStart, 1), 1)),
-		AfkStatus = debug.getconstants(debug.getproto(Knit.Controllers.AfkController.KnitStart, 1)),
-		AttackEntity = debug.getconstants(Knit.Controllers.SwordController.sendServerRequest),
-		--ConsumeBattery = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.BatteryController.KnitStart, 1), 1)),
-		CannonAim = debug.getconstants(debug.getproto(Knit.Controllers.CannonController.startAiming, 5)),
-		CannonLaunch = debug.getconstants(Knit.Controllers.CannonHandController.launchSelf),
-		ConsumeItem = debug.getconstants(debug.getproto(Knit.Controllers.ConsumeController.onEnable, 1)),
-		ConsumeSoul = debug.getconstants(Knit.Controllers.GrimReaperController.consumeSoul),
-		--ConsumeTreeOrb = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.BigmanController.KnitStart, 1), 2)),
-		DepositPinata = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.PiggyBankController.KnitStart, 2), 5)),
-		--DragonBreath = debug.getconstants(debug.getproto(Knit.Controllers.VoidDragonController.KnitStart, 4)),
-		DragonEndFly = debug.getconstants(debug.getproto(Knit.Controllers.VoidDragonController.flapWings, 1)),
-		DragonFly = debug.getconstants(Knit.Controllers.VoidDragonController.flapWings),
-		DropItem = debug.getconstants(Knit.Controllers.ItemDropController.dropItemInHand),
-		EquipItem = debug.getconstants(debug.getproto(require(replicatedStorage.TS.entity.entities['inventory-entity']).InventoryEntity.equipItem, 3)),
-		FireProjectile = debug.getconstants(debug.getupvalue(Knit.Controllers.ProjectileController.launchProjectileWithValues, 2)),
-		GroundHit = debug.getconstants(Knit.Controllers.FallDamageController.KnitStart),
-		GuitarHeal = debug.getconstants(Knit.Controllers.GuitarController.performHeal),
-		--HannahKill = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.HannahController.KnitStart, 2), 1)),
-		HarvestCrop = debug.getconstants(Knit.Controllers.CropController.KnitStart),
-		MageSelect = debug.getconstants(debug.getproto(Knit.Controllers.MageController.registerTomeInteraction, 1)),
-		MinerDig = debug.getconstants(debug.getproto(Knit.Controllers.MinerController.setupMinerPrompts, 1)),
-		PickupItem = debug.getconstants(Knit.Controllers.ItemDropController.checkForPickup),
-		--PickupMetal = debug.getconstants(debug.getproto(debug.getproto(Knit.Controllers.MetalDetectorController.KnitStart, 1), 2)),
-		ReportPlayer = debug.getconstants(require(lplr.PlayerScripts.TS.controllers.global.report['report-controller']).default.reportPlayer),
-		ResetCharacter = debug.getconstants(debug.getproto(Knit.Controllers.ResetController.createBindable, 1)),
-		SpawnRaven = debug.getconstants(Knit.Controllers.RavenController.spawnRaven)
-	}
-	
-	local function dumpRemote(tab)
-		local ind
-		for i, v in tab do
-			if v == 'Client' then
-				ind = i
-				break
-			end
-		end
-		return ind and tab[ind + 1] or ''
-	end
-	
-	for i, v in remoteNames do
-		local remote = dumpRemote(v)
-		if remote == '' then
-			InfoNotification('Vape', 'Failed to grab remote ('..i..')', 10, 'alert')
-		end
-		remotes[i] = remote
-	end
-end)
-
 if not bedwars.Client then
 	errorNotification('Voidware Bedwars', "There was a critical loading error! \n Please report this issue to erchodev#0 or discord.gg/voidware", 10)
 end
@@ -2250,6 +2413,13 @@ do
 	end)
 end
 
+local KaidaController = {}
+function KaidaController:request(target)
+	if target then 
+		return bedwars2.Client:Get("SummonerClawAttackRequest"):FireServer({["clientTime"] = tick(), ["direction"] = (target:FindFirstChild("HumanoidRootPart") and target:FindFirstChild("HumanoidRootPart").Position - lplr.Character.HumanoidRootPart.Position).unit, ["position"] = target:FindFirstChild("HumanoidRootPart") and target:FindFirstChild("HumanoidRootPart").Position})
+	else return nil end
+end
+
 if (not shared.RiseMode) then
     run(function()
         local handsquare = Instance.new("ImageLabel")
@@ -2312,33 +2482,33 @@ if (not shared.RiseMode) then
 end
 pcall(function()
     local options = {
-        "SilentAimOptionsButton",
-        "ReachOptionsButton",
-        "MouseTPOptionsButton",
-        "PhaseOptionsButton",
-        "AutoClickerOptionsButton",
-        "SpiderOptionsButton",
-        "LongJumpOptionsButton",
-        "HitBoxesOptionsButton",
-        "KillauraOptionsButton",
-        "TriggerBotOptionsButton",
-        "AutoLeaveOptionsButton",
-        "SpeedOptionsButton",
-        "FlyOptionsButton",
-        "ClientKickDisablerOptionsButton",
-        "NameTagsOptionsButton",
-        "SafeWalkOptionsButton",
-        "BlinkOptionsButton",
-        "FOVChangerOptionsButton",
-        "AntiVoidOptionsButton",
-        "SongBeatsOptionsButton",
-        "TargetStrafeOptionsButton"
+        "SilentAim",
+        "Reach",
+        "MouseTP",
+        "Phase",
+        "AutoClicker",
+        "Spider",
+        "LongJump",
+        "HitBoxes",
+        "Killaura",
+        "TriggerBot",
+        "AutoLeave",
+        "Speed",
+        "Fly",
+        "ClientKickDisabler",
+        "NameTags",
+        "SafeWalk",
+        "Blink",
+        "FOVChanger",
+        "AntiVoid",
+        "SongBeats",
+        "TargetStrafe"
     }
 
     for _, option in ipairs(options) do
         task.spawn(function()
             pcall(function()
-                GuiLibrary.RemoveObject(option)
+                GuiLibrary.RemoveObject(option.."OptionsButton")
             end)
         end)
     end
@@ -2352,6 +2522,8 @@ run(function()
 	local AimSpeed = {Value = 1}
 	local AimAssistTargetFrame = {Players = {Enabled = false}}
 	local IgnoreEntities = {Enabled = false}
+	local ShopCheck = {Enabled = false}
+
 	AimAssist = GuiLibrary.ObjectsThatCanBeSaved.CombatWindow.Api.CreateOptionsButton({
 		Name = "AimAssist",
 		Function = function(callback)
@@ -2361,6 +2533,10 @@ run(function()
 					if ((not AimAssistClickAim.Enabled) or (tick() - bedwars.SwordController.lastSwing) < 0.4) then
 						local plr = EntityNearPosition(18, IgnoreEntities.Enabled)
 						if plr then
+							if ShopCheck.Enabled then
+								local isShop = lplr:FindFirstChild("PlayerGui") and lplr:FindFirstChild("PlayerGui"):FindFirstChild("ItemShop") or nil
+								if not isShop then return end
+							end
 							vapeTargetInfo.Targets.AimAssist = {
 								Humanoid = {
 									Health = (plr.Character:GetAttribute("Health") or plr.Humanoid.Health) + getShieldAttribute(plr.Character),
@@ -2389,6 +2565,11 @@ run(function()
 	})
 	IgnoreEntities = AimAssist.CreateToggle({
 		Name = "Ignore bots (skeletons, void creautures)",
+		Function = function() end,
+		Default = false
+	})
+	ShopCheck = AimAssist.CreateToggle({
+		Name = "Shop Check",
 		Function = function() end,
 		Default = false
 	})
@@ -3296,13 +3477,244 @@ end)
 
 run(function()
 	local InfiniteFly = {Enabled = false}
-	InfiniteFly = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
-		Name = "InfiniteFly",
-		Function = function(call)
-			if call then
-				InfiniteFly.ToggleButton(false)
+	local InfiniteFlyMode = {Value = "CFrame"}
+	local InfiniteFlySpeed = {Value = 23}
+	local InfiniteFlyVerticalSpeed = {Value = 40}
+	local InfiniteFlyVertical = {Enabled = true}
+	local InfiniteFlyUp = false
+	local InfiniteFlyDown = false
+	local alternatelist = {"Normal", "AntiCheat A", "AntiCheat B"}
+	local clonesuccess = false
+	local disabledproper = true
+	local oldcloneroot
+	local cloned
+	local clone
+	local bodyvelo
+	local FlyOverlap = OverlapParams.new()
+	FlyOverlap.MaxParts = 9e9
+	FlyOverlap.FilterDescendantsInstances = {}
+	FlyOverlap.RespectCanCollide = true
+
+	local function disablefunc()
+		if bodyvelo then bodyvelo:Destroy() end
+		RunLoops:UnbindFromHeartbeat("InfiniteFlyOff")
+		disabledproper = true
+		if not oldcloneroot or not oldcloneroot.Parent then return end
+		lplr.Character.Parent = game
+		oldcloneroot.Parent = lplr.Character
+		lplr.Character.PrimaryPart = oldcloneroot
+		lplr.Character.Parent = workspace
+		oldcloneroot.CanCollide = true
+		for i,v in pairs(lplr.Character:GetDescendants()) do
+			if v:IsA("Weld") or v:IsA("Motor6D") then
+				if v.Part0 == clone then v.Part0 = oldcloneroot end
+				if v.Part1 == clone then v.Part1 = oldcloneroot end
+			end
+			if v:IsA("BodyVelocity") then
+				v:Destroy()
 			end
 		end
+		for i,v in pairs(oldcloneroot:GetChildren()) do
+			if v:IsA("BodyVelocity") then
+				v:Destroy()
+			end
+		end
+		local oldclonepos = clone.Position.Y
+		if clone then
+			clone:Destroy()
+			clone = nil
+		end
+		lplr.Character.Humanoid.HipHeight = hip or 2
+		local origcf = {oldcloneroot.CFrame:GetComponents()}
+		origcf[2] = oldclonepos
+		oldcloneroot.CFrame = CFrame.new(unpack(origcf))
+		oldcloneroot = nil
+		warningNotification("InfiniteFly", "Landed!", 3)
+	end
+
+	InfiniteFly = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+		Name = "InfiniteFly",
+		Function = function(callback)
+			if callback then
+				if not entityLibrary.isAlive then
+					disabledproper = true
+				end
+				if not disabledproper then
+					warningNotification("InfiniteFly", "Wait for the last fly to finish", 3)
+					InfiniteFly.ToggleButton(false)
+					return
+				end
+				table.insert(InfiniteFly.Connections, inputService.InputBegan:Connect(function(input1)
+					if InfiniteFlyVertical.Enabled and inputService:GetFocusedTextBox() == nil then
+						if input1.KeyCode == Enum.KeyCode.Space or input1.KeyCode == Enum.KeyCode.ButtonA then
+							InfiniteFlyUp = true
+						end
+						if input1.KeyCode == Enum.KeyCode.LeftShift or input1.KeyCode == Enum.KeyCode.ButtonL2 then
+							InfiniteFlyDown = true
+						end
+					end
+				end))
+				table.insert(InfiniteFly.Connections, inputService.InputEnded:Connect(function(input1)
+					if input1.KeyCode == Enum.KeyCode.Space or input1.KeyCode == Enum.KeyCode.ButtonA then
+						InfiniteFlyUp = false
+					end
+					if input1.KeyCode == Enum.KeyCode.LeftShift or input1.KeyCode == Enum.KeyCode.ButtonL2 then
+						InfiniteFlyDown = false
+					end
+				end))
+				if inputService.TouchEnabled then
+					pcall(function()
+						local jumpButton = lplr.PlayerGui.TouchGui.TouchControlFrame.JumpButton
+						table.insert(InfiniteFly.Connections, jumpButton:GetPropertyChangedSignal("ImageRectOffset"):Connect(function()
+							InfiniteFlyUp = jumpButton.ImageRectOffset.X == 146
+						end))
+						InfiniteFlyUp = jumpButton.ImageRectOffset.X == 146
+					end)
+				end
+				clonesuccess = false
+				if entityLibrary.isAlive and entityLibrary.character.Humanoid.Health > 0 and isnetworkowner(entityLibrary.character.HumanoidRootPart) then
+					cloned = lplr.Character
+					oldcloneroot = entityLibrary.character.HumanoidRootPart
+					if not lplr.Character.Parent then
+						InfiniteFly.ToggleButton(false)
+						return
+					end
+					lplr.Character.Parent = game
+					clone = oldcloneroot:Clone()
+					clone.Parent = lplr.Character
+					oldcloneroot.Parent = gameCamera
+					bedwars.QueryUtil:setQueryIgnored(oldcloneroot, true)
+					clone.CFrame = oldcloneroot.CFrame
+					lplr.Character.PrimaryPart = clone
+					lplr.Character.Parent = workspace
+					for i,v in pairs(lplr.Character:GetDescendants()) do
+						if v:IsA("Weld") or v:IsA("Motor6D") then
+							if v.Part0 == oldcloneroot then v.Part0 = clone end
+							if v.Part1 == oldcloneroot then v.Part1 = clone end
+						end
+						if v:IsA("BodyVelocity") then
+							v:Destroy()
+						end
+					end
+					for i,v in pairs(oldcloneroot:GetChildren()) do
+						if v:IsA("BodyVelocity") then
+							v:Destroy()
+						end
+					end
+					if hip then
+						lplr.Character.Humanoid.HipHeight = hip
+					end
+					hip = lplr.Character.Humanoid.HipHeight
+					clonesuccess = true
+				end
+				if not clonesuccess then
+					warningNotification("InfiniteFly", "Character missing", 3)
+					InfiniteFly.ToggleButton(false)
+					return
+				end
+				local goneup = false
+				RunLoops:BindToHeartbeat("InfiniteFly", function(delta)
+					if GuiLibrary.ObjectsThatCanBeSaved["Lobby CheckToggle"].Api.Enabled then
+						if store.matchState == 0 then return end
+					end
+					if entityLibrary.isAlive then
+						if isnetworkowner(oldcloneroot) then
+							local playerMass = (entityLibrary.character.HumanoidRootPart:GetMass() - 1.4) * (delta * 100)
+
+							local flyVelocity = entityLibrary.character.Humanoid.MoveDirection * (InfiniteFlyMode.Value == "Normal" and InfiniteFlySpeed.Value or 20)
+							entityLibrary.character.HumanoidRootPart.Velocity = flyVelocity + (Vector3.new(0, playerMass + (InfiniteFlyUp and InfiniteFlyVerticalSpeed.Value or 0) + (InfiniteFlyDown and -InfiniteFlyVerticalSpeed.Value or 0), 0))
+							if InfiniteFlyMode.Value ~= "Normal" then
+								entityLibrary.character.HumanoidRootPart.CFrame = entityLibrary.character.HumanoidRootPart.CFrame + (entityLibrary.character.Humanoid.MoveDirection * ((InfiniteFlySpeed.Value + getSpeed()) - 20)) * delta
+							end
+
+							local speedCFrame = {oldcloneroot.CFrame:GetComponents()}
+							speedCFrame[1] = clone.CFrame.X
+							if speedCFrame[2] < 1000 or (not goneup) then
+								task.spawn(warningNotification, "InfiniteFly", "Teleported Up", 3)
+								speedCFrame[2] = 100000
+								goneup = true
+							end
+							speedCFrame[3] = clone.CFrame.Z
+							oldcloneroot.CFrame = CFrame.new(unpack(speedCFrame))
+							oldcloneroot.Velocity = Vector3.new(clone.Velocity.X, oldcloneroot.Velocity.Y, clone.Velocity.Z)
+						else
+							InfiniteFly.ToggleButton(false)
+						end
+					end
+				end)
+			else
+				RunLoops:UnbindFromHeartbeat("InfiniteFly")
+				if clonesuccess and oldcloneroot and clone and lplr.Character.Parent == workspace and oldcloneroot.Parent ~= nil and disabledproper and cloned == lplr.Character then
+					local rayparams = RaycastParams.new()
+					rayparams.FilterDescendantsInstances = {lplr.Character, gameCamera}
+					rayparams.RespectCanCollide = true
+					local ray = workspace:Raycast(Vector3.new(oldcloneroot.Position.X, clone.CFrame.p.Y, oldcloneroot.Position.Z), Vector3.new(0, -1000, 0), rayparams)
+					local origcf = {clone.CFrame:GetComponents()}
+					origcf[1] = oldcloneroot.Position.X
+					origcf[2] = ray and ray.Position.Y + (entityLibrary.character.Humanoid.HipHeight + (oldcloneroot.Size.Y / 2)) or clone.CFrame.p.Y
+					origcf[3] = oldcloneroot.Position.Z
+					oldcloneroot.CanCollide = true
+					bodyvelo = Instance.new("BodyVelocity")
+					bodyvelo.MaxForce = Vector3.new(0, 9e9, 0)
+					bodyvelo.Velocity = Vector3.new(0, -1, 0)
+					bodyvelo.Parent = oldcloneroot
+					oldcloneroot.Velocity = Vector3.new(clone.Velocity.X, -1, clone.Velocity.Z)
+					RunLoops:BindToHeartbeat("InfiniteFlyOff", function(dt)
+						if oldcloneroot then
+							oldcloneroot.Velocity = Vector3.new(clone.Velocity.X, -1, clone.Velocity.Z)
+							local bruh = {clone.CFrame:GetComponents()}
+							bruh[2] = oldcloneroot.CFrame.Y
+							local newcf = CFrame.new(unpack(bruh))
+							FlyOverlap.FilterDescendantsInstances = {lplr.Character, gameCamera}
+							local allowed = true
+							for i,v in pairs(workspace:GetPartBoundsInRadius(newcf.p, 2, FlyOverlap)) do
+								if (v.Position.Y + (v.Size.Y / 2)) > (newcf.p.Y + 0.5) then
+									allowed = false
+									break
+								end
+							end
+							if allowed then
+								oldcloneroot.CFrame = newcf
+							end
+						end
+					end)
+					oldcloneroot.CFrame = CFrame.new(unpack(origcf))
+					entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Landed)
+					disabledproper = false
+					if isnetworkowner(oldcloneroot) then
+						warningNotification("InfiniteFly", "Waiting 1.1s to not flag", 3)
+						task.delay(1.1, disablefunc)
+					else
+						disablefunc()
+					end
+				end
+				InfiniteFlyUp = false
+				InfiniteFlyDown = false
+			end
+		end,
+		HoverText = "Makes you go zoom",
+		ExtraText = function()
+			return "Heatseeker"
+		end
+	})
+	InfiniteFlySpeed = InfiniteFly.CreateSlider({
+		Name = "Speed",
+		Min = 1,
+		Max = 23,
+		Function = function(val) end,
+		Default = 23
+	})
+	InfiniteFlyVerticalSpeed = InfiniteFly.CreateSlider({
+		Name = "Vertical Speed",
+		Min = 1,
+		Max = 100,
+		Function = function(val) end,
+		Default = 44
+	})
+	InfiniteFlyVertical = InfiniteFly.CreateToggle({
+		Name = "Y Level",
+		Function = function() end,
+		Default = true
 	})
 end)
 
@@ -3349,6 +3761,43 @@ run(function()
 	local originalArmC0 = nil
 	local killauracurrentanim
 	local animationdelay = tick()
+
+	local function createRangeCircle()
+		local suc, err = pcall(function()
+			if identifyexecutor and not string.find(string.lower(identifyexecutor()), "wave") and not shared.CheatEngineMode then
+				killaurarangecirclepart = Instance.new("MeshPart")
+				killaurarangecirclepart.MeshId = "rbxassetid://3726303797"
+				if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+					killaurarangecirclepart.Color = GuiLibrary.GUICoreColor
+					GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+						killaurarangecirclepart.Color = GuiLibrary.GUICoreColor
+					end)
+				else
+					killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+					killauracolorChanged.Event:Connect(function()
+						killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+					end)
+				end
+				killaurarangecirclepart.CanCollide = false
+				killaurarangecirclepart.Anchored = true
+				killaurarangecirclepart.Material = Enum.Material.Neon
+				killaurarangecirclepart.Size = Vector3.new(killaurarange.Value * 0.7, 0.01, killaurarange.Value * 0.7)
+				if Killaura.Enabled then
+					killaurarangecirclepart.Parent = gameCamera
+				end
+				killaurarangecirclepart:SetAttribute("gamecore_GameQueryIgnore", true)
+			end
+		end)
+		if (not suc) then
+			pcall(function()
+				if killaurarangecirclepart then
+					killaurarangecirclepart:Destroy()
+					killaurarangecirclepart = nil
+				end
+				InfoNotification("Killaura - Range Visualiser Circle", "There was an error creating the circle. Disabling...", 2)
+			end)
+		end
+	end
 
 	local function getStrength(plr)
 		local inv = store.inventories[plr.Player]
@@ -3487,6 +3936,10 @@ run(function()
 		Name = "Killaura",
 		Function = function(callback)
 			if callback then
+				if killaurarangecircle.Enabled then
+					createRangeCircle()
+				end
+
 				if killauraaimcirclepart then killauraaimcirclepart.Parent = gameCamera end
 				if killaurarangecirclepart then killaurarangecirclepart.Parent = gameCamera end
 				if killauraparticlepart then killauraparticlepart.Parent = gameCamera end
@@ -3614,7 +4067,7 @@ run(function()
 									if getItemNear('summoner_claw') then 
 										local target = plrs[1].Character
 										if target then
-											game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("SummonerClawAttackRequest"):FireServer({["clientTime"] = tick(), ["direction"] = (target:FindFirstChild("HumanoidRootPart") and target:FindFirstChild("HumanoidRootPart").Position - lplr.Character.HumanoidRootPart.Position).unit, ["position"] = target:FindFirstChild("HumanoidRootPart") and target:FindFirstChild("HumanoidRootPart").Position})
+											KaidaController:request(target)
 										end
 									end
 								end)
@@ -3876,17 +4329,19 @@ run(function()
 				if callback then
 					killaurabox = Instance.new("Highlight")
 					killaurabox.FillTransparency = 0.39
-					killaurabox.FillColor = Color3.fromHSV(killauracolor.Hue, killauracolor.Sat, killauracolor.Value)
-					if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
-						killaurabox.FillColor = GuiLibrary.GUICoreColor
-						GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+					pcall(function()
+						killaurabox.FillColor = Color3.fromHSV(killauracolor.Hue, killauracolor.Sat, killauracolor.Value)
+						if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
 							killaurabox.FillColor = GuiLibrary.GUICoreColor
-						end)
-					else
-						killauracolorChanged.Event:Connect(function()
-							killaurabox.FillColor = Color3.fromHSV(killauracolor.Hue, killauracolor.Sat, killauracolor.Value)
-						end)
-					end
+							GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+								killaurabox.FillColor = GuiLibrary.GUICoreColor
+							end)
+						else
+							killauracolorChanged.Event:Connect(function()
+								killaurabox.FillColor = Color3.fromHSV(killauracolor.Hue, killauracolor.Sat, killauracolor.Value)
+							end)
+						end
+					end)
 					killaurabox.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 					killaurabox.OutlineTransparency = 1
 					killaurabox.Parent = GuiLibrary.MainGui
@@ -3956,42 +4411,7 @@ run(function()
 		Name = "Range Visualizer",
 		Function = function(callback)
 			if callback then
-				--context issues moment
-			---- BIG BALLS MOMENT
-				local suc, err = pcall(function()
-					if identifyexecutor and not string.find(string.lower(identifyexecutor()), "wave") and not shared.CheatEngineMode then
-						killaurarangecirclepart = Instance.new("MeshPart")
-						killaurarangecirclepart.MeshId = "rbxassetid://3726303797"
-						if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
-							killaurarangecirclepart.Color = GuiLibrary.GUICoreColor
-							GuiLibrary.GUICoreColorChanged.Event:Connect(function()
-								killaurarangecirclepart.Color = GuiLibrary.GUICoreColor
-							end)
-						else
-							killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
-							killauracolorChanged.Event:Connect(function()
-								killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
-							end)
-						end
-						killaurarangecirclepart.CanCollide = false
-						killaurarangecirclepart.Anchored = true
-						killaurarangecirclepart.Material = Enum.Material.Neon
-						killaurarangecirclepart.Size = Vector3.new(killaurarange.Value * 0.7, 0.01, killaurarange.Value * 0.7)
-						if Killaura.Enabled then
-							killaurarangecirclepart.Parent = gameCamera
-						end
-						--bedwars.QueryUtil:setQueryIgnored(killaurarangecirclepart, true)
-					end
-				end)
-				if (not suc) then
-					pcall(function()
-						if killaurarangecirclepart then
-							killaurarangecirclepart:Destroy()
-							killaurarangecirclepart = nil
-						end
-						InfoNotification("Killaura - Range Visualiser Circle", "There was an error creating the circle. Disabling...", 2)
-					end)
-				end
+				createRangeCircle()
 			else
 				if killaurarangecirclepart then
 					killaurarangecirclepart:Destroy()
@@ -4395,7 +4815,6 @@ end)
 
 run(function()
 	local entitylib = entityLibrary
-	
     local NoFall = {}
 	local MitigationChoice = {Value = "VelocityClamp"}
 	local RishThreshold = {Value = 30}
@@ -4405,7 +4824,7 @@ run(function()
     local maxHistory = 10
     
     local function recordVelocity()
-        if not entitylib.isAlive or not entitylib.character or not entitylib.character.HumanoidRootPart then return end
+		if not entitylib.isAlive or not entitylib.character or not entitylib.character.HumanoidRootPart then return end
 		entitylib.character.RootPart = entitylib.character.HumanoidRootPart
         local velocity = entitylib.character.RootPart.Velocity
         table.insert(velocityHistory, velocity.Y)
@@ -5957,9 +6376,15 @@ run(function()
 						BedPlatesTable[v] = nil
 					end
 				end))
-				for i, v in pairs(collectionService:GetTagged("bed")) do
-					addBed(v)
-				end
+				task.spawn(function()
+					repeat 
+						for i, v in pairs(collectionService:GetTagged("bed")) do
+							addBed(v)
+						end
+						task.wait(5)
+						BedPlatesFolder:ClearAllChildren()
+					until not BedPlates.Enabled
+				end)
 			else
 				BedPlatesFolder:ClearAllChildren()
 			end
@@ -8557,19 +8982,6 @@ run(function()
 				until (not AutoKit.Enabled)
 			end)
 		end,
-		["pinata"] = function()
-			task.spawn(function()
-				repeat
-					task.wait()
-					local itemdrops = collectionService:GetTagged(lplr.Name..':pinata')
-					for i,v in pairs(itemdrops) do
-						if entityLibrary.isAlive and getItem('candy') then
-							bedwars.Client:Get(bedwars.PinataRemote):CallServer(v)
-						end
-					end
-				until (not AutoKit.Enabled)
-			end)
-		end,
 		["dragon_slayer"] = function()
 			task.spawn(function()
 				repeat
@@ -10169,6 +10581,7 @@ run(function()
 		end
 	})
 end)
+
 
 run(function()
 	local controlmodule = require(lplr.PlayerScripts.PlayerModule).controls

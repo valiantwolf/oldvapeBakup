@@ -62,6 +62,7 @@ local store = {
 		hotbar = {}
 	},
 	localHand = {},
+	hand = {},
 	matchState = 1,
 	matchStateChanged = tick(),
 	pots = {},
@@ -490,7 +491,7 @@ local function corehotbarswitch(tool)
         for i,v in pairs(children) do if v.Name == name and v.ClassName == className then return v end end
         local args = {Name = tostring(name), ClassName == tostring(className), Children = children}
 		if not nodebug then
-			warn("[findChild]: CHILD NOT FOUND! Args: ", game:GetService("HttpService"):JSONEncode(args), name, className, children)
+			--warn("[findChild]: CHILD NOT FOUND! Args: ", game:GetService("HttpService"):JSONEncode(args), name, className, children)
 		end
         return nil
     end
@@ -638,61 +639,63 @@ local function corehotbarswitch(tool)
 	end)
 end
 
-local function coreswitch(tool)
+local function coreswitch(tool, ignore)
     local character = lplr.Character
     if not character then return end
 
     local humanoid = character:FindFirstChild("Humanoid")
     if not humanoid then return end
 
-    local currentHandItem
-    for _, acc in character:GetChildren() do
-        if acc:IsA("Accessory") and acc:GetAttribute("InvItem") == true and acc:GetAttribute("ArmorSlot") == nil and acc:GetAttribute("IsBackpack") == nil then
-            currentHandItem = acc
-            break
-        end
-    end
-    if currentHandItem then
-        currentHandItem:Destroy()
-    end
-
-    for _, weld in pairs(character:GetDescendants()) do
-        if weld:IsA("Weld") and weld.Name == "HandItemWeld" then
-            weld:Destroy()
-        end
-    end
-
-    local inventoryFolder = character:FindFirstChild("InventoryFolder")
-    if not inventoryFolder or not inventoryFolder.Value then return end
-    local toolInstance = inventoryFolder.Value:FindFirstChild(tool.Name)
-    if not toolInstance then return end
-    local clone = toolInstance:Clone()
-
-    clone:SetAttribute("InvItem", true)
-
-    humanoid:AddAccessory(clone)
-
-    local handle = clone:FindFirstChild("Handle")
-    if handle and handle:IsA("BasePart") then
-        local attachment = handle:FindFirstChildWhichIsA("Attachment")
-        if attachment then
-            local characterAttachment = character:FindFirstChild(attachment.Name, true)
-            if characterAttachment and characterAttachment:IsA("Attachment") then
-                local weld = Instance.new("Weld")
-                weld.Name = "HandItemWeld"
-                weld.Part0 = characterAttachment.Parent 
-                weld.Part1 = handle
-                weld.C0 = characterAttachment.CFrame
-                weld.C1 = attachment.CFrame
-                weld.Parent = handle
-            end
-        end
-    end
-
-    local handInvItem = character:FindFirstChild("HandInvItem")
-    if handInvItem then
-        handInvItem.Value = tool
-    end
+    if not ignore then
+		local currentHandItem
+		for _, acc in character:GetChildren() do
+			if acc:IsA("Accessory") and acc:GetAttribute("InvItem") == true and acc:GetAttribute("ArmorSlot") == nil and acc:GetAttribute("IsBackpack") == nil then
+				currentHandItem = acc
+				break
+			end
+		end
+		if currentHandItem then
+			currentHandItem:Destroy()
+		end
+	
+		for _, weld in pairs(character:GetDescendants()) do
+			if weld:IsA("Weld") and weld.Name == "HandItemWeld" then
+				weld:Destroy()
+			end
+		end
+	
+		local inventoryFolder = character:FindFirstChild("InventoryFolder")
+		if not inventoryFolder or not inventoryFolder.Value then return end
+		local toolInstance = inventoryFolder.Value:FindFirstChild(tool.Name)
+		if not toolInstance then return end
+		local clone = toolInstance:Clone()
+	
+		clone:SetAttribute("InvItem", true)
+	
+		humanoid:AddAccessory(clone)
+	
+		local handle = clone:FindFirstChild("Handle")
+		if handle and handle:IsA("BasePart") then
+			local attachment = handle:FindFirstChildWhichIsA("Attachment")
+			if attachment then
+				local characterAttachment = character:FindFirstChild(attachment.Name, true)
+				if characterAttachment and characterAttachment:IsA("Attachment") then
+					local weld = Instance.new("Weld")
+					weld.Name = "HandItemWeld"
+					weld.Part0 = characterAttachment.Parent 
+					weld.Part1 = handle
+					weld.C0 = characterAttachment.CFrame
+					weld.C1 = attachment.CFrame
+					weld.Parent = handle
+				end
+			end
+		end
+	
+		local handInvItem = character:FindFirstChild("HandInvItem")
+		if handInvItem then
+			handInvItem.Value = tool
+		end
+	end
 
     task.spawn(function()
         bedwars.Client:Get(bedwars.EquipItemRemote):InvokeServer({hand = tool})
@@ -704,7 +707,10 @@ local function coreswitch(tool)
 end
 
 local function switchItem(tool, delayTime)
-	return coreswitch(tool)
+	local _tool = lplr.Character and lplr.Character:FindFirstChild('HandInvItem') and lplr.Character:FindFirstChild('HandInvItem').Value or nil
+	if _tool ~= nil and _tool ~= tool then
+		coreswitch(tool, true)
+	end
 end
 VoidwareFunctions.GlobaliseObject("switchItem", switchItem)
 local function switchToAndUseTool(block, legit)
@@ -1097,7 +1103,8 @@ end
 bedwars.AbilityController = {}
 function bedwars.AbilityController:canUseAbility(ability) return true end -- no reverse engineering possible :(
 function bedwars.AbilityController:useAbility(ability)
-	bedwars.Client:Get("useAbility"):FireServer(ability)
+	local args = {...}
+	bedwars.Client:Get("useAbility"):FireServer(ability, unpack(args))
 end
 bedwars.ShopItemsMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("ShopItemsMeta.json"))
 --decode(readfile('vape/CheatEngine/ShopItemsMeta.json'))
@@ -1331,6 +1338,8 @@ function bedwars.StoreController:updateLocalHand()
 		handType = handData.sword and "sword" or handData.block and "block" or tostring(currentHand.Value):find("bow") and "bow"
 	end
 	store.localHand = {tool = currentHand and currentHand.Value, itemType = currentHand and currentHand.Value and tostring(currentHand.Value) or "", Type = handType, amount = currentHand and currentHand:GetAttribute("Amount") and type(currentHand:GetAttribute("Amount")) == "number" or 0}
+	store.localHand.toolType = store.localHand.Type
+	store.hand = store.localHand
 end
 VoidwareFunctions.GlobaliseObject("StoreTable", {})
 function bedwars.StoreController:executeStoreTable()
@@ -2558,6 +2567,48 @@ pcall(function()
     end
 end)
 
+local function Wallcheck(attackerCharacter, targetCharacter, additionalIgnore)
+    if not (attackerCharacter and targetCharacter) then
+        return false
+    end
+
+    local humanoidRootPart = attackerCharacter.PrimaryPart
+    local targetRootPart = targetCharacter.PrimaryPart
+    if not (humanoidRootPart and targetRootPart) then
+        return false
+    end
+
+    local origin = humanoidRootPart.Position
+    local targetPosition = targetRootPart.Position
+    local direction = targetPosition - origin
+
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+    raycastParams.RespectCanCollide = true
+
+    local ignoreList = {attackerCharacter}
+    
+    if additionalIgnore and typeof(additionalIgnore) == "table" then
+        for _, item in pairs(additionalIgnore) do
+            table.insert(ignoreList, item)
+        end
+    end
+
+    raycastParams.FilterDescendantsInstances = ignoreList
+
+    local raycastResult = workspace:Raycast(origin, direction, raycastParams)
+
+    if raycastResult then
+        if raycastResult.Instance:IsDescendantOf(targetCharacter) then
+            return true
+        else
+            return false
+        end
+    else
+        return true
+    end
+end
+
 --if (not shared.RiseMode) then
 	run(function()
 		local AimAssist = {Enabled = false}
@@ -2567,16 +2618,22 @@ end)
 		local HandCheck = {Enabled = false}
 		local AimAssistTargetFrame = {Players = {Enabled = false}}
 		local IgnoreEntities = {Enabled = false}
+		local ShopCheck = {Enabled = false}
+
 		AimAssist = GuiLibrary.ObjectsThatCanBeSaved.CombatWindow.Api.CreateOptionsButton({
 			Name = "AimAssist",
 			Function = function(callback)
 				if callback then
 					RunLoops:BindToRenderStep("AimAssist", function(dt)
 						vapeTargetInfo.Targets.AimAssist = nil
-						if ((not AimAssistClickAim.Enabled) or (tick() - bedwars.SwordController.lastSwing) < 0.4) and GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton and not (GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api and GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled) then
+						if ((not AimAssistClickAim.Enabled) or (tick() - bedwars.SwordController.lastSwing) < 0.4) then
 							if HandCheck.Enabled and not (store.localHand and store.localHand.Type and store.localHand.Type == "sword") then return end
 							local plr = EntityNearPosition(18, IgnoreEntities.Enabled)
 							if plr then
+								if ShopCheck.Enabled then
+									local isShop = lplr:FindFirstChild("PlayerGui") and lplr:FindFirstChild("PlayerGui"):FindFirstChild("ItemShop") or nil
+									if not isShop then return end
+								end
 								vapeTargetInfo.Targets.AimAssist = {
 									Humanoid = {
 										Health = (plr.Character:GetAttribute("Health") or plr.Humanoid.Health) + getShieldAttribute(plr.Character),
@@ -2589,7 +2646,7 @@ end)
 										if store.matchState == 0 then return end
 									end
 									if AimAssistTargetFrame.Walls.Enabled then
-										if not bedwars.SwordController:canSee({instance = plr.Character, player = plr.Player, getInstance = function() return plr.Character end}) then return end
+										if not Wallcheck(lplr.Character, plr.Character) then return end
 									end
 									gameCamera.CFrame = gameCamera.CFrame:lerp(CFrame.new(gameCamera.CFrame.p, plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("HumanoidRootPart").Position or plr.Character.RootPart.Position), ((1 / AimSpeed.Value) + (AimAssistStrafe.Enabled and (inputService:IsKeyDown(Enum.KeyCode.A) or inputService:IsKeyDown(Enum.KeyCode.D)) and 0.01 or 0)))
 								end
@@ -2606,6 +2663,11 @@ end)
 		AimAssist.Restart = function() if AimAssist.Enabled then AimAssist.ToggleButton(false); AimAssist.ToggleButton(false) end end
 		IgnoreEntities = AimAssist.CreateToggle({
 			Name = "Ignore bots (skeletons, void creautures)",
+			Function = function() end,
+			Default = false
+		})
+		ShopCheck = AimAssist.CreateToggle({
+			Name = "Shop Check",
 			Function = function() end,
 			Default = false
 		})
@@ -3915,48 +3977,6 @@ run(function()
 	})
 end)
 
-local function Wallcheck(attackerCharacter, targetCharacter, additionalIgnore)
-    if not (attackerCharacter and targetCharacter) then
-        return false
-    end
-
-    local humanoidRootPart = attackerCharacter.PrimaryPart
-    local targetRootPart = targetCharacter.PrimaryPart
-    if not (humanoidRootPart and targetRootPart) then
-        return false
-    end
-
-    local origin = humanoidRootPart.Position
-    local targetPosition = targetRootPart.Position
-    local direction = targetPosition - origin
-
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-    raycastParams.RespectCanCollide = true
-
-    local ignoreList = {attackerCharacter}
-    
-    if additionalIgnore and typeof(additionalIgnore) == "table" then
-        for _, item in pairs(additionalIgnore) do
-            table.insert(ignoreList, item)
-        end
-    end
-
-    raycastParams.FilterDescendantsInstances = ignoreList
-
-    local raycastResult = workspace:Raycast(origin, direction, raycastParams)
-
-    if raycastResult then
-        if raycastResult.Instance:IsDescendantOf(targetCharacter) then
-            return true
-        else
-            return false
-        end
-    else
-        return true
-    end
-end
-
 local killauraNearPlayer
 run(function()
 	local Killaura = {Enabled = false}
@@ -4001,6 +4021,40 @@ run(function()
 	local originalArmC0 = nil
 	local killauracurrentanim
 	local animationdelay = tick()
+
+	local function createRangeCircle()
+		local suc, err = pcall(function()
+			if identifyexecutor and not string.find(string.lower(identifyexecutor()), "wave") and not shared.CheatEngineMode then
+				killaurarangecirclepart = Instance.new("MeshPart")
+				killaurarangecirclepart.MeshId = "rbxassetid://3726303797"
+				if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
+					killaurarangecirclepart.Color = GuiLibrary.GUICoreColor
+					GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+						killaurarangecirclepart.Color = GuiLibrary.GUICoreColor
+					end)
+				else
+					killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+					killauracolorChanged.Event:Connect(function()
+						killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
+					end)
+				end
+				killaurarangecirclepart.CanCollide = false
+				killaurarangecirclepart.Anchored = true
+				killaurarangecirclepart.Material = Enum.Material.Neon
+				killaurarangecirclepart.Size = Vector3.new(killaurarange.Value * 0.7, 0.01, killaurarange.Value * 0.7)
+				if Killaura.Enabled then
+					killaurarangecirclepart.Parent = gameCamera
+				end
+				killaurarangecirclepart:SetAttribute("gamecore_GameQueryIgnore", true)
+			end
+		end)
+		if (not suc) then
+			pcall(function()
+				killaurarangecircle:ToggleButton(false)
+				InfoNotification("Killaura - Range Visualiser Circle", "There was an error creating the circle. Disabling...", 2)
+			end)
+		end
+	end
 
 	local function getStrength(plr)
 		local inv = store.inventories[plr.Player]
@@ -4176,6 +4230,10 @@ run(function()
 		Name = "Killaura",
 		Function = function(callback)
 			if callback then
+				if killaurarangecircle.Enabled then
+					createRangeCircle()
+				end
+
 				if killauraaimcirclepart then killauraaimcirclepart.Parent = gameCamera end
 				if killaurarangecirclepart then killaurarangecirclepart.Parent = gameCamera end
 				if killauraparticlepart then killauraparticlepart.Parent = gameCamera end
@@ -4642,39 +4700,7 @@ run(function()
 		Name = "Range Visualizer",
 		Function = function(callback)
 			if callback then
-				--context issues moment
-			---- BIG BALLS MOMENT
-				local suc, err = pcall(function()
-					if identifyexecutor and not string.find(string.lower(identifyexecutor()), "wave") and not shared.CheatEngineMode then
-						killaurarangecirclepart = Instance.new("MeshPart")
-						killaurarangecirclepart.MeshId = "rbxassetid://3726303797"
-						if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
-							killaurarangecirclepart.Color = GuiLibrary.GUICoreColor
-							GuiLibrary.GUICoreColorChanged.Event:Connect(function()
-								killaurarangecirclepart.Color = GuiLibrary.GUICoreColor
-							end)
-						else
-							killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
-							killauracolorChanged.Event:Connect(function()
-								killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
-							end)
-						end
-						killaurarangecirclepart.CanCollide = false
-						killaurarangecirclepart.Anchored = true
-						killaurarangecirclepart.Material = Enum.Material.Neon
-						killaurarangecirclepart.Size = Vector3.new(killaurarange.Value * 0.7, 0.01, killaurarange.Value * 0.7)
-						if Killaura.Enabled then
-							killaurarangecirclepart.Parent = gameCamera
-						end
-						--bedwars.QueryUtil:setQueryIgnored(killaurarangecirclepart, true)
-					end
-				end)
-				if (not suc) then
-					pcall(function()
-						killaurarangecircle:ToggleButton(false)
-						InfoNotification("Killaura - Range Visualiser Circle", "There was an error creating the circle. Disabling...", 2)
-					end)
-				end
+				createRangeCircle()
 			else
 				if killaurarangecirclepart then
 					killaurarangecirclepart:Destroy()
@@ -6057,9 +6083,15 @@ run(function()
 						BedPlatesTable[v] = nil
 					end
 				end))
-				for i, v in pairs(collectionService:GetTagged("bed")) do
-					addBed(v)
-				end
+				task.spawn(function()
+					repeat 
+						for i, v in pairs(collectionService:GetTagged("bed")) do
+							addBed(v)
+						end
+						task.wait(5)
+						BedPlatesFolder:ClearAllChildren()
+					until not BedPlates.Enabled
+				end)
 			else
 				BedPlatesFolder:ClearAllChildren()
 			end
@@ -7655,7 +7687,6 @@ run(function()
 						if found then
 							local inv = store.localInventory.inventory
 							local currentupgrades = {}
-							--bedwars.ClientStoreHandler:getState().Bedwars.teamUpgrades
 							if store.equippedKit == "dasher" then
 								swords = {
 									[1] = "wood_dao",
@@ -8197,6 +8228,40 @@ run(function()
 	end
 
 	local AutoKit_Functions = {
+		wizard = function()
+			repeat
+				local ability = lplr:GetAttribute('WizardAbility')
+				if ability and bedwars.AbilityController:canUseAbility(ability) then
+					local plr = EntityNearPosition(50, true)
+	
+					if plr then
+						bedwars.AbilityController:useAbility(ability, {target = plr.RootPart.Position})
+					end
+				end
+	
+				task.wait(0.1)
+			until not AutoKit.Enabled
+		end,
+		warlock = function()
+			local lastTarget
+			repeat
+				if store.hand.tool and store.hand.tool.Name == 'warlock_staff' then
+					local plr = EntityNearPosition(30, false)
+	
+					if plr and plr.Character ~= lastTarget then
+						if not bedwars.WarlockController:link(plr) then
+							plr = nil
+						end
+					end
+	
+					lastTarget = plr and plr.Character
+				else
+					lastTarget = nil
+				end
+	
+				task.wait(0.1)
+			until not AutoKit.Enabled
+		end,
 		["star_collector"] = function()
 			local function fetchItem(obj)
 				local args = {

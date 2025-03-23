@@ -5854,6 +5854,8 @@ run(function()
 		Name = "Panic",
 		Function = function(callback)
 			if callback then
+				GuiLibrary.SaveSettings = function() end
+				warningNotification("Profiles Saving", "Saving disabled due to Panic being enabled!", 3)
 				for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
 					if v.Type == "OptionsButton" then
 						if v.Api.Enabled then
