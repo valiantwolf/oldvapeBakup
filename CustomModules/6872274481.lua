@@ -1776,8 +1776,7 @@ run(function()
 	local Flamework = require(replicatedStorage["rbxts_include"]["node_modules"]["@flamework"].core.out).Flamework
 	local Client = require(replicatedStorage.TS.remotes).default.Client
 	local InventoryUtil = require(replicatedStorage.TS.inventory["inventory-util"]).InventoryUtil
-	local OldGet = getmetatable(Client).Get
-	local OldBreak
+	local OldGet, OldBreak = Client.Get
 	local bowConstants = {RelX = 0, RelY = 0, RelZ = 0}
 	for i, v in debug.getupvalues(KnitClient.Controllers.ProjectileController.enableBeam) do
 		if type(v) == 'table' and rawget(v, 'RelX') then
@@ -1942,34 +1941,41 @@ run(function()
 	bedwars.BowConstantsTable = bowConstants
 	OldBreak = bedwars.BlockController.isBlockBreakable
 
-	getmetatable(Client).Get = function(self, remoteName)
+	Client.Get = function(self, remoteName)
 		if type(remoteName) == "table" then
 			remoteName = remoteName.instance.Name
 		end
-		if not vapeInjected then return OldGet(self, remoteName) end
-		local originalRemote = OldGet(self, remoteName)
-		if remoteName == bedwars.AttackRemote then
+		local call = OldGet(self, remoteName)
+		if remoteName == remotes.AttackEntity then
 			return {
-				instance = originalRemote.instance,
-				SendToServer = function(self, attackTable, ...)
-					local suc, plr = pcall(function() return playersService:GetPlayerFromCharacter(attackTable.entityInstance) end)
-					if suc and plr then
-						if not ({whitelist:get(plr)})[2] then return end
-						if Reach.Enabled then
-							local attackMagnitude = ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - attackTable.validate.targetPosition.value).magnitude
-							if attackMagnitude > 18 then
-								return nil
-							end
-							attackTable.validate.selfPosition = attackValue(attackTable.validate.selfPosition.value + (attackMagnitude > 14.4 and (CFrame.lookAt(attackTable.validate.selfPosition.value, attackTable.validate.targetPosition.value).lookVector * 4) or Vector3.zero))
-						end
-						store.attackReach = math.floor((attackTable.validate.selfPosition.value - attackTable.validate.targetPosition.value).magnitude * 100) / 100
-						store.attackReachUpdate = tick() + 1
+				instance = call.instance,
+				SendToServer = function(_, attackTable, ...)
+					local suc, plr = pcall(function()
+						return playersService:GetPlayerFromCharacter(attackTable.entityInstance)
+					end)
+
+					local selfpos = attackTable.validate.selfPosition.value
+					local targetpos = attackTable.validate.targetPosition.value
+					store.attackReach = ((selfpos - targetpos).Magnitude * 100) // 1 / 100
+					store.attackReachUpdate = tick() + 1
+
+					if Reach.Enabled or HitBoxes.Enabled then
+						attackTable.validate.raycast = attackTable.validate.raycast or {}
+						attackTable.validate.selfPosition.value += CFrame.lookAt(selfpos, targetpos).LookVector * math.max((selfpos - targetpos).Magnitude - 14.399, 0)
 					end
-					return originalRemote:SendToServer(attackTable, ...)
+
+					if suc and plr then
+						if not select(2, whitelist:get(plr)) then return end
+					end
+
+					return call:SendToServer(attackTable, ...)
 				end
 			}
+		elseif remoteName == 'StepOnSnapTrap' and TrapDisabler.Enabled then
+			return {SendToServer = function() end}
 		end
-		return originalRemote
+
+		return call
 	end
 
 	bedwars.BlockController.isBlockBreakable = function(self, breakTable, plr)

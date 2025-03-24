@@ -242,30 +242,32 @@ runcode(function()
 			getEntityTable = require(repstorage.TS.entity["entity-util"]).EntityUtil,
 			NotificationController = Flamework.resolveDependency('@easy-games/game-core:client/controllers/notification-controller@NotificationController')
         }
-		if not shared.vapebypassed then
-			local realremote = repstorage:WaitForChild("GameAnalyticsError")
-			realremote.Parent = nil
-			local fakeremote = Instance.new("RemoteEvent")
-			fakeremote.Name = "GameAnalyticsError"
-			fakeremote.Parent = repstorage
-			game:GetService("ScriptContext").Error:Connect(function(p1, p2, p3)
-				if not p3 then
-					return;
-				end;
-				local u2 = nil;
-				local v4, v5 = pcall(function()
-					u2 = p3:GetFullName();
-				end);
-				if not v4 then
-					return;
-				end;
-				if p3.Parent == nil then
-					return;
-				end
-				realremote:FireServer(p1, p2, u2);
-			end)
-			shared.vapebypassed = true
-		end
+		task.spawn(function()
+			if not shared.vapebypassed then
+				local realremote = repstorage:WaitForChild("GameAnalyticsError")
+				realremote.Parent = nil
+				local fakeremote = Instance.new("RemoteEvent")
+				fakeremote.Name = "GameAnalyticsError"
+				fakeremote.Parent = repstorage
+				game:GetService("ScriptContext").Error:Connect(function(p1, p2, p3)
+					if not p3 then
+						return;
+					end;
+					local u2 = nil;
+					local v4, v5 = pcall(function()
+						u2 = p3:GetFullName();
+					end);
+					if not v4 then
+						return;
+					end;
+					if p3.Parent == nil then
+						return;
+					end
+					realremote:FireServer(p1, p2, u2);
+				end)
+				shared.vapebypassed = true
+			end
+		end)
 	end
 end)
 getfunctions()
