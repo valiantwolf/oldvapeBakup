@@ -1102,7 +1102,7 @@ function bedwars.CooldownController:getRemainingCooldown(item)
 end
 bedwars.AbilityController = {}
 function bedwars.AbilityController:canUseAbility(ability) return true end -- no reverse engineering possible :(
-function bedwars.AbilityController:useAbility(ability)
+function bedwars.AbilityController:useAbility(ability, ...)
 	local args = {...}
 	bedwars.Client:Get("useAbility"):FireServer(ability, unpack(args))
 end
