@@ -43,10 +43,10 @@ task.spawn(function()
 		end
 
 		local function filterStackTrace(stackTrace)
+			stackTrace = stackTrace or "Unknown"
+			if type(stackTrace) ~= "string" then stackTrace = "INVALID \n"..tostring(stackTrace) end
 			if type(stackTrace) == "string" then
 				return string.split(stackTrace, "\n")
-			else
-				return stackTrace
 			end
 		end
 

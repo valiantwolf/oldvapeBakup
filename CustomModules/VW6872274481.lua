@@ -14,7 +14,7 @@ local playersService = game:GetService("Players")
 if (not shared.GlobalBedwars) or (shared.GlobalBedwars and type(shared.GlobalBedwars) ~= "table") or (not shared.GlobalStore) or (shared.GlobalStore and type(shared.GlobalStore) ~= "table") then
 	errorNotification("VW-BEDWARS", "Critical! Important connection is missing! Please report this bug to erchodev#0", 10)
 	pcall(function()
-		GuiLibrary.SaveSettings = function() warningNotification("GuiLibrary.SaveSettings", "Profiles saving is disabled due to error in the code!") end
+		GuiLibrary.SaveSettings = function() warningNotification("GuiLibrary.SaveSettings", "Profiles saving is disabled due to error in the code!", 1) end
 	end)
 	local delfile = delfile or function(file) writefile(file, "") end
 	if isfile('vape/CustomModules/6872274481.lua') then delfile('vape/CustomModules/6872274481.lua') end
@@ -591,79 +591,120 @@ run(function()
 end)
 
 run(function()
-	local QueueCardMods = {}
-	local QueueCardGradientToggle = {}
-	local QueueCardGradient = {Hue = 0, Sat = 0, Value = 0}
-	local QueueCardGradient2 = {Hue = 0, Sat = 0, Value = 0}
-	local function patchQueueCard()
-		if lplr.PlayerGui:FindFirstChild('QueueApp') then 
-			if lplr.PlayerGui.QueueApp:WaitForChild('1'):IsA('Frame') then 
-                if shared.RiseMode and GuiLibrary.MainColor then
-                    lplr.PlayerGui.QueueApp['1'].BackgroundColor3 = GuiLibrary.MainColor
-                else
-				    lplr.PlayerGui.QueueApp['1'].BackgroundColor3 = Color3.fromHSV(QueueCardGradient.Hue, QueueCardGradient.Sat, QueueCardGradient.Value)
-                end
-			end
-            for i = 1, 3 do
-                if QueueCardGradientToggle.Enabled then 
-                    lplr.PlayerGui.QueueApp['1'].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                    local gradient = (lplr.PlayerGui.QueueApp['1']:FindFirstChildWhichIsA('UIGradient') or Instance.new('UIGradient', lplr.PlayerGui.QueueApp['1']))
-                    if shared.RiseMode and GuiLibrary.MainColor and GuiLibrary.SecondaryColor then
-                        local v = {GuiLibrary.MainColor, GuiLibrary.SecondaryColor, GuiLibrary.ThirdColor}
-                        if v[3] then 
-                            gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, v[1]), ColorSequenceKeypoint.new(0.5, v[2]), ColorSequenceKeypoint.new(1, v[3])})
-                        else
-                            gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, v[1]), ColorSequenceKeypoint.new(1, v[2])})
+    local QueueDisplayConfig = {
+        ActiveState = false,
+        GradientControl = {Enabled = true},
+        ColorSettings = {
+            Gradient1 = {Hue = 0, Saturation = 0, Brightness = 1},
+            Gradient2 = {Hue = 0, Saturation = 0, Brightness = 0.8}
+        },
+        Animation = {Speed = 0.5, Progress = 0}
+    }
+
+    local DisplayUtils = {
+        createGradient = function(parent)
+            local gradient = parent:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient")
+            gradient.Parent = parent
+            return gradient
+        end,
+        updateColor = function(gradient, config)
+            local time = tick() * config.Animation.Speed
+            local interp = (math.sin(time) + 1) / 2
+            local h = config.ColorSettings.Gradient1.Hue + (config.ColorSettings.Gradient2.Hue - config.ColorSettings.Gradient1.Hue) * interp
+            local s = config.ColorSettings.Gradient1.Saturation + (config.ColorSettings.Gradient2.Saturation - config.ColorSettings.Gradient1.Saturation) * interp
+            local b = config.ColorSettings.Gradient1.Brightness + (config.ColorSettings.Gradient2.Brightness - config.ColorSettings.Gradient1.Brightness) * interp
+            gradient.Color = ColorSequence.new(Color3.fromHSV(h, s, b))
+        end
+    }
+
+	local CoreConnection
+	local CoreConnection2
+
+    local function enhanceQueueDisplay()
+		pcall(function() 
+			CoreConnection:Disconnect()
+		end)
+        local success, err = pcall(function()
+            if not lplr.PlayerGui:FindFirstChild('QueueApp') then return end
+            
+            for attempt = 1, 3 do
+                if QueueDisplayConfig.GradientControl.Enabled then
+                    local queueFrame = lplr.PlayerGui.QueueApp['1']
+                    queueFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                    
+                    local gradient = DisplayUtils.createGradient(queueFrame)
+                    gradient.Rotation = 180
+                    
+                    local displayInterface = {
+                        module = vape.watermark,
+                        gradient = gradient,
+                        GetEnabled = function()
+                            return QueueDisplayConfig.ActiveState
+                        end,
+                        SetGradientEnabled = function(state)
+                            QueueDisplayConfig.GradientControl.Enabled = state
+                            gradient.Enabled = state
                         end
-                    else
-                        gradient.Color = ColorSequence.new({
-                            ColorSequenceKeypoint.new(0, Color3.fromHSV(QueueCardGradient.Hue, QueueCardGradient.Sat, QueueCardGradient.Value)), 
-                            ColorSequenceKeypoint.new(1, Color3.fromHSV(QueueCardGradient2.Hue, QueueCardGradient2.Sat, QueueCardGradient2.Value))
-                        })
-                    end
+                    }
+                    --vape.whitelistedlines["enhancedQueueDisplay"] = displayInterface
+                    CoreConnection = game:GetService("RunService").RenderStepped:Connect(function()
+                        if QueueDisplayConfig.ActiveState and QueueDisplayConfig.GradientControl.Enabled then
+                            DisplayUtils.updateColor(gradient, QueueDisplayConfig)
+                        end
+                    end)
                 end
-                task.wait()
+                task.wait(0.1)
             end
-		end
-	end
-	QueueCardMods = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
-		Name = 'QueueCardMods',
-		HoverText = 'Mods the QueueApp at the end of the game.',
-		Function = function(calling) 
-			if calling then 
-				patchQueueCard()
-				table.insert(QueueCardMods.Connections, lplr.PlayerGui.ChildAdded:Connect(patchQueueCard))
+        end)
+        
+        if not success then
+            warn("Queue display enhancement failed: " .. tostring(err))
+        end
+    end
+
+    local QueueDisplayEnhancer
+    QueueDisplayEnhancer = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
+        Name = 'QueueCardMods',
+       	HoverText = 'Enhances the QueueApp display with dynamic gradients',
+        Function = function(enabled)
+            QueueDisplayConfig.ActiveState = enabled
+            if enabled then
+                enhanceQueueDisplay()
+                CoreConnection2 = lplr.PlayerGui.ChildAdded:Connect(enhanceQueueDisplay)
+			else
+				pcall(function() 
+					CoreConnection:Disconnect()
+				end)
+				pcall(function()
+					CoreConnection2:Disconnect()
+				end)
 			end
-		end
-	})
-    QueueCardGradientToggle = QueueCardMods.CreateToggle({
-        Name = 'Gradient',
-        Function = function(calling)
-            pcall(function() QueueCardGradient2.Object.Visible = calling end) 
         end
     })
-    if (not shared.RiseMode) and not GuiLibrary.MainColor and not GuiLibrary.SecondaryColor then
-        QueueCardGradient = QueueCardMods.CreateColorSlider({
-            Name = 'Color',
-            Function = function()
-                pcall(patchQueueCard)
-            end
-        })
-        QueueCardGradient2 = QueueCardMods.CreateColorSlider({
-            Name = 'Color 2',
-            Function = function()
-                pcall(patchQueueCard)
-            end
-        })
-    else
-		if shared.RiseMode then
-			pcall(function()
-				GuiLibrary.GUIColorChanged.Event:Connect(function()
-					pcall(patchQueueCard)
-				end)
-			end)
-		end
-    end
+
+   	QueueDisplayEnhancer.CreateSlider({
+        Name = "Animation Speed",
+        Function = function(speed)
+            QueueDisplayConfig.Animation.Speed = math.clamp(speed, 0.1, 5)
+        end,
+        Min = 1,
+        Max = 5,
+        Default = 5
+    })
+
+    QueueDisplayEnhancer.CreateColorSlider({
+        Name = "Color 1",
+        Function = function(h, s, v)
+            QueueDisplayConfig.ColorSettings.Gradient1 = {Hue = h, Saturation = s, Brightness = v}
+        end
+    })
+
+    QueueDisplayEnhancer.CreateColorSlider({
+        Name = "Color 2",
+        Function = function(h, s, v)
+            QueueDisplayConfig.ColorSettings.Gradient2 = {Hue = h, Saturation = s, Brightness = v}
+        end
+    })
 end)
 
 run(function()
@@ -3292,7 +3333,7 @@ end)
     })
 end)--]]
 
-run(function()
+--[[run(function()
 	local HannahExploit = {Enabled = false}
 	HannahExploit = GuiLibrary.ObjectsThatCanBeSaved.ExploitsWindow.Api.CreateOptionsButton({
 		Name = "HannahExploit",
@@ -3327,7 +3368,7 @@ run(function()
         Name = 'CreditsButtonInstance',
         Credits = 'CatV5'
     })
-end)
+end)--]]
 
 run(function()
 	local JellyFishExploit = {}
@@ -4232,225 +4273,276 @@ run(function()
 end)
 
 run(function()
-	local HackerDetector = {}
-	local HackerDetectorInfFly = {}
-	local HackerDetectorTeleport = {}
-	local HackerDetectorNuker = {}
-	local HackerDetectorFunny = {}
-	local HackerDetectorInvis = {}
-	local HackerDetectorName = {}
-	local HackerDetectorSpeed = {}
-	local HackerDetectorFileCache = {}
-	local pastesploit
-	local detectedusers = {
-		InfiniteFly = {},
-		Teleport = {},
-		Nuker = {},
-		AnticheatBypass = {},
-		Invisibility = {},
-		Speed = {},
-		Name = {},
-		Cache = {}
-	}
-	local distances = {
-		windwalker = 80
-	}
-	local function cachedetection(player, detection)
-		if not HackerDetectorFileCache.Enabled then 
-			return 
+	local isAlive = function(plr, healthblacklist)
+		plr = plr or lplr
+		local alive = false 
+		if plr.Character and plr.Character.PrimaryPart and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") and plr.Character:FindFirstChild("Head") then 
+			alive = true
 		end
-		if type(response) ~= 'table' then 
-			response = {}
+		if not healthblacklist and alive and plr.Character.Humanoid.Health and plr.Character.Humanoid.Health <= 0 then 
+			alive = false
 		end
-		if response[player.Name] then 
-			if table.find(response[player.Name], detection) == nil then 
-				table.insert(response[player.Name].Detections, detection) 
-			end
-		else
-			response[player.Name] = {DisplayName = player.DisplayName, UserId = tostring(player.DisplayName), Detections = {detection}}
-		end
+		return alive
 	end
-	local detectionmethods = {
-		Teleport = function(plr)
-			if table.find(detectedusers.Teleport, plr) then 
-				return 
-			end
-			if store.queueType:find('bedwars') == nil or plr:GetAttribute('Spectator') then 
-				return 
-			end
-			local lastbwteleport = plr:GetAttribute('LastTeleported')
-			table.insert(HackerDetector.Connections, plr:GetAttributeChangedSignal('LastTeleported'):Connect(function() lastbwteleport = plr:GetAttribute('LastTeleported') end))
-			table.insert(HackerDetector.Connections, plr.CharacterAdded:Connect(function()
-				oldpos = Vector3.zero
-				if table.find(detectedusers.Teleport, plr) then 
-					return 
-				end
-				 repeat task.wait() until isAlive(plr, true)
-				 local oldpos2 = plr.Character.HumanoidRootPart.Position 
-				 task.delay(2, function()
-					if isAlive(plr, true) then 
-						local newdistance = (plr.Character.HumanoidRootPart.Position - oldpos2).Magnitude 
-						if newdistance >= 400 and (plr:GetAttribute('LastTeleported') - lastbwteleport) == 0 then 
-							InfoNotification('HackerDetector', plr.DisplayName..' is using Teleport Exploit!', 100) 
-							table.insert(detectedusers.Teleport, plr)
-							cachedetection(plr, 'Teleport')
-							whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-						end 
-					end
-				 end)
-			end))
-		end,
-		Speed = function(plr) 
-			repeat task.wait() until (store.matchState ~= 0 or not HackerDetector.Enabled or not HackerDetectorSpeed.Enabled)
-			if table.find(detectedusers.Speed, plr) then 
-				return 
-			end
-			local lastbwteleport = plr:GetAttribute('LastTeleported')
-			local oldpos = Vector3.zero 
-			table.insert(HackerDetector.Connections, plr:GetAttributeChangedSignal('LastTeleported'):Connect(function() lastbwteleport = plr:GetAttribute('LastTeleported') end)) 
-			table.insert(HackerDetector.Connections, plr.CharacterAdded:Connect(function() oldpos = Vector3.zero end))
-			repeat 
-				if isAlive(plr, true) then 
-					local magnitude = (plr.Character.HumanoidRootPart.Position - oldpos).Magnitude
-					if (plr:GetAttribute('LastTeleported') - lastbwteleport) ~= 0 and magnitude >= ((distances[plr:GetAttribute('PlayingAsKit') or ''] or 25) + (playerRaycasted(plr, Vector3.new(0, -15, 0)) and 0 or 40)) then 
-						InfoNotification('HackerDetector', plr.DisplayName..' is using speed!', 60)
-						whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-					end
-					oldpos = plr.Character.HumanoidRootPart.Position
-					task.wait(2.5)
-					lastbwteleport = plr:GetAttribute('LastTeleported')
-				end
-			until not task.wait() or table.find(detectedusers.Speed, plr) or (not HackerDetector.Enabled or not HackerDetectorSpeed.Enabled)
-		end,
-		InfiniteFly = function(plr) 
-			pcall(function()
-				repeat 
-					if isAlive(plr, true) then 
-						local magnitude = (lplr.Character:WaitForChild("HumanoidRootPart").Position - plr.Character.HumanoidRootPart.Position).Magnitude
-						if magnitude >= 10000 and playerRaycast(plr) == nil and playerRaycast({Character = {PrimaryPart = {Position = lplr.Character:WaitForChild("HumanoidRootPart").Position}}}) then 
-							InfoNotification('HackerDetector', plr.DisplayName..' is using InfiniteFly!', 60) 
-							cachedetection(plr, 'InfiniteFly')
-							table.insert(detectedusers.InfiniteFly, plr)
-							whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-						end
-						task.wait(2.5)
-					end
-				until not task.wait() or table.find(detectedusers.InfiniteFly, plr) or (not HackerDetector.Enabled or not HackerDetectorInfFly.Enabled)
-			end)
-		end,
-		Invisibility = function(plr) 
-			pcall(function()
-				if table.find(detectedusers.Invisibility, plr) then 
-					return 
-				end
-				repeat 
-					for i,v in next, (isAlive(plr, true) and plr.Character.Humanoid:GetPlayingAnimationTracks() or {}) do 
-						if v.Animation.AnimationId == 'http://www.roblox.com/asset/?id=11335949902' or v.Animation.AnimationId == 'rbxassetid://11335949902' then 
-							InfoNotification('HackerDetector', plr.DisplayName..' is using Invisibility!', 60) 
-							table.insert(detectedusers.Invisibility, plr)
-							cachedetection(plr, 'Invisibility')
-							whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-						end
-					end
-					task.wait(0.5)
-				until table.find(detectedusers.Invisibility, plr) or (not HackerDetector.Enabled or not HackerDetectorInvis.Enabled)
-			end)
-		end,
-		Name = function(plr) 
-			pcall(function()
-				repeat task.wait() until pastesploit 
-				local lines = pastesploit:split('\n') 
-				for i,v in next, lines do 
-					if v:find('local Owner = ') then 
-						local name = lines[i]:gsub('local Owner =', ''):gsub('"', ''):gsub("'", '') 
-						if plr.Name == name then 
-							InfoNotification('HackerDetector', plr.DisplayName..' is the owner of Godsploit! They\'re is most likely cheating.', 60) 
-							cachedetection(plr, 'Name')
-							whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-						end
-					end
-				end
-				for i,v in next, ({'godsploit', 'alsploit', 'renderintents'}) do 
-					local user = plr.Name:lower():find(v) 
-					local display = plr.DisplayName:lower():find(v)
-					if user or display then 
-						InfoNotification('HackerDetector', plr.DisplayName..' has "'..v..'" in their '..(user and 'username' or 'display name')..'! They might be cheating.', 20)
-						cachedetection(plr, 'Name') 
-						return 
-					end
-				end
-			end)
-		end, 
-		Cache = function(plr)
-			local success, response = pcall(function()
-				return httpService:JSONDecode(readfile('vape/Libraries/exploiters.json')) 
-			end) 
-			if type(response) == 'table' and response[plr.Name] then 
-				InfoNotification('HackerDetector', plr.DisplayName..' is cached on the exploiter database!', 30)
-				table.insert(detectedusers.Cached, plr)
-				whitelist.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
-			end
-		end
+
+    local ExploitDetectionSystem = {
+        Connections = {},
+        PlayerData = {}
+    }
+	local ExploitDetectionSystemConfig = {
+		DetectionThresholds = {
+			TeleportDistance = 400,
+			SpeedDistance = 25,
+			FlyDistance = 10000,
+			CheckInterval = 2.5
+		},
+		DetectedPlayers = {
+			Teleport = {},
+			Speed = {},
+			InfiniteFly = {},
+			Invisibility = {},
+			NameSuspicious = {},
+			Cached = {}
+		},
+		CacheEnabled = true
 	}
-	local function bootdetections(player)
-		local detectiontoggles = {InfiniteFly = HackerDetectorInfFly, Teleport = HackerDetectorTeleport, Nuker = HackerDetectorNuker, Invisibility = HackerDetectorInvis, Speed = HackerDetectorSpeed, Name = HackerDetectorName, Cache = HackerDetectorFileCache}
-		for i, detection in next, detectionmethods do 
-			if detectiontoggles[i].Enabled then
-			   task.spawn(detection, player)
-			end
-		end
-	end
-	HackerDetector = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
-		Name = 'HackerDetector',
-		HoverText = 'Notify when someone is\nsuspected of using exploits.',
-		ExtraText = function() return 'Vanilla' end,
-		Function = function(calling) 
-			if calling then 
-				for i,v in next, playersService:GetPlayers() do 
-					if v ~= lplr then 
-						bootdetections(v) 
-					end 
-				end
-				table.insert(HackerDetector.Connections, playersService.PlayerAdded:Connect(bootdetections))
-			end
-		end
-	})
-	HackerDetectorTeleport = HackerDetector.CreateToggle({
-		Name = 'Teleport',
-		Default = true,
-		Function = function() end
-	})
-	HackerDetectorInfFly = HackerDetector.CreateToggle({
-		Name = 'InfiniteFly',
-		Default = true,
-		Function = function() end
-	})
-	HackerDetectorInvis = HackerDetector.CreateToggle({
-		Name = 'Invisibility',
-		Default = true,
-		Function = function() end
-	})
-	HackerDetectorNuker = HackerDetector.CreateToggle({
-		Name = 'Nuker',
-		Default = true,
-		Function = function() end
-	})
-	HackerDetectorSpeed = HackerDetector.CreateToggle({
-		Name = 'Speed',
-		Default = true,
-		Function = function() end
-	})
-	HackerDetectorName = HackerDetector.CreateToggle({
-		Name = 'Name',
-		Default = true,
-		Function = function() end
-	})
-	HackerDetectorFileCache = HackerDetector.CreateToggle({
-		Name = 'Cached detections',
-		HoverText = 'Writes (vape/Libraries/exploiters.json)\neverytime someone is detected.',
-		Default = true,
-		Function = function() end
-	})
+
+    local DetectionCore = {
+        updateCache = function(player, detectionType)
+            if not ExploitDetectionSystemConfig.CacheEnabled then return end
+            
+            local success, cache = pcall(function()
+                local file = readfile('vape/Libraries/exploiters.json')
+                return file and httpService:JSONDecode(file) or {}
+            end)
+            
+            cache = cache or {}
+            cache[player.Name] = cache[player.Name] or {
+                DisplayName = player.DisplayName,
+                UserId = tostring(player.UserId),
+                Detections = {}
+            }
+            
+            if not table.find(cache[player.Name].Detections, detectionType) then
+                table.insert(cache[player.Name].Detections, detectionType)
+                pcall(function()
+                    writefile('vape/Libraries/exploiters.json', httpService:JSONEncode(cache))
+                end)
+            end
+        end,
+
+        isValidTarget = function(player)
+            return player ~= lplr and not player:GetAttribute('Spectator') and store.queueType:find('bedwars') ~= nil
+        end,
+
+        notify = function(title, message, duration)
+            InfoNotification('HackerDetector', message, duration)
+            whitelist.customtags[title] = {{text = 'VAPE USER', color = Color3.fromRGB(255, 255, 0)}}
+        end
+    }
+
+    local DetectionMethods = {
+        Teleport = function(player)
+            local lastTeleport = player:GetAttribute('LastTeleported') or 0
+            local lastPosition = Vector3.zero
+            
+            table.insert(ExploitDetectionSystem.Connections, player:GetAttributeChangedSignal('LastTeleported'):Connect(function()
+                lastTeleport = player:GetAttribute('LastTeleported')
+            end))
+            
+            table.insert(ExploitDetectionSystem.Connections, player.CharacterAdded:Connect(function()
+                task.spawn(function()
+                    repeat task.wait() until isAlive(player, true)
+                    lastPosition = player.Character.HumanoidRootPart.Position
+                    
+                    task.delay(ExploitDetectionSystemConfig.DetectionThresholds.CheckInterval, function()
+                        if isAlive(player, true) and not table.find(ExploitDetectionSystemConfig.DetectedPlayers.Teleport, player) then
+                            local distance = (player.Character.HumanoidRootPart.Position - lastPosition).Magnitude
+                            if distance >= ExploitDetectionSystemConfig.DetectionThresholds.TeleportDistance and 
+                               (player:GetAttribute('LastTeleported') - lastTeleport) == 0 then
+                                DetectionCore.notify(player.Name, player.DisplayName .. ' detected using Teleport!', 100)
+                                table.insert(ExploitDetectionSystemConfig.DetectedPlayers.Teleport, player)
+                                DetectionCore.updateCache(player, 'Teleport')
+                            end
+                        end
+                    end)
+                end)
+            end))
+        end,
+
+        Speed = function(player)
+            local lastTeleport = player:GetAttribute('LastTeleported') or 0
+            local lastPosition = Vector3.zero
+            
+            table.insert(ExploitDetectionSystem.Connections, player:GetAttributeChangedSignal('LastTeleported'):Connect(function()
+                lastTeleport = player:GetAttribute('LastTeleported')
+            end))
+            
+            task.spawn(function()
+                repeat
+                    if isAlive(player, true) and not table.find(ExploitDetectionSystemConfig.DetectedPlayers.Speed, player) then
+                        local magnitude = (player.Character.HumanoidRootPart.Position - lastPosition).Magnitude
+                        local kitDistance = ExploitDetectionSystemConfig.DetectionThresholds.SpeedDistance
+                        local threshold = kitDistance + (playerRaycasted(player, Vector3.new(0, -15, 0)) and 0 or 40)
+                        
+                        if magnitude >= threshold and (player:GetAttribute('LastTeleported') - lastTeleport) ~= 0 then
+                            DetectionCore.notify(player.Name, player.DisplayName .. ' detected using Speed!', 60)
+                            table.insert(ExploitDetectionSystemConfig.DetectedPlayers.Speed, player)
+                            DetectionCore.updateCache(player, 'Speed')
+                        end
+                        lastPosition = player.Character.HumanoidRootPart.Position
+                        task.wait(ExploitDetectionSystemConfig.DetectionThresholds.CheckInterval)
+                    end
+                until not ExploitDetectionSystem.Enabled or not ExploitDetectionSystem.SpeedToggle.Enabled
+            end)
+        end,
+
+        InfiniteFly = function(player)
+            task.spawn(function()
+                repeat
+                    if isAlive(player, true) and not table.find(ExploitDetectionSystemConfig.DetectedPlayers.InfiniteFly, player) then
+                        local distance = (lplr.Character:WaitForChild("HumanoidRootPart").Position - player.Character.HumanoidRootPart.Position).Magnitude
+                        if distance >= ExploitDetectionSystemConfig.DetectionThresholds.FlyDistance and 
+                           not playerRaycast(player) then
+                            DetectionCore.notify(player.Name, player.DisplayName .. ' detected using Infinite Fly!', 60)
+                            table.insert(ExploitDetectionSystemConfig.DetectedPlayers.InfiniteFly, player)
+                            DetectionCore.updateCache(player, 'InfiniteFly')
+                        end
+                        task.wait(ExploitDetectionSystemConfig.DetectionThresholds.CheckInterval)
+                    end
+                until not ExploitDetectionSystem.Enabled or not ExploitDetectionSystem.InfiniteFlyToggle.Enabled
+            end)
+        end,
+
+        Invisibility = function(player)
+            task.spawn(function()
+                repeat
+                    if isAlive(player, true) and not table.find(ExploitDetectionSystemConfig.DetectedPlayers.Invisibility, player) then
+                        for _, track in pairs(player.Character.Humanoid:GetPlayingAnimationTracks()) do
+                            local animId = track.Animation.AnimationId
+                            if animId == 'http://www.roblox.com/asset/?id=11335949902' or animId == 'rbxassetid://11335949902' then
+                                DetectionCore.notify(player.Name, player.DisplayName .. ' detected using Invisibility!', 60)
+                                table.insert(ExploitDetectionSystemConfig.DetectedPlayers.Invisibility, player)
+                                DetectionCore.updateCache(player, 'Invisibility')
+                            end
+                        end
+                        task.wait(0.5)
+                    end
+                until not ExploitDetectionSystem.Enabled or not ExploitDetectionSystem.InvisibilityToggle.Enabled
+            end)
+        end,
+
+        NameCheck = function(player)
+            task.spawn(function()
+                local suspiciousNames = {'godsploit', 'alsploit', 'renderintents'}
+                local nameLower = player.Name:lower()
+                local displayLower = player.DisplayName:lower()
+                
+                for _, term in ipairs(suspiciousNames) do
+                    if nameLower:find(term) or displayLower:find(term) then
+                        DetectionCore.notify(player.Name, player.DisplayName .. ' has suspicious ' .. (nameLower:find(term) and 'username' or 'display name') .. ' "' .. term .. '"!', 20)
+                        DetectionCore.updateCache(player, 'SuspiciousName')
+                        return
+                    end
+                end
+            end)
+        end,
+
+        CacheCheck = function(player)
+            local success, cache = pcall(function()
+                return httpService:JSONDecode(readfile('vape/Libraries/exploiters.json'))
+            end)
+            
+            if success and cache[player.Name] then
+                DetectionCore.notify(player.Name, player.DisplayName .. ' found in exploiter cache!', 30)
+                table.insert(ExploitDetectionSystemConfig.DetectedPlayers.Cached, player)
+            end
+        end
+    }
+
+    local function initializeDetections(player)
+        local toggles = {
+            Teleport = ExploitDetectionSystem.TeleportToggle,
+            Speed = ExploitDetectionSystem.SpeedToggle,
+            InfiniteFly = ExploitDetectionSystem.InfiniteFlyToggle,
+            Invisibility = ExploitDetectionSystem.InvisibilityToggle,
+            NameCheck = ExploitDetectionSystem.NameToggle,
+            CacheCheck = ExploitDetectionSystem.CacheToggle
+        }
+        
+        for detection, method in pairs(DetectionMethods) do
+            if toggles[detection] and toggles[detection].Enabled then
+                task.spawn(method, player)
+            end
+        end
+    end
+
+    ExploitDetectionSystem = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
+        Name = 'HackerDetector',
+        HoverText = 'Advanced exploit detection system for monitoring suspicious player behavior',
+        ExtraText = function() return 'Enhanced' end,
+        Function = function(enabled)
+            ExploitDetectionSystem.Enabled = enabled
+            if enabled then
+                for _, player in pairs(playersService:GetPlayers()) do
+                    if player ~= lplr then
+                        initializeDetections(player)
+                    end
+                end
+                ExploitDetectionSystem:Clean(playersService.PlayerAdded:Connect(initializeDetections))
+            else
+                for _, conn in pairs(ExploitDetectionSystem.Connections) do
+                    conn:Disconnect()
+                end
+                table.clear(ExploitDetectionSystem.Connections)
+            end
+        end
+    })
+
+    ExploitDetectionSystem.TeleportToggle = ExploitDetectionSystem.CreateToggle({
+        Name = 'Teleport',
+        Default = true,
+        Function = function() end
+    })
+    
+    ExploitDetectionSystem.InfiniteFlyToggle = ExploitDetectionSystem.CreateToggle({
+        Name = 'InfiniteFly',
+        Default = true,
+        Function = function() end
+    })
+    
+    ExploitDetectionSystem.InvisibilityToggle = ExploitDetectionSystem.CreateToggle({
+        Name = 'Invisibility',
+        Default = true,
+        Function = function() end
+    })
+    
+    ExploitDetectionSystem.NukerToggle = ExploitDetectionSystem.CreateToggle({
+        Name = 'Nuker',
+        Default = true,
+        Function = function() end
+    })
+    
+    ExploitDetectionSystem.SpeedToggle = ExploitDetectionSystem.CreateToggle({
+        Name = 'Speed',
+        Default = true,
+        Function = function() end
+    })
+    
+    ExploitDetectionSystem.NameToggle = ExploitDetectionSystem.CreateToggle({
+        Name = 'Name',
+        Default = true,
+        Function = function() end
+    })
+    
+    ExploitDetectionSystem.CacheToggle = ExploitDetectionSystem.CreateToggle({
+        Name = 'Cached detections',
+        HoverText = 'Manages detection cache in vape/Libraries/exploiters.json',
+        Default = true,
+        Function = function(state) 
+            ExploitDetectionSystemConfig.CacheEnabled = state 
+        end
+    })
 end)
 
 --[[run(function()
@@ -4817,120 +4909,211 @@ end)
 pcall(function()
 	local StaffDetector = {Enabled = false}
 	run(function()
-		local TPService = game:GetService('TeleportService')
-		local HTTPService = game:GetService("HttpService")
-		local StaffDetector_Connections = {}
-		local StaffDetector_Functions = {}
-		local StaffDetector_Extra = {
+		local TeleportService = game:GetService('TeleportService')
+		local HttpService = game:GetService("HttpService")
+		local PlayersService = game:GetService("Players")
+		
+		local StaffDetectionConfig = {
+			Connections = {},
+			Blacklist = {
+				Users = {
+					"chasemaser", "OrionYeets", "lIllllllllllIllIIlll", "AUW345678",
+					"GhostWxstaken", "throughthewindow009", "YT_GoraPlays",
+					"IllIIIIlllIlllIlIIII", "celisnix", "7SlyR", "DoordashRP",
+					"IlIIIIIlIIIIIIIllI", "lIIlIlIllllllIIlI", "IllIIIIIIlllllIIlIlI",
+					"asapzyzz", "WhyZev", "sworduserpro332", "Muscular_Gorilla",
+					"Typhoon_Kang"
+				},
+				GroupRanks = {
+					[79029254] = "AC MOD",
+					[86172137] = "Lead AC MOD",
+					[43926962] = "Developer",
+					[37929139] = "Developer",
+					[87049509] = "Owner",
+					[37929138] = "Owner"
+				}
+			},
+			Actions = {
+				Current = "Uninject",
+				Options = {
+					Uninject = function()
+						GuiLibrary.SelfDestruct()
+					end,
+					Panic = function()
+						task.spawn(function()
+							if shared.saveSettingsLoop then
+								coroutine.close(shared.saveSettingsLoop)
+							end
+						end)
+						GuiLibrary.SaveSettings()
+						local originalSave = GuiLibrary.SaveSettings
+						GuiLibrary.SaveSettings = function()
+							warningNotification("GuiLibrary", "Saving settings blocked by Panic mode!", 1.5)
+						end
+						warningNotification("StaffDetector", "Panic mode activated - settings save disabled!", 1.5)
+						task.spawn(function()
+							repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton
+							shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton.Api.ToggleButton(false)
+						end)
+					end,
+					Lobby = function()
+						TeleportService:Teleport(6872265039)
+					end
+				}
+			},
 			JoinNotifier = {Enabled = false}
 		}
-		local StaffDetector_Checks = {
-			CustomBlacklist = {
-				"chasemaser",
-				"OrionYeets",
-				"lIllllllllllIllIIlll",
-				"AUW345678",
-				"GhostWxstaken",
-				"throughthewindow009",
-				"YT_GoraPlays",
-				"IllIIIIlllIlllIlIIII",
-				"celisnix",
-				"7SlyR",
-				"DoordashRP",
-				"IlIIIIIlIIIIIIIllI",
-				"lIIlIlIllllllIIlI",
-				"IllIIIIIIlllllIIlIlI",
-				"asapzyzz",
-				"WhyZev",
-				"sworduserpro332",
-				"Muscular_Gorilla",
-				"Typhoon_Kang"
-			}
+	
+		local DetectionUtils = {
+			saveStaffRecord = function(player, detectionMethod)
+				local success, data = pcall(function()
+					return HttpService:JSONDecode(readfile('vape/Libraries/StaffData.json') or '[]')
+				end)
+				
+				data = success and data or {}
+				table.insert(data, {
+					StaffName = player.DisplayName .. "(@" .. player.Name .. ")",
+					Time = os.time(),
+					DetectionMethod = detectionMethod
+				})
+				
+				if not isfolder('vape/Libraries') then
+					makefolder('vape/Libraries')
+				end
+				pcall(function()
+					writefile('vape/Libraries/StaffData.json', HttpService:JSONEncode(data))
+				end)
+			end,
+	
+			notify = function(message, duration)
+				warningNotification("StaffDetector", message, duration or 30)
+				game:GetService('StarterGui'):SetCore('ChatMakeSystemMessage', {
+					Text = message,
+					Color = Color3.fromRGB(255, 0, 0),
+					Font = Enum.Font.GothamBold,
+					FontSize = Enum.FontSize.Size24
+				})
+			end,
+	
+			triggerAction = function(player, detectionType, extraInfo)
+				local message = string.format("%s (@%s) detected as staff via %s! Executing %s action...", player.DisplayName, player.Name, detectionType, StaffDetectionConfig.Actions.Current)
+				if extraInfo then
+					message = message .. " Info: " .. extraInfo
+				end
+				
+				DetectionUtils.notify(message)
+				DetectionUtils.saveStaffRecord(player, detectionType)
+				StaffDetectionConfig.Actions.Options[StaffDetectionConfig.Actions.Current]()
+			end
 		}
-		local StaffDetector_Action = {
-			DropdownValue = {Value = "Uninject"},
-			FunctionsTable = {
-				["Uninject"] = function() GuiLibrary.SelfDestruct() end, 
-				["Panic"] = function() 
-					task.spawn(function() coroutine.close(shared.saveSettingsLoop) end)
-					GuiLibrary.SaveSettings()
-					function GuiLibrary.SaveSettings() return warningNotification("GuiLibrary - SaveSettings", "Saving Settings has been prevented from staff detector!", 1.5) end
-					warningNotification("StaffDetector", "Saving settings has been disabled!", 1.5)
-					task.spawn(function()
-						repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton
-						shared.GuiLibrary.ObjectsThatCanBeSaved.PanicOptionsButton.Api.ToggleButton(false)
-					end)
-				end,
-				["Lobby"] = function() TPService:Teleport(6872265039) end
-			},
+	
+		local DetectionMethods = {
+			checkBlacklist = function(player)
+				if table.find(StaffDetectionConfig.Blacklist.Users, player.Name) then
+					DetectionUtils.triggerAction(player, "Blacklist")
+				end
+			end,
+	
+			checkGroupRank = function(player)
+				local success, rank = pcall(function() return player:GetRankInGroup(5774246) end)
+				rank = success and rank or 0
+				
+				local rankInfo = StaffDetectionConfig.Blacklist.GroupRanks[rank]
+				if rankInfo then
+					DetectionUtils.triggerAction(player, "GroupRank", "Role: " .. rankInfo)
+				elseif StaffDetector.YoutuberToggle and StaffDetector.YoutuberToggle.Enabled and rank == 42378457 then
+					DetectionUtils.triggerAction(player, "GroupRank", "Role: Youtuber/Famous")
+				end
+			end,
+	
+			checkPermissions = function(player)
+				local success, KnitClient = pcall(function()
+					return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6)
+				end)
+				
+				if success then
+					local permissionController
+					repeat
+						permissionController = KnitClient.Controllers.PermissionController
+						task.wait()
+					until permissionController
+					
+					if permissionController:isStaffMember(player) then
+						DetectionUtils.triggerAction(player, "Permissions")
+					end
+				end
+			end,
+	
+			scanPlayer = function(player)
+				if player == PlayersService.LocalPlayer then return end
+				task.spawn(function() pcall(DetectionMethods.checkBlacklist, player) end)
+				task.spawn(function() pcall(DetectionMethods.checkGroupRank, player) end)
+				task.spawn(function() pcall(DetectionMethods.checkPermissions, player) end)
+			end
 		}
-		function StaffDetector_Functions.SaveStaffData(staff, detection_type)
-			local suc, res = pcall(function() return HTTPService:JSONDecode(readfile('vape/Libraries/StaffData.json')) end)
-			local json = suc and res or {}
-			table.insert(json, {StaffName = staff.DisplayName.."(@"..staff.Name..")", Time = os.time(), DetectionType = detection_type})
-			if (not isfolder('vape/Libraries')) then makefolder('vape/Libraries') end
-			writefile('vape/Libraries/StaffData.json', HTTPService:JSONEncode(json))
-		end
-		function StaffDetector_Functions.Notify(text)
-			pcall(function()
-				warningNotification("StaffDetector", tostring(text), 30)
-				game:GetService('StarterGui'):SetCore('ChatMakeSystemMessage', {Text = text, Color = Color3.fromRGB(255, 0, 0), Font = Enum.Font.GothamBold, FontSize = Enum.FontSize.Size24})
-			end)
-		end
-		function StaffDetector_Functions.Trigger(plr, det_type, addInfo)
-			StaffDetector_Functions.SaveStaffData(plr, det_type)
-			local text = plr.DisplayName.."(@"..plr.Name..") has been detected as staff via "..det_type.." detection type! "..StaffDetector_Action.DropdownValue.." action type will be used shortly."
-			if addInfo then text = text.." Additonal Info: "..addInfo end
-			StaffDetector_Functions.Notify(text)
-			StaffDetector_Action.FunctionsTable[StaffDetector_Action.DropdownValue]()
-		end
-		function StaffDetector_Checks:groupCheck(plr)
-			local suc, plrRank = pcall(function() plr:GetRankInGroup(5774246) end)
-			if (not suc) then plrRank = 0 end
-			local state, Type = false, nil
-			local Rank_Table = {[79029254] = "AC MOD", [86172137] = "Lead AC MOD (chase :D)", [43926962] = "Developer", [37929139] = "Developer", [87049509] = "Owner", [37929138] = "Owner"}
-			if StaffDetector_CustomBlacklist.YoutuberToggle.Enabled then Rank_Table[42378457] = "Youtuber/Famous" end
-			if Rank_Table[plrRank] then state = true; Type = Rank_Table[plrRank] end
-			if state then StaffDetector_Functions.Trigger(plr, "Group Check", "Rank: "..tostring(Type)) end
-		end
-		function StaffDetector_Checks:checkCustomBlacklist(plr) if table.find(self.CustomBlacklist, plr.Name) then StaffDetector_Functions.Trigger(plr, "CustomBlacklist") end end
-		function StaffDetector_Checks:checkPermissions(plr)
-			local KnitGotten, KnitClient
-			repeat
-				KnitGotten, KnitClient = pcall(function() return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6) end)
-				if KnitGotten then break end
-				task.wait()
-			until KnitGotten
-			repeat task.wait() until debug.getupvalue(KnitClient.Start, 1)
-			local PermissionController = KnitClient.Controllers.PermissionController
-			if KnitClient.Controllers.PermissionController:isStaffMember(plr) then StaffDetector_Functions.Trigger(plr, "PermissionController") end
-		end
-		function StaffDetector_Checks:check(plr)
-			task.spawn(function() pcall(function() self:checkCustomBlacklist(plr) end) end)
-			task.spawn(function() pcall(function() self:checkPermissions(plr) end) end)
-			task.spawn(function() pcall(function() self:groupCheck(plr) end) end)
-		end
+	
 		StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-			Name = "StaffDetector [NEW]",
-			Function = function(call)
-				if call then
-					for i,v in pairs(game:GetService("Players"):GetPlayers()) do if v ~= game:GetService("Players").LocalPlayer then StaffDetector_Checks:check(v) end end
-					local con = game:GetService("Players").PlayerAdded:Connect(function(v)
-						if StaffDetector.Enabled then 
-							StaffDetector_Checks:check(v) 
-							if StaffDetector_Extra.JoinNotifier.Enabled and store.matchState > 0 then warningNotification("StaffDetector", tostring(v.Name).." has joined!", 3) end
+			Name = "StaffDetector [Enhanced]",
+			Function = function(enabled)
+				StaffDetector.Enabled = enabled
+				if enabled then
+					for _, player in pairs(PlayersService:GetPlayers()) do
+						DetectionMethods.scanPlayer(player)
+					end
+					
+					local connection = PlayersService.PlayerAdded:Connect(function(player)
+						if StaffDetector.Enabled then
+							DetectionMethods.scanPlayer(player)
+							if StaffDetectionConfig.JoinNotifier.Enabled and store.matchState > 0 then
+								DetectionUtils.notify(player.Name .. " has joined the game!", 3)
+							end
 						end
 					end)
-					table.insert(StaffDetector_Connections, con)
-				else for i, v in pairs(StaffDetector_Connections) do if v.Disconnect then pcall(function() v:Disconnect() end) continue end; if v.disconnect then pcall(function() v:disconnect() end) continue end end end
+					table.insert(StaffDetectionConfig.Connections, connection)
+				else
+					for _, conn in pairs(StaffDetectionConfig.Connections) do
+						pcall(function() conn:Disconnect() end)
+					end
+					table.clear(StaffDetectionConfig.Connections)
+				end
 			end,
 			Default = true
 		})
-		StaffDetector.Restart = function() if StaffDetector.Enabled then StaffDetector.ToggleButton(false); StaffDetector.ToggleButton(false) end end
-		local list = {}
-		for i,v in pairs(StaffDetector_Action.FunctionsTable) do table.insert(list, i) end
-		StaffDetector_Action.DropdownValue = StaffDetector.CreateDropdown({Name = 'Action', List = list, Function = function() end})
-		StaffDetector_Extra.JoinNotifier = StaffDetector.CreateToggle({Name = "Illegal player notifier", Function = StaffDetector.Restart, Default = true})
+	
+		StaffDetector.Restart = function()
+			if StaffDetector.Enabled then
+				StaffDetector.ToggleButton(false)
+				task.wait(0.1)
+				StaffDetector.ToggleButton(true)
+			end
+		end
+	
+		local actionList = {}
+		for action in pairs(StaffDetectionConfig.Actions.Options) do
+			table.insert(actionList, action)
+		end
+		StaffDetectionConfig.Actions.Dropdown = StaffDetector.CreateDropdown({
+			Name = 'Action',
+			List = actionList,
+			Function = function(value)
+				StaffDetectionConfig.Actions.Current = value
+			end
+		})
+	
+		StaffDetectionConfig.JoinNotifier = StaffDetector.CreateToggle({
+			Name = "Join Notifier",
+			Function = function(enabled)
+				StaffDetectionConfig.JoinNotifier.Enabled = enabled
+				StaffDetector.Restart()
+			end,
+			Default = true
+		})
+	
+		StaffDetector.YoutuberToggle = StaffDetector.CreateToggle({
+			Name = "Youtuber Detection",
+			Function = StaffDetector.Restart,
+			Default = false
+		})
 	end)
 	
 	--[[task.spawn(function()
@@ -7731,175 +7914,305 @@ end)--]]
 end)--]]
 
 run(function()
-	local invis = {};
-	local invisbaseparts = safearray();
-	local invisroot = {};
-	local invisrootcolor = newcolor();
-	local invisanim = Instance.new('Animation');
-	local invisrenderstep;
-	local invistask;
-	local invshumanim;
-	local SpiderDisabled = false
-	invis = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
-		Name = 'Invisibility',
-		HoverText = 'Plays an animation which makes it harder\nfor targets to see you.',
-		Function = function(calling)
-			local invisFunction = function()
-				pcall(task.cancel, invistask);
-				pcall(function() invisrenderstep:Disconnect() end);
-				repeat task.wait() until isAlive(lplr, true);
-				for i,v in lplr.Character:GetDescendants() do 
-					pcall(function()
-						if v.ClassName:lower():find('part') and v.CanCollide and v ~= lplr.Character:FindFirstChild('HumanoidRootPart') then 
-							v.CanCollide = false;
-							table.insert(invisbaseparts, v);
-						end 
-					end)
-				end;
-				table.insert(invis.Connections, lplr.Character.DescendantAdded:Connect(function(v)
-					pcall(function()
-						if v.ClassName:lower():find('part') and v.CanCollide and v ~= lplr.Character:FindFirstChild('HumanoidRootPart') then 
-							v.CanCollide = false;
-							table.insert(invisbaseparts, v);
-						end
-					end) 
-				end));
-				task.spawn(function()
-					invisrenderstep = runservice.Stepped:Connect(function()
-						for i,v in invisbaseparts do 
-							v.CanCollide = false;
-						end
-					end);
-					table.insert(invis.Connections, invisrenderstep);
-				end)
-				invisanim.AnimationId = 'rbxassetid://11335949902';
-				local anim = lplr.Character:WaitForChild("Humanoid").Animator:LoadAnimation(invisanim);
-				invishumanim = anim;
-				repeat 
-					task.wait()
-					if GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.Enabled then 
-						GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.ToggleButton();
-					end
-					--if isAlive(lplr, true) == false or not isnetworkowner(lplr.Character.PrimaryPart) or not invis.Enabled then 
-						pcall(function() 
-							anim:AdjustSpeed(0);
-							anim:Stop() 
-						end)
-					--end
-					lplr.Character.PrimaryPart.Transparency = invisroot.Enabled and 0.6 or 1;
-					lplr.Character.PrimaryPart.Color = Color3.fromHSV(invisrootcolor.Hue, invisrootcolor.Sat, invisrootcolor.Value);
-					anim:Play(0.1, 9e9, 0.1);
-				until (not invis.Enabled)
-			end;
-			if calling then
-				--[[task.spawn(function()
-					repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton
-					if shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.Enabled then
-						shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.ToggleButton(false)
-						SpiderDisabled = true
-						repeat task.wait() until warningNotification
-						warningNotification("Invisibility", "Spider disabled to prevent suffocating. \n Will be re-enabled when invisibility gets disabled!", 10)
-					end
-				end) --]]
-				invistask = task.spawn(invisFunction);
-				table.insert(invis.Connections, lplr.CharacterAdded:Connect(invisFunction))
-			else 
-				--[[task.spawn(function()
-					if SpiderDisabled then
-						repeat task.wait() until shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton
-						if (not shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.Enabled) then
-							shared.GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton.Api.ToggleButton(false)
-							SpiderDisabled = false
-							repeat task.wait() until warningNotification
-							warningNotification("Invisibility", "Spider re-enabled!", 10)
-						end
-					end
-				end)--]]
-				pcall(function()
-					invishumanim:AdjustSpeed(0);
-					invishumanim:Stop();
-				end);
-				pcall(task.cancel, invistask)
-			end
-		end
-	})
-	invisroot = invis.CreateToggle({
-		Name = 'Show Root',
-		Default = true,
-		Function = function(calling)
-			pcall(function() invisrootcolor.Object.Visible = calling; end)
-		end
-	})
-	invisrootcolor = invis.CreateColorSlider({
-		Name = 'Root Color',
-		Function = void
-	})
+    local InvisibilitySystem = {
+        Enabled = false
+    }
+	local InvisibilitySystemConnections = {}
+	local InvisibilitySystemConfig = {
+		ShowRoot = true,
+		RootColor = {Hue = 0, Sat = 0, Val = 1}
+	}
+	local InvisibilitySystemParts = {}
+	local InvisibilitySystemAnimation = nil
+
+    local RunService = game:GetService("RunService")
+    local Players = game:GetService("Players")
+    local lplr = Players.LocalPlayer
+
+    local InvisUtils = {
+        disableCollisions = function(character)
+            InvisibilitySystemParts = {}
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide and part ~= character:FindFirstChild("HumanoidRootPart") then
+                    part.CanCollide = false
+                    table.insert(InvisibilitySystemParts, part)
+                end
+            end
+        end,
+
+        setupAnimation = function(character)
+            local anim = Instance.new("Animation")
+            anim.AnimationId = "rbxassetid://11335949902"
+            local humanoid = character:WaitForChild("Humanoid", 5)
+            if humanoid then
+                local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
+                InvisibilitySystemAnimation = animator:LoadAnimation(anim)
+                return InvisibilitySystemAnimation
+            end
+            return nil
+        end,
+
+        updateRootAppearance = function(rootPart)
+            if rootPart then
+                rootPart.Transparency = InvisibilitySystemConfig.ShowRoot and 0.6 or 1
+                rootPart.Color = Color3.fromHSV(
+                    InvisibilitySystemConfig.RootColor.Hue,
+                    InvisibilitySystemConfig.RootColor.Sat,
+                    InvisibilitySystemConfig.RootColor.Val
+                )
+            end
+        end,
+
+        toggleSpider = function(enable)
+            local spiderButton = GuiLibrary.ObjectsThatCanBeSaved.SpiderOptionsButton
+            if not spiderButton then return end
+            
+            if enable and spiderButton.Api.Enabled then
+                spiderButton.Api.ToggleButton(false)
+                task.spawn(function()
+                    repeat task.wait(0.1) until warningNotification
+                    warningNotification("Invisibility", "Spider disabled to prevent suffocation.\nRe-enabled when invisibility ends!", 10)
+                end)
+                return true
+            elseif not enable and not spiderButton.Api.Enabled then
+                spiderButton.Api.ToggleButton(true)
+                task.spawn(function()
+                    repeat task.wait(0.1) until warningNotification
+                    warningNotification("Invisibility", "Spider re-enabled!", 10)
+                end)
+            end
+            return false
+        end
+    }
+
+    local function applyInvisibility()
+        local character = lplr.Character
+        if not isAlive(lplr, true) or not character then return end
+
+        InvisUtils.disableCollisions(character)
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
+        local anim = InvisibilitySystemAnimation or InvisUtils.setupAnimation(character)
+
+        table.insert(InvisibilitySystemConnections, character.DescendantAdded:Connect(function(part)
+            if part:IsA("BasePart") and part.CanCollide and part ~= rootPart then
+                part.CanCollide = false
+                table.insert(InvisibilitySystemParts, part)
+            end
+        end))
+
+        local stepConnection = RunService.Stepped:Connect(function()
+            for _, part in pairs(InvisibilitySystemParts) do
+                part.CanCollide = false
+            end
+        end)
+        table.insert(InvisibilitySystemConnections, stepConnection)
+
+        while InvisibilitySystem.Enabled and isAlive(lplr, true) and anim do
+            if GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.Enabled then
+                GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.ToggleButton(false)
+            end
+            
+            InvisUtils.updateRootAppearance(rootPart)
+            anim:Play(0.1, 9e9, 0.1)
+            task.wait(0.1)
+        end
+
+        if anim then
+            anim:Stop()
+            anim:AdjustSpeed(0)
+        end
+        stepConnection:Disconnect()
+    end
+
+    InvisibilitySystem = GuiLibrary.ObjectsThatCanBeSaved.HotWindow.Api.CreateOptionsButton({
+        Name = "Invisibility",
+        HoverText = "Renders you less visible via animation and transparency",
+        Function = function(enabled)
+            InvisibilitySystem.Enabled = enabled
+            if enabled then
+                local spiderWasDisabled = InvisUtils.toggleSpider(true)
+                
+                local taskHandle = task.spawn(applyInvisibility)
+                table.insert(InvisibilitySystemConnections, lplr.CharacterAdded:Connect(function()
+                    task.cancel(taskHandle)
+                    taskHandle = task.spawn(applyInvisibility)
+                end))
+
+                InvisibilitySystem.Cleanup = function()
+                    if spiderWasDisabled then
+                        InvisUtils.toggleSpider(false)
+                    end
+                    if InvisibilitySystemAnimation then
+                        InvisibilitySystemAnimation:Stop()
+                        InvisibilitySystemAnimation:AdjustSpeed(0)
+                    end
+                    for _, conn in pairs(InvisibilitySystemConnections) do
+                        pcall(conn.Disconnect, conn)
+                    end
+                    table.clear(InvisibilitySystemConnections)
+                    InvisibilitySystemParts = {}
+                end
+            else
+                if InvisibilitySystem.Cleanup then
+                    InvisibilitySystem.Cleanup()
+                    InvisibilitySystem.Cleanup = nil
+                end
+            end
+        end
+    })
+
+    InvisibilitySystem.RootToggle = InvisibilitySystem.CreateToggle({
+        Name = "Show Root Part",
+        Default = true,
+        Function = function(enabled)
+			pcall(function()
+				InvisibilitySystemConfig.ShowRoot = enabled
+				InvisibilitySystem.RootColor.Object.Visible = enabled
+			end)
+        end,
+        HoverText = "Toggles visibility of the root part"
+    })
+
+    InvisibilitySystem.RootColor = InvisibilitySystem.CreateColorSlider({
+        Name = "Root Color",
+        Function = function(hue, sat, val)
+            InvisibilitySystemConfig.RootColor = {Hue = hue, Sat = sat, Val = val}
+        end,
+        Default = {Hue = 0, Sat = 0, Val = 1},
+        HoverText = "Sets the color of the root part when visible"
+    })
+
+    InvisibilitySystem.RootColor.Object.Visible = InvisibilitySystemConfig.ShowRoot
 end)
 
 run(function()
-	local damagehighlightvisuals = {Enabled = false, Connections = {}};
-	local highlightcolor = newcolor();
-	local highlightinvis = {Value = 4}
-	local GuiSync = {Enabled = false}
-	damagehighlightvisuals = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
-		Name = 'HighlightVisuals',
-		HoverText = 'Changes the color of the damage highlight.',
-		Function = function(calling)
-			if calling then 
-				task.spawn(function()
-					table.insert(damagehighlightvisuals.Connections, game.Workspace.DescendantAdded:Connect(function(indicator)
-						if indicator.Name == '_DamageHighlight_' and indicator.ClassName == 'Highlight' then 
-							repeat 
-								if GuiSync.Enabled then
-									pcall(function()
-										if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
-											indicator.FillColor = GuiLibrary.GUICoreColor
-											local con = GuiLibrary.GUICoreColorChanged.Event:Connect(function()
-												if damagehighlightvisuals.Enabled and GuiSync.Enabled then
-													indicator.FillColor = GuiLibrary.GUICoreColor
-												end
-											end)
-											table.insert(damagehighlightvisuals.Connections, con)
-										else
-											local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
-											indicator.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
-											VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
-												if damagehighlightvisuals.Enabled then
-													color = {Hue = h, Sat = s, Value = v}
-													indicator.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Value)
-												end
-											end))
-										end
-									end)
-								else
-									indicator.FillColor = Color3.fromHSV(highlightcolor.Hue, highlightcolor.Sat, highlightcolor.Value);
-								end
-								indicator.FillTransparency = (0.1 * highlightinvis.Value);
-								task.wait()
-							until (indicator.Parent == nil)
-						end;
-					end))
-				end)
-			end
-		end
-	})
-	damagehighlightvisuals.Restart = function() if damagehighlightvisuals.Enabled then damagehighlightvisuals.ToggleButton(false); damagehighlightvisuals.ToggleButton(false) end end
-	highlightcolor = damagehighlightvisuals.CreateColorSlider({
-		Name = 'Color',
-		Function = void
-	})
-	GuiSync = damagehighlightvisuals.CreateToggle({
-		Name = "GUI Color Sync",
-		Function = function(call) pcall(function() highlightcolor.Object.Visible = not call end); damagehighlightvisuals.Restart() end
-	})
-	highlightinvis = damagehighlightvisuals.CreateSlider({
-		Name = 'Invisibility',
-		Min = 0,
-		Max = 10,
-		Default = 4,
-		Function = void
-	})
-end);
+    local DamageHighlightSystem = {
+        Enabled = false
+    }
+	local DamageHighlightSystemConnections = {}
+	local DamageHighlightSystemConfig = {
+		FillColor = {Hue = 0, Sat = 0, Val = 1},
+		Transparency = 0.4,
+		SyncWithGUI = false
+	}
+
+    local HighlightUtils = {
+        applyHighlightStyle = function(highlight)
+            local color = DamageHighlightSystemConfig.SyncWithGUI and DamageHighlightSystemConfig.GUISyncColor or DamageHighlightSystemConfig.FillColor
+            highlight.FillColor = Color3.fromHSV(color.Hue, color.Sat, color.Val)
+            highlight.FillTransparency = DamageHighlightSystemConfig.Transparency
+        end,
+
+        updateGUISyncColor = function()
+            if shared.RiseMode and GuiLibrary.GUICoreColor then
+                DamageHighlightSystemConfig.GUISyncColor = {
+                    Hue = GuiLibrary.GUICoreColor:ToHSV().X,
+                    Sat = GuiLibrary.GUICoreColor:ToHSV().Y,
+                    Val = GuiLibrary.GUICoreColor:ToHSV().Z
+                }
+            else
+                local guiColor = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+                DamageHighlightSystemConfig.GUISyncColor = {
+                    Hue = guiColor.Hue,
+                    Sat = guiColor.Sat,
+                    Val = guiColor.Value
+                }
+            end
+        end
+    }
+
+    DamageHighlightSystem = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
+        Name = 'HighlightVisuals',
+        HoverText = 'Customizes damage highlight appearance with color and transparency options',
+        Function = function(enabled)
+            DamageHighlightSystem.Enabled = enabled
+            if enabled then
+                task.spawn(function()
+                    local connection = game.Workspace.DescendantAdded:Connect(function(descendant)
+                        if descendant.Name == '_DamageHighlight_' and descendant.ClassName == 'Highlight' then
+                            local highlight = descendant
+                            
+                            HighlightUtils.applyHighlightStyle(highlight)
+                            
+                            if DamageHighlightSystemConfig.SyncWithGUI then
+                                if shared.RiseMode and GuiLibrary.GUICoreColorChanged then
+                                    table.insert(DamageHighlightSystemConnections, 
+                                        GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+                                            if DamageHighlightSystem.Enabled then
+                                                HighlightUtils.updateGUISyncColor()
+                                                HighlightUtils.applyHighlightStyle(highlight)
+                                            end
+                                        end)
+                                    )
+                                elseif VoidwareFunctions and VoidwareFunctions.Controllers then
+                                    table.insert(DamageHighlightSystemConnections,
+                                        VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h, s, v)
+                                            if DamageHighlightSystem.Enabled then
+                                                DamageHighlightSystemConfig.GUISyncColor = {Hue = h, Sat = s, Val = v}
+                                                HighlightUtils.applyHighlightStyle(highlight)
+                                            end
+                                        end)
+                                    )
+                                end
+                            end
+                            
+                           	spawn(function()
+                                repeat task.wait() until not highlight.Parent or not DamageHighlightSystem.Enabled
+                            end)
+                        end
+                    end)
+                    table.insert(DamageHighlightSystemConnections, connection)
+                end)
+            else
+                for _, conn in pairs(DamageHighlightSystemConnections) do
+                    pcall(function() conn:Disconnect() end)
+                end
+                table.clear(DamageHighlightSystemConnections)
+            end
+        end
+    })
+
+    DamageHighlightSystem.Restart = function()
+        if DamageHighlightSystem.Enabled then
+            DamageHighlightSystem.ToggleButton(false)
+            task.wait(0.1)
+            DamageHighlightSystem.ToggleButton(true)
+        end
+    end
+
+    DamageHighlightSystem.ColorControl = DamageHighlightSystem.CreateColorSlider({
+        Name = 'Highlight Color',
+        Function = function(hue, sat, val)
+            DamageHighlightSystemConfig.FillColor = {Hue = hue, Sat = sat, Val = val}
+            if not DamageHighlightSystemConfig.SyncWithGUI then
+                DamageHighlightSystem.Restart()
+            end
+        end
+    })
+
+    DamageHighlightSystem.SyncToggle = DamageHighlightSystem.CreateToggle({
+        Name = "Sync with GUI",
+        Function = function(enabled)
+            DamageHighlightSystemConfig.SyncWithGUI = enabled
+            DamageHighlightSystem.ColorControl.Object.Visible = not enabled
+            if enabled then
+                HighlightUtils.updateGUISyncColor()
+            end
+            DamageHighlightSystem.Restart()
+        end
+    })
+
+    DamageHighlightSystem.TransparencyControl = DamageHighlightSystem.CreateSlider({
+        Name = 'Transparency',
+        Min = 0,
+        Max = 10,
+        Default = 4,
+        Function = function(value)
+            DamageHighlightSystemConfig.Transparency = value * 0.1
+            DamageHighlightSystem.Restart()
+        end
+    })
+end)
 
 run(function() 
 	local TPExploit = {}
@@ -7919,310 +8232,244 @@ end)
 
 local GuiLibrary = shared.GuiLibrary
 shared.slowmode = 0
-run(function() 
-    local function resetSlowmode()
-        task.spawn(function()
-            repeat shared.slowmode = shared.slowmode - 1 task.wait(1) until shared.slowmode < 1
-            shared.slowmode = 0
-        end)
-    end
-    local HS = game:GetService("HttpService")
-    local StaffDetector = {}
-    local StaffDetector_Games = {Value = "Bedwars"}
-    local Custom_Group = {Enabled = false}
-	local IgnoreOnlineStaff = {Enabled = false}
-	local AutoCheck = {Enabled = false}
-    local Roles_List = {ObjectList = {}}
-    local Custom_GroupId = {Value = ""}
-    local Staff_Members_Limit = {Value = 50}
-    local Games_StaffTable = {
-        ["Bedwars"] = {
-            ["groupid"] = 5774246,
-            ["roles"] = {
-                79029254,
-                86172137,
-                43926962,
-                37929139,
-                87049509,
-                37929138
-            }
-        },
-		["PS99"] = {
-			["groupid"] = 5060810,
-			["roles"] = {
-				33738740,
-				33738765
-			}
-		}
+run(function()
+    local HttpService = game:GetService("HttpService")
+    local StaffDetectionSystem = {
+        Enabled = false
     }
-    local function getUsersInRole(groupId, roleId, cursor)
-        local limit = Staff_Members_Limit.Value or 100
-        local url = "https://groups.roblox.com/v1/groups/"..groupId.."/roles/"..roleId.."/users?limit="..limit
-        if cursor then
-            url = url .. "&cursor=" .. cursor
-        end
-    
-        local response = request({
-            Url = url,
-            Method = "GET"
-        })
-    
-        return game:GetService("HttpService"):JSONDecode(response.Body)
-    end
-    local function getUserPresence(userIds)
-        local url = "https://presence.roblox.com/v1/presence/users"
-        local requestBody = game:GetService("HttpService"):JSONEncode({userIds = userIds})
-    
-        local response = request({
-            Url = url,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = requestBody
-        })
-        return game:GetService("HttpService"):JSONDecode(response.Body)
-    end
-    local function getUsersInRoleWithPresence(groupId, roleId)
-        local users = {}
-        local cursor = nil
-        local userIds = {}
-        repeat
-            local data = getUsersInRole(groupId, roleId, cursor)
-            for _, user in pairs(data.data) do
-                table.insert(users, user)
-                table.insert(userIds, user.userId)
-            end
-            cursor = data.nextPageCursor
-        until not cursor
-        local presenceData = getUserPresence(userIds)
-        for _, user in pairs(users) do
-            for _, presence in pairs(presenceData.userPresences) do
-                if user.userId == presence.userId then
-                    user.presenceType = presence.userPresenceType
-                    user.lastLocation = presence.lastLocation
-                    break
+	local StaffDetectionSystemStaffData = {
+		Games = {
+			Bedwars = {groupId = 5774246, roles = {79029254, 86172137, 43926962, 37929139, 87049509, 37929138}},
+			PS99 = {groupId = 5060810, roles = {33738740, 33738765}}
+		},
+		Detected = {}
+	}
+	local StaffDetectionSystemConfig = {
+		GameMode = "Bedwars",
+		CustomGroupEnabled = false,
+		IgnoreOnline = false,
+		AutoCheck = false,
+		MemberLimit = 50,
+		CustomGroupId = "",
+		CustomRoles = {}
+	}
+
+    local DetectionUtils = {
+        resetSlowmode = function()
+            task.spawn(function()
+                while shared.slowmode > 0 do
+                    shared.slowmode = shared.slowmode - 1
+                    task.wait(1)
                 end
+                shared.slowmode = 0
+            end)
+        end,
+
+        fetchUsersInRole = function(groupId, roleId, cursor)
+            local url = string.format("https://groups.roblox.com/v1/groups/%d/roles/%d/users?limit=%d%s", groupId, roleId, StaffDetectionSystemConfig.MemberLimit, cursor and "&cursor=" .. cursor or "")
+            local success, response = pcall(function()
+                return request({Url = url, Method = "GET"})
+            end)
+            return success and HttpService:JSONDecode(response.Body) or {}
+        end,
+
+        fetchUserPresence = function(userIds)
+            local success, response = pcall(function()
+                return request({
+                    Url = "https://presence.roblox.com/v1/presence/users",
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode({userIds = userIds})
+                })
+            end)
+            return success and HttpService:JSONDecode(response.Body) or {userPresences = {}}
+        end,
+
+        fetchGroupRoles = function(groupId)
+            local success, response = pcall(function()
+                return request({
+                    Url = "https://groups.roblox.com/v1/groups/" .. groupId .. "/roles",
+                    Method = "GET"
+                })
+            end)
+            if success and response.StatusCode == 200 then
+                local roles = {}
+                for _, role in pairs(HttpService:JSONDecode(response.Body).roles) do
+                    table.insert(roles, role.id)
+                end
+                return true, roles
             end
-        end
-        return users
-    end
-    local function getGroupRoles(groupId)
-        local url = "https://groups.roblox.com/v1/groups/"..groupId.."/roles"
-        local res = request({
-            Url = url,
-            Method = "GET"
-        })
-        if res.StatusCode == 200 then
-            local roles = {}
-            for i,v in pairs(HS:JSONDecode(res.Body).roles) do
-                table.insert(roles, v.id)
-            end
-            return true, roles, nil
-        else
-            return false, nil, "Status Code isnt 200! "..res.StatusCode
-        end
-    end
-    local function getData()
-        if Custom_Group.Enabled then
-            local suc1, custom_group_id, err1 = false, "", nil
-            if Custom_GroupId.Value ~= "" then
-                suc1 = true
-                custom_group_id = tonumber(Custom_GroupId.Value)
-            else 
-                suc1 = false
-                custom_group_id = nil
-                err1 = "Custom GroupID not specified!" 
-            end
-            local suc2, roles, err2 = false, {}, nil
-            if #Roles_List.ObjectList < 1 then
-                suc2 = false
-                roles = nil
-                err2 = "Roles not specified!"
+            return false, nil, "Failed to fetch roles: " .. (success and response.StatusCode or "Network error")
+        end,
+
+        getDetectionConfig = function()
+            if StaffDetectionSystemConfig.CustomGroupEnabled then
+                if not StaffDetectionSystemConfig.CustomGroupId or StaffDetectionSystemConfig.CustomGroupId == "" then
+                    return false, nil, "Custom Group ID not specified", false, nil, "Custom"
+                end
+                if #StaffDetectionSystemConfig.CustomRoles == 0 then
+                    return true, tonumber(StaffDetectionSystemConfig.CustomGroupId), nil, false, nil, "Custom roles not specified"
+                end
+                local success, roles, error = DetectionUtils.fetchGroupRoles(StaffDetectionSystemConfig.CustomGroupId)
+                return true, tonumber(StaffDetectionSystemConfig.CustomGroupId), nil, success, roles, error, "Custom"
             else
-                if suc1 then
-                    local suc3, res, err3 = getGroupRoles(custom_group_id)
-                    if suc3 then
-                        suc2 = true
-                        roles = res
-                    else
-                        err2 = err3
+                local gameData = StaffDetectionSystemStaffData.Games[StaffDetectionSystemConfig.GameMode]
+                return true, gameData.groupId, nil, true, gameData.roles, nil, "Normal"
+            end
+        end,
+
+        scanStaff = function(groupId, roleId)
+            local users, userIds = {}, {}
+            local cursor = nil
+            repeat
+                local data = DetectionUtils.fetchUsersInRole(groupId, roleId, cursor)
+                for _, user in pairs(data.data or {}) do
+                    table.insert(users, user)
+                    table.insert(userIds, user.userId)
+                end
+                cursor = data.nextPageCursor
+            until not cursor
+
+            local presenceData = DetectionUtils.fetchUserPresence(userIds)
+            for _, user in pairs(users) do
+                for _, presence in pairs(presenceData.userPresences) do
+                    if user.userId == presence.userId then
+                        user.presenceType = presence.userPresenceType
+                        user.lastLocation = presence.lastLocation
+                        break
                     end
                 end
             end
-            return {suc1, custom_group_id, err1}, {suc2, roles, err2}, "Custom"
-        else
-            if StaffDetector_Games.Value ~= "" then
-                local roles = Games_StaffTable[StaffDetector_Games.Value]["roles"]
-                local groupid = Games_StaffTable[StaffDetector_Games.Value]["groupid"]
-                return {true, groupid, nil}, {true, roles, nil}, "Normal"
-            else
-                return {false, nil, nil}, {false, nil, nil}, "Normal"
+            return users
+        end
+    }
+
+    local function processStaffCheck()
+        if shared.slowmode > 0 and not StaffDetectionSystemConfig.AutoCheck then
+            errorNotification("StaffDetector", "Slowmode active! Wait " .. shared.slowmode .. " seconds", shared.slowmode)
+            return
+        end
+
+        shared.slowmode = 5
+        DetectionUtils.resetSlowmode()
+        InfoNotification("StaffDetector", "Checking staff presence...", 5)
+
+        local groupSuccess, groupId, groupError, rolesSuccess, roles, rolesError, mode = DetectionUtils.getDetectionConfig()
+        if not groupSuccess or not rolesSuccess then
+            shared.slowmode = 0
+            if groupError then errorNotification("StaffDetector", groupError, 5) end
+            if rolesError then errorNotification("StaffDetector", rolesError, 5) end
+            return
+        end
+
+        local detectedStaff, uniqueIds = {}, {}
+        for _, roleId in pairs(roles) do
+            for _, user in pairs(DetectionUtils.scanStaff(groupId, roleId)) do
+                local status = ({
+                    [0] = "Offline",
+                    [1] = "Online",
+                    [2] = "In Game",
+                    [3] = "In Studio"
+                })[user.presenceType or 0]
+
+                if (status == "In Game" or (not StaffDetectionSystemConfig.IgnoreOnline and status == "Online")) and
+                   not table.find(uniqueIds, user.userId) then
+                    table.insert(uniqueIds, user.userId)
+                    local userData = {UserID = tostring(user.userId), Username = user.username, Status = status}
+                    if not table.find(detectedStaff, userData, function(a, b) return a.UserID == b.UserID and a.Status == b.Status end) then
+                        table.insert(detectedStaff, userData)
+                        errorNotification("StaffDetector", "@" .. userData.Username .. "(" .. userData.UserID .. ") is " .. status, 7)
+                    end
+                end
             end
         end
+        InfoNotification("StaffDetector", #detectedStaff .. " staff members detected online/in-game!", 7)
     end
-    local core_table = {}
-    local function handle_checks(groupid, roleid)
-        local res = getUsersInRoleWithPresence(groupid, roleid)
-        for _, user in pairs(res) do
-            local presenceStatus = "Offline"
-            if user.presenceType == 1 then
-                presenceStatus = "Online"
-            elseif user.presenceType == 2 then
-                presenceStatus = "In Game"
-            elseif user.presenceType == 3 then
-                presenceStatus = "In Studio"
+
+    StaffDetectionSystem = GuiLibrary.ObjectsThatCanBeSaved.VoidwareWindow.Api.CreateOptionsButton({
+        Name = 'StaffFetcher - Roblox',
+        Function = function(enabled)
+            StaffDetectionSystem.Enabled = enabled
+            if enabled then
+                if StaffDetectionSystemConfig.AutoCheck then
+                    task.spawn(function()
+                        repeat
+                            processStaffCheck()
+                            task.wait(30)
+                        until not StaffDetectionSystem.Enabled or not StaffDetectionSystemConfig.AutoCheck
+                        StaffDetectionSystem["ToggleButton"](false)
+                    end)
+                else
+                    processStaffCheck()
+                    StaffDetectionSystem["ToggleButton"](false)
+                end
             end
-			local function online()
-				if IgnoreOnlineStaff.Enabled then
-					if presenceStatus == "Online" then
-						return true
-					else
-						return false
-					end
-				else
-					return false
-				end
-			end
-            if (presenceStatus == "In Game" or online()) then
-                table.insert(core_table, {["UserID"] = user.userId, ["Username"] = user.username, ["Status"] = presenceStatus})
-            end
-            print("Username: " .. user.username .. " - UserID: " .. user.userId .. " - Status: " .. presenceStatus)
         end
-    end
-	local checked_data = {}
-	StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.VoidwareWindow.Api.CreateOptionsButton({
-		Name = 'StaffDetector - Roblox',
-		Function = function(calling)
-			if calling then 
-				if (not AutoCheck.Enabled) then
-					StaffDetector["ToggleButton"](false) 
-				end
-				if AutoCheck.Enabled then errorNotification("StaffDetector-AutoCheck", "Please disable auto check to manually use this module!", 5) end
-                if shared.slowmode > 0 then if (not AutoCheck.Enabled) then return errorNotification("StaffDetector-Slowmode", "You are currently on slowmode! Wait "..tostring(shared.slowmode).."seconds!", shared.slowmode) end end
-				shared.slowmode = 5
-                resetSlowmode()
-				InfoNotification("StaffDetector", "Sent request! Please wait...", 5)
-				local function dostuff()
-					local limit = Staff_Members_Limit.Value
-					local tbl1, tbl2, Type = getData()
-					local suc1, res1, err1 = tbl1[1], tbl1[2], tbl1[3]
-					local suc2, res2, err2 = tbl2[1], tbl2[2], tbl2[3]   
-					local handle_table = {}    
-					local number = 0      
-					if (suc1 and suc2) then
-						for i,v in pairs(res2) do handle_checks(res1, v) end
-						for i,v in pairs(core_table) do
-							if (not table.find(handle_table, tostring(v["UserID"]))) then
-								table.insert(handle_table, tostring(v["UserID"]))
-								number = number + 1
-								local a = tostring(v["UserID"])
-								local b = tostring(v["Username"])
-								local c = tostring(v["Status"])
-								local function checked()
-									for i,v in pairs(checked_data) do
-										if v["UserID"] == a then
-											if v["Status"] == c then
-												return true
-											end
-										end
-									end
-									return false
-								end
-								if checked() then return end
-								table.insert(checked_data, {["UserID"] = a, ["Status"] = c})
-								if tostring(v["Status"]) == "Online" then
-									if (not IgnoreOnlineStaff.Enabled) then
-										errorNotification("StaffDetector", "@"..b.."("..a..") is currently "..c, 7)
-									end
-								else
-									errorNotification("StaffDetector", "@"..b.."("..a..") is currently "..c, 7)
-								end
-							end
-						end
-						InfoNotification("StaffDetector", tostring(number).." total staffs were detected as online/ingame!", 7)
-					else
-						shared.slowmode = 0
-						if (not suc1) then
-							errorNotification("StaffDetector-GroupID Error", tostring(err1), 5)
-						end
-						if (not suc2) then
-							errorNotification("StaffDetector-Roles Error", tostring(err2), 5)
-						end
-					end
-				end
-				if (not AutoCheck.Enabled) then
-					dostuff()
-				else
-					task.spawn(function()
-						repeat 
-							dostuff()
-							task.wait(30)
-						until (not StaffDetector.Enabled) or (not AutoCheck.Enabled)
-						StaffDetector["ToggleButton"](false) 
-					end)
-				end
-			end
-		end
-	}) 
-    local list = {}
-    for i,v in pairs(Games_StaffTable) do table.insert(list, i) end
-    StaffDetector_Games = StaffDetector.CreateDropdown({
-		Name = "GameChoice",
-		Function = function() end,
-		List = list
-	})
-    Roles_List = StaffDetector.CreateTextList({
-		Name = "CustomRoles",
-		TempText = "RoleId (number)"
-	})
-    Custom_GroupId = StaffDetector.CreateTextBox({
-        Name = "CustomGroupId",
-        TempText = "Type here a groupid",
-        TempText = "GroupId (number)",
-        Function = function() end
     })
-    Custom_GroupId.Object.Visible = false
-    Roles_List.Object.Visible = false
-    Custom_Group = StaffDetector.CreateToggle({
-		Name = "CustomGroup",
-		Function = function(calling)
-            if calling then
-                Custom_GroupId.Object.Visible = true
-                Roles_List.Object.Visible = true
-                StaffDetector_Games.Object.Visible = false
-            else
-                Custom_GroupId.Object.Visible = false
-                Roles_List.Object.Visible = false
-                StaffDetector_Games.Object.Visible = true
+
+    local gameList = {}
+    for game in pairs(StaffDetectionSystemStaffData.Games) do table.insert(gameList, game) end
+    StaffDetectionSystem.GameSelector = StaffDetector.CreateDropdown({
+        Name = "Game Mode",
+        Function = function(value) StaffDetectionSystemConfig.GameMode = value end,
+        List = gameList
+    })
+
+    StaffDetectionSystem.RolesList = StaffDetector.CreateTextList({
+        Name = "Custom Roles",
+        TempText = "Role ID (number)",
+        Function = function(values) StaffDetectionSystemConfig.CustomRoles = values end
+    })
+
+    StaffDetectionSystem.GroupIdInput = StaffDetector.CreateTextBox({
+        Name = "Custom Group ID",
+        TempText = "Group ID (number)",
+        Function = function(value) StaffDetectionSystemConfig.CustomGroupId = value end
+    })
+
+    StaffDetectionSystem.CustomGroupToggle = StaffDetector.CreateToggle({
+        Name = "Custom Group",
+        Function = function(enabled)
+			pcall(function()
+				StaffDetectionSystemConfig.CustomGroupEnabled = enabled
+				StaffDetectionSystem.GroupIdInput.Object.Visible = enabled
+				StaffDetectionSystem.RolesList.Object.Visible = enabled
+				StaffDetectionSystem.GameSelector.Object.Visible = not enabled
+			end)
+        end,
+        HoverText = "Use a custom staff group",
+        Default = false
+    })
+
+    StaffDetectionSystem.IgnoreOnlineToggle = StaffDetector.CreateToggle({
+        Name = "Ignore Online Staff",
+        Function = function(enabled) StaffDetectionSystemConfig.IgnoreOnline = enabled end,
+        HoverText = "Only show in-game staff, ignoring online staff",
+        Default = false
+    })
+
+    StaffDetectionSystem.MemberLimitSlider = StaffDetector.CreateSlider({
+        Name = "Member Limit",
+        Min = 1,
+        Max = 100,
+        Function = function(value) StaffDetectionSystemConfig.MemberLimit = value end,
+        Default = 50
+    })
+
+    StaffDetectionSystem.AutoCheckToggle = StaffDetector.CreateToggle({
+        Name = "Auto Check",
+        Function = function(enabled)
+            StaffDetectionSystemConfig.AutoCheck = enabled
+            if enabled and shared.slowmode > 0 then
+                errorNotification("StaffDetector", "Disable Auto Check to use manually during slowmode!", 5)
             end
         end,
-		HoverText = "Choose another staff group",
-		Default = false
-	})
-	IgnoreOnlineStaff = StaffDetector.CreateToggle({
-		Name = "IgnoreOnlineStaff",
-		Function = function() end,
-		HoverText = "Make the module ignore online staff and only \n show ingame staff",
-		Default = false
-	})
-    Staff_Members_Limit = StaffDetector.CreateSlider({
-		Name = "StaffMembersLimit",
-		Min = 1,
-		Max = 100,
-		Function = function() end,
-		Default = 100
-	})
-	AutoCheck = StaffDetector.CreateToggle({
-		Name = "AutoCheck",
-		Function = function() end,
-		HoverText = "Checks for new staffs every 30 seconds",
-		Default = false
-	}) --- work in progress
-	task.spawn(function()
-		repeat task.wait() until shared.vapewhitelist.loaded
-		if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) ~= 2 then AutoCheck.Object.Visible = false end
-	end)
+        HoverText = "Automatically check every 30 seconds",
+        Default = false
+    })
+
+    StaffDetectionSystem.GroupIdInput.Object.Visible = false
+    StaffDetectionSystem.RolesList.Object.Visible = false
 end)
 
 task.spawn(function()
@@ -8696,172 +8943,225 @@ run(function()
 end)
 
 run(function()
-	local DamageIndicator = {Enabled = false, Connections = {}}
-	local DamageIndicatorColorToggle = {}
-	local DamageIndicatorColor = {Hue = 0, Sat = 0, Value = 0}
-	local DamageIndicatorTextToggle = {}
-	local DamageIndicatorText = {ObjectList = {}}
-	local DamageIndicatorFontToggle = {}
-	local DamageIndicatorFont = {Value = 'GothamBlack'}
-	local DamageIndicatorTextObjects = {}
-    local DamageMessages, OrigIndicator, OrgInd = {
-		'Pow!',
-		'Pop!',
-		'Hit!',
-		'Smack!',
-		'Bang!',
-		'Boom!',
-		'Whoop!',
-		'Damage!',
-		'-9e9!',
-		'Whack!',
-		'Crash!',
-		'Slam!',
-		'Zap!',
-		'Snap!',
-		'Thump!'
-	}, nil, OrigIndicator
-	local RGBColors = {
-		Color3.fromRGB(255, 0, 0),
-		Color3.fromRGB(255, 127, 0),
-		Color3.fromRGB(255, 255, 0),
-		Color3.fromRGB(0, 255, 0),
-		Color3.fromRGB(0, 0, 255),
-		Color3.fromRGB(75, 0, 130),
-		Color3.fromRGB(148, 0, 211)
+    local DamageIndicatorSystem = {
+        Enabled = false
+    }
+	local DamageIndicatorSystemConstants = {
+		Messages = {
+			"Pow!", "Pop!", "Hit!", "Smack!", "Bang!", "Boom!", "Whoop!",
+			"Damage!", "-9e9!", "Whack!", "Crash!", "Slam!", "Zap!",
+			"Snap!", "Thump!"
+		},
+		RainbowColors = {
+			Color3.fromRGB(255, 0, 0), Color3.fromRGB(255, 127, 0),
+			Color3.fromRGB(255, 255, 0), Color3.fromRGB(0, 255, 0),
+			Color3.fromRGB(0, 0, 255), Color3.fromRGB(75, 0, 130),
+			Color3.fromRGB(148, 0, 211)
+		},
+		RainbowCycleSpeed = 5,
+		RainbowIndex = 1
 	}
-	local orgI, mz, vz = 1, 5, 10
-    local DamageIndicatorMode = {Value = 'Rainbow'}
-	local DamageIndicatorMode1 = {Value = 'Multiple'}
-	local DamageIndicatorMode2 = {Value = 'Gradient'}
-	local runService = game:GetService("RunService")
-	DamageIndicator = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
-		Name = 'DamageIndicator',
-		Function = function(calling)
-			if calling then
-				task.spawn(function()
-					table.insert(DamageIndicator.Connections, game.Workspace.DescendantAdded:Connect(function(v)
-						pcall(function()
-                            if v.Name ~= 'DamageIndicatorPart' then return end
-							local indicatorobj = v:FindFirstChildWhichIsA('BillboardGui'):FindFirstChildWhichIsA('Frame'):FindFirstChildWhichIsA('TextLabel')
-							if indicatorobj then
-                                if DamageIndicatorColorToggle.Enabled then
-                                    -- indicatorobj.TextColor3 = Color3.fromHSV(DamageIndicatorColor.Hue, DamageIndicatorColor.Sat, DamageIndicatorColor.Value)
-                                    if DamageIndicatorMode.Value == 'Rainbow' then
-                                        if DamageIndicatorMode2.Value == 'Gradient' then
-                                            indicatorobj.TextColor3 = Color3.fromHSV(tick() % mz / mz, orgI, orgI)
-                                        else
-                                            local a = runService.Stepped:Connect(function()
-                                                orgI = (orgI % #RGBColors) + 1
-                                                indicatorobj.TextColor3 = RGBColors[orgI]
-                                            end)
-											table.insert(DamageIndicator.Connections, a)
+	local DamageIndicatorSystemConfig = {
+		ColorMode = "Rainbow",
+		RainbowStyle = "Gradient",
+		TextMode = "Multiple",
+		CustomColor = {Hue = 0, Sat = 0, Val = 0},
+		CustomText = {},
+		Font = "GothamBlack",
+		ColorEnabled = false,
+		TextEnabled = false,
+		FontEnabled = false
+	}
+	local DamageIndicatorSystemConnections = {}
+
+    local RunService = game:GetService("RunService")
+
+    local IndicatorUtils = {
+        getRandomText = function(list)
+            return #list > 0 and list[math.random(1, #list)] or "VW on top!"
+        end,
+
+        applyColor = function(label)
+            local config = DamageIndicatorSystemConfig
+            if not config.ColorEnabled then return end
+
+            if config.ColorMode == "Rainbow" then
+                if config.RainbowStyle == "Gradient" then
+                    label.TextColor3 = Color3.fromHSV(tick() % DamageIndicatorSystemConstants.RainbowCycleSpeed / DamageIndicatorSystemConstants.RainbowCycleSpeed, 1, 1)
+                else
+                    label.TextColor3 = DamageIndicatorSystemConstants.RainbowColors[DamageIndicatorSystemConstants.RainbowIndex]
+                end
+            elseif config.ColorMode == "Custom" then
+                label.TextColor3 = Color3.fromHSV(config.CustomColor.Hue, config.CustomColor.Sat, config.CustomColor.Val)
+            elseif config.ColorMode == "GUI Sync" then
+                if shared.RiseMode and GuiLibrary.GUICoreColor then
+                    label.TextColor3 = GuiLibrary.GUICoreColor
+                else
+                    local guiColor = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
+                    label.TextColor3 = Color3.fromHSV(guiColor.Hue, guiColor.Sat, guiColor.Value)
+                end
+            else
+                label.TextColor3 = Color3.fromRGB(127, 0, 255)
+            end
+        end,
+
+        applyText = function(label)
+            local config = DamageIndicatorSystemConfig
+            if not config.TextEnabled then return end
+
+            if config.TextMode == "Custom" then
+                label.Text = IndicatorUtils.getRandomText(config.CustomText)
+            elseif config.TextMode == "Multiple" then
+                label.Text = DamageIndicatorSystemConstants.Messages[math.random(1, #DamageIndicatorSystemConstants.Messages)]
+            else 
+                label.Text = "Lunar Strike!"
+            end
+        end,
+
+        applyFont = function(label)
+            if DamageIndicatorSystemConfig.FontEnabled then
+                label.Font = Enum.Font[DamageIndicatorSystemConfig.Font]
+            end
+        end
+    }
+
+    DamageIndicatorSystem = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+        Name = 'DamageIndicator',
+        Function = function(enabled)
+            DamageIndicatorSystem.Enabled = enabled
+            if enabled then
+                task.spawn(function()
+                    local connection = game.Workspace.DescendantAdded:Connect(function(descendant)
+                        if descendant.Name ~= 'DamageIndicatorPart' then return end
+                        
+                        local success, label = pcall(function()
+                            return descendant:FindFirstChildWhichIsA('BillboardGui'):FindFirstChildWhichIsA('Frame'):FindFirstChildWhichIsA('TextLabel')
+                        end)
+                        
+                        if success and label then
+                            IndicatorUtils.applyColor(label)
+                            IndicatorUtils.applyText(label)
+                            IndicatorUtils.applyFont(label)
+
+                            if DamageIndicatorSystemConfig.ColorMode == "Rainbow" and DamageIndicatorSystemConfig.RainbowStyle == "Paint" then
+                                local stepConnection = RunService.Stepped:Connect(function()
+                                    DamageIndicatorSystemConstants.RainbowIndex = (DamageIndicatorSystemConstants.RainbowIndex % #DamageIndicatorSystemConstants.RainbowColors) + 1
+                                    IndicatorUtils.applyColor(label)
+                                end)
+                                table.insert(DamageIndicatorSystemConnections, stepConnection)
+                            elseif DamageIndicatorSystemConfig.ColorMode == "GUI Sync" then
+                                if shared.RiseMode and GuiLibrary.GUICoreColorChanged then
+                                    table.insert(DamageIndicatorSystemConnections, GuiLibrary.GUICoreColorChanged.Event:Connect(function()
+                                        if DamageIndicatorSystem.Enabled then
+                                            IndicatorUtils.applyColor(label)
                                         end
-                                    elseif DamageIndicatorMode.Value == 'Custom' then
-                                        indicatorobj.TextColor3 = Color3.fromHSV(
-                                            DamageIndicatorColor.Hue, 
-                                            DamageIndicatorColor.Sat, 
-                                            DamageIndicatorColor.Value
-                                        )
-                                    elseif DamageIndicatorMode.Value == "GUI Sync" then
-										if shared.RiseMode and GuiLibrary.GUICoreColor and GuiLibrary.GUICoreColorChanged then
-											indicatorobj.TextColor3 = GuiLibrary.GUICoreColor
-											GuiLibrary.GUICoreColorChanged.Event:Connect(function()
-												pcall(function()
-													indicatorobj.TextColor3 = GuiLibrary.GUICoreColor
-												end)
-											end)
-										else
-											local color = GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api
-											indicatorobj.TextColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
-											VoidwareFunctions.Connections:register(VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h,s,v)
-												color = {Hue = h, Sat = s, Value = v}
-												indicatorobj.TextColor3 = Color3.fromHSV(color.Hue, color.Sat, color.Value)
-											end))
-										end
-									else
-                                        indicatorobj.TextColor3 = Color3.fromRGB(127, 0, 255)
-                                    end
+                                    end))
+                                elseif VoidwareFunctions and VoidwareFunctions.Controllers then
+                                    table.insert(DamageIndicatorSystemConnections, VoidwareFunctions.Controllers:get("UpdateUI").UIUpdate.Event:Connect(function(h, s, v)
+                                        if DamageIndicatorSystem.Enabled then
+                                            IndicatorUtils.applyColor(label)
+                                        end
+                                    end))
                                 end
-                                if DamageIndicatorTextToggle.Enabled then
-                                    if DamageIndicatorMode1.Value == 'Custom' then
-                                        indicatorobj.Text = getrandomvalue(DamageIndicatorText.ObjectList) ~= '' and getrandomvalue(DamageIndicatorText.ObjectList) or indicatorobject.Text
-									elseif DamageIndicatorMode1.Value == 'Multiple' then
-										indicatorobj.Text = DamageMessages[math.random(orgI, #DamageMessages)]
-									else
-										indicatorobj.Text = DamageIndicatorCustom.Value or 'VW on top!'
-									end
-								end
-								indicatorobj.Font = DamageIndicatorFontToggle.Enabled and Enum.Font[DamageIndicatorFont.Value] or indicatorobject.Font
-							end
-						end)
-					end))
-				end)
-			end
-		end
-	})
-    DamageIndicatorMode = DamageIndicator.CreateDropdown({
-		Name = 'Color Mode',
-		List = {
-			'Rainbow',
-			'Custom',
-			'GUI Sync'
-		},
-		HoverText = 'Mode to color the Damage Indicator',
-		Value = 'Rainbow',
-		Function = function() end
-	})
-	DamageIndicatorMode2 = DamageIndicator.CreateDropdown({
-		Name = 'Rainbow Mode',
-		List = {
-			'Gradient',
-			'Paint'
-		},
-		HoverText = 'Mode to color the Damage Indicator\nwith Rainbow Color Mode',
-		Value = 'Gradient',
-		Function = function() end
-	})
-    DamageIndicatorMode1 = DamageIndicator.CreateDropdown({
-		Name = 'Text Mode',
-		List = {
-            'Custom',
-			'Multiple',
-			'Lunar'
-		},
-		HoverText = 'Mode to change the Damage Indicator Text',
-		Value = 'Custom',
-		Function = function() end
-	})
-	DamageIndicatorColorToggle = DamageIndicator.CreateToggle({
-		Name = 'Custom Color',
-		Function = function(calling) pcall(function() DamageIndicatorColor.Object.Visible = calling end) end
-	})
-	DamageIndicatorColor = DamageIndicator.CreateColorSlider({
-		Name = 'Text Color',
-		Function = function() end
-	})
-	DamageIndicatorTextToggle = DamageIndicator.CreateToggle({
-		Name = 'Custom Text',
-		HoverText = 'random messages for the indicator',
-		Function = function(calling) pcall(function() DamageIndicatorText.Object.Visible = calling end) end
-	})
-	DamageIndicatorText = DamageIndicator.CreateTextList({
-		Name = 'Text',
-		TempText = 'Indicator Text',
-		AddFunction = function() end
-	})
-	DamageIndicatorFontToggle = DamageIndicator.CreateToggle({
-		Name = 'Custom Font',
-		Function = function(calling) pcall(function() DamageIndicatorFont.Object.Visible = calling end) end
-	})
-	DamageIndicatorFont = DamageIndicator.CreateDropdown({
-		Name = 'Font',
-		List = GetEnumItems('Font'),
-		Function = function() end
-	})
-	DamageIndicatorColor.Object.Visible = DamageIndicatorColorToggle.Enabled
-	DamageIndicatorText.Object.Visible = DamageIndicatorTextToggle.Enabled
-	DamageIndicatorFont.Object.Visible = DamageIndicatorFontToggle.Enabled
+                            end
+
+                            spawn(function()
+                                repeat task.wait() until not descendant.Parent or not DamageIndicatorSystem.Enabled
+                                for _, conn in pairs(DamageIndicatorSystemConnections) do
+                                    if conn.Connected then conn:Disconnect() end
+                                end
+                            end)
+                        end
+                    end)
+                    table.insert(DamageIndicatorSystemConnections, connection)
+                end)
+            else
+                for _, conn in pairs(DamageIndicatorSystemConnections) do
+                    pcall(function() conn:Disconnect() end)
+                end
+                table.clear(DamageIndicatorSystemConnections)
+            end
+        end
+    })
+
+    DamageIndicatorSystem.ColorModeDropdown = DamageIndicator.CreateDropdown({
+        Name = 'Color Mode',
+        List = {'Rainbow', 'Custom', 'GUI Sync'},
+        HoverText = 'Selects the coloring mode for damage indicators',
+        Value = 'Rainbow',
+        Function = function(value) DamageIndicatorSystemConfig.ColorMode = value end
+    })
+
+    DamageIndicatorSystem.RainbowModeDropdown = DamageIndicator.CreateDropdown({
+        Name = 'Rainbow Style',
+        List = {'Gradient', 'Paint'},
+        HoverText = 'Chooses the rainbow animation style',
+        Value = 'Gradient',
+        Function = function(value) DamageIndicatorSystemConfig.RainbowStyle = value end
+    })
+
+    DamageIndicatorSystem.TextModeDropdown = DamageIndicator.CreateDropdown({
+        Name = 'Text Mode',
+        List = {'Custom', 'Multiple', 'Lunar'},
+        HoverText = 'Sets the text display mode for indicators',
+        Value = 'Multiple',
+        Function = function(value) DamageIndicatorSystemConfig.TextMode = value end
+    })
+
+    DamageIndicatorSystem.ColorToggle = DamageIndicator.CreateToggle({
+        Name = 'Enable Custom Color',
+        Function = function(enabled)
+			pcall(function()
+				DamageIndicatorSystemConfig.ColorEnabled = enabled
+				DamageIndicatorSystem.ColorSlider.Object.Visible = enabled
+			end)
+        end
+    })
+
+    DamageIndicatorSystem.ColorSlider = DamageIndicator.CreateColorSlider({
+        Name = 'Indicator Color',
+        Function = function(hue, sat, val)
+            DamageIndicatorSystemConfig.CustomColor = {Hue = hue, Sat = sat, Val = val}
+        end
+    })
+
+    DamageIndicatorSystem.TextToggle = DamageIndicator.CreateToggle({
+        Name = 'Enable Custom Text',
+        HoverText = 'Enables custom text messages for indicators',
+        Function = function(enabled)
+			pcall(function()
+				DamageIndicatorSystemConfig.TextEnabled = enabled
+				DamageIndicatorSystem.TextList.Object.Visible = enabled
+			end)
+        end
+    })
+
+    DamageIndicatorSystem.TextList = DamageIndicator.CreateTextList({
+        Name = 'Custom Text',
+        TempText = 'Enter indicator text',
+        AddFunction = function(values) DamageIndicatorSystemConfig.CustomText = values end
+    })
+
+    DamageIndicatorSystem.FontToggle = DamageIndicator.CreateToggle({
+        Name = 'Enable Custom Font',
+        Function = function(enabled)
+			pcall(function()
+				DamageIndicatorSystemConfig.FontEnabled = enabled
+				DamageIndicatorSystem.FontDropdown.Object.Visible = enabled
+			end)
+        end
+    })
+
+    DamageIndicatorSystem.FontDropdown = DamageIndicator.CreateDropdown({
+        Name = 'Font Style',
+        List = GetEnumItems('Font'),
+        Function = function(value) DamageIndicatorSystemConfig.Font = value end,
+        Value = 'GothamBlack'
+    })
+
+    DamageIndicatorSystem.ColorSlider.Object.Visible = DamageIndicatorSystemConfig.ColorEnabled
+    DamageIndicatorSystem.TextList.Object.Visible = DamageIndicatorSystemConfig.TextEnabled
+    DamageIndicatorSystem.FontDropdown.Object.Visible = DamageIndicatorSystemConfig.FontEnabled
 end)
 
 --[[run(function() -- someday this will come back up :(
@@ -9126,188 +9426,369 @@ run(function()
 end)
 
 run(function()
-	local WeatherMods = {Enabled = false}
-	local WeatherMode = {Value = "Snow"}
-	local SnowSpread = {Value = 35}
-	local SnowRate = {Value = 28}
-	local SnowHigh = {Value = 100}
-	WeatherMods = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
-		Name = 'WeatherMods',
-		HoverText = 'Changes the weather',
-		Function = function(callback) 
-			if callback then
-				task.spawn(function()
-					local snowpart = Instance.new("Part")
-					snowpart.Size = Vector3.new(240,0.5,240)
-					snowpart.Name = "SnowParticle"
-					snowpart.Transparency = 1
-					snowpart.CanCollide = false
-					snowpart.Position = Vector3.new(0,120,286)
-					snowpart.Anchored = true
-					snowpart.Parent = game.Workspace
-					local snow = Instance.new("ParticleEmitter")
-					snow.RotSpeed = NumberRange.new(300)
-					snow.VelocitySpread = SnowSpread.Value
-					snow.Rate = SnowRate.Value
-					snow.Texture = "rbxassetid://8158344433"
-					snow.Rotation = NumberRange.new(110)
-					snow.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0,0.16939899325371,0),NumberSequenceKeypoint.new(0.23365999758244,0.62841498851776,0.37158501148224),NumberSequenceKeypoint.new(0.56209099292755,0.38797798752785,0.2771390080452),NumberSequenceKeypoint.new(0.90577298402786,0.51912599802017,0),NumberSequenceKeypoint.new(1,1,0)})
-					snow.Lifetime = NumberRange.new(8,14)
-					snow.Speed = NumberRange.new(8,18)
-					snow.EmissionDirection = Enum.NormalId.Bottom
-					snow.SpreadAngle = Vector2.new(35,35)
-					snow.Size = NumberSequence.new({NumberSequenceKeypoint.new(0,0,0),NumberSequenceKeypoint.new(0.039760299026966,1.3114800453186,0.32786899805069),NumberSequenceKeypoint.new(0.7554469704628,0.98360699415207,0.44038599729538),NumberSequenceKeypoint.new(1,0,0)})
-					snow.Parent = snowpart
-					local windsnow = Instance.new("ParticleEmitter")
-					windsnow.Acceleration = Vector3.new(0,0,1)
-					windsnow.RotSpeed = NumberRange.new(100)
-					windsnow.VelocitySpread = SnowSpread.Value
-					windsnow.Rate = SnowRate.Value
-					windsnow.Texture = "rbxassetid://8158344433"
-					windsnow.EmissionDirection = Enum.NormalId.Bottom
-					windsnow.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0,0.16939899325371,0),NumberSequenceKeypoint.new(0.23365999758244,0.62841498851776,0.37158501148224),NumberSequenceKeypoint.new(0.56209099292755,0.38797798752785,0.2771390080452),NumberSequenceKeypoint.new(0.90577298402786,0.51912599802017,0),NumberSequenceKeypoint.new(1,1,0)})
-					windsnow.Lifetime = NumberRange.new(8,14)
-					windsnow.Speed = NumberRange.new(8,18)
-					windsnow.Rotation = NumberRange.new(110)
-					windsnow.SpreadAngle = Vector2.new(35,35)
-					windsnow.Size = NumberSequence.new({NumberSequenceKeypoint.new(0,0,0),NumberSequenceKeypoint.new(0.039760299026966,1.3114800453186,0.32786899805069),NumberSequenceKeypoint.new(0.7554469704628,0.98360699415207,0.44038599729538),NumberSequenceKeypoint.new(1,0,0)})
-					windsnow.Parent = snowpart
-					repeat task.wait(); if entityLibrary.isAlive then snowpart.Position = entityLibrary.character.HumanoidRootPart.Position + Vector3.new(0,SnowHigh.Value,0) end until not shared.VapeExecuted
-				end)
-			else for _, v in next, game.Workspace:GetChildren() do if v.Name == "SnowParticle" then v:Remove() end end end
-		end
-	})
-	SnowSpread = WeatherMods.CreateSlider({Name = "Snow Spread", Min = 1, Max = 100, Function = function() end, Default = 35})
-	SnowRate = WeatherMods.CreateSlider({Name = "Snow Rate", Min = 1, Max = 100, Function = function() end, Default = 28})
-	SnowHigh = WeatherMods.CreateSlider({Name = "Snow High", Min = 1, Max = 200, Function = function() end, Default = 100})
+    local WeatherSystem = {
+        Enabled = false
+    }
+	local WeatherSystemParticleObjects = {}
+	local WeatherSystemConfig = {
+		WeatherType = "Snow",
+		Spread = 35,
+		Rate = 28,
+		Height = 100,
+		WindEnabled = true,
+		Color = Color3.fromRGB(255, 255, 255)
+	}
+
+    local WeatherUtils = {
+        createSnowEmitter = function(parent, withWind)
+            local emitter = Instance.new("ParticleEmitter")
+            emitter.RotSpeed = NumberRange.new(withWind and 100 or 300)
+            emitter.VelocitySpread = WeatherSystemConfig.Spread
+            emitter.Rate = WeatherSystemConfig.Rate
+            emitter.Texture = "rbxassetid://8158344433"
+            emitter.Rotation = NumberRange.new(110)
+            emitter.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.169399, 0),
+                NumberSequenceKeypoint.new(0.23366, 0.628415, 0.371585),
+                NumberSequenceKeypoint.new(0.562091, 0.387978, 0.277139),
+                NumberSequenceKeypoint.new(0.905773, 0.519126, 0),
+                NumberSequenceKeypoint.new(1, 1, 0)
+            })
+            emitter.Lifetime = NumberRange.new(8, 14)
+            emitter.Speed = NumberRange.new(8, 18)
+            emitter.EmissionDirection = Enum.NormalId.Bottom
+            emitter.SpreadAngle = Vector2.new(35, 35)
+            emitter.Size = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0, 0),
+                NumberSequenceKeypoint.new(0.0397603, 1.31148, 0.327869),
+                NumberSequenceKeypoint.new(0.755447, 0.983607, 0.440386),
+                NumberSequenceKeypoint.new(1, 0, 0)
+            })
+            emitter.Color = ColorSequence.new(WeatherSystemConfig.Color)
+            if withWind then
+                emitter.Acceleration = Vector3.new(0, 0, 1)
+            end
+            emitter.Parent = parent
+            return emitter
+        end,
+
+        updateEmitter = function(emitter)
+            emitter.VelocitySpread = WeatherSystemConfig.Spread
+            emitter.Rate = WeatherSystemConfig.Rate
+            emitter.Color = ColorSequence.new(WeatherSystemConfig.Color)
+        end,
+
+        removeWeatherEffects = function()
+            for _, obj in pairs(WeatherSystemParticleObjects) do
+                if obj and obj.Parent then
+                    obj:Destroy()
+                end
+            end
+            table.clear(WeatherSystemParticleObjects)
+        end
+    }
+
+    WeatherSystem = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+        Name = 'WeatherMods',
+        HoverText = 'Customizes in-game weather effects',
+        Function = function(enabled)
+            WeatherSystem.Enabled = enabled
+            if enabled then
+                task.spawn(function()
+                    local snowBase = Instance.new("Part")
+                    snowBase.Size = Vector3.new(240, 0.5, 240)
+                    snowBase.Name = "WeatherEffectBase"
+                    snowBase.Transparency = 1
+                    snowBase.CanCollide = false
+                    snowBase.Anchored = true
+                    snowBase.Parent = game.Workspace
+                    table.insert(WeatherSystemParticleObjects, snowBase)
+
+                    local snowEmitter = WeatherUtils.createSnowEmitter(snowBase, false)
+                    local windEmitter = WeatherUtils.createSnowEmitter(snowBase, true)
+                    table.insert(WeatherSystemParticleObjects, snowEmitter)
+                    table.insert(WeatherSystemParticleObjects, windEmitter)
+
+                    while WeatherSystem.Enabled and shared.VapeExecuted and entityLibrary.isAlive do
+                        snowBase.Position = entityLibrary.character.HumanoidRootPart.Position + Vector3.new(0, WeatherSystemConfig.Height, 0)
+                        WeatherUtils.updateEmitter(snowEmitter)
+                        WeatherUtils.updateEmitter(windEmitter)
+                        task.wait(0.1)
+                    end
+
+                    WeatherUtils.removeWeatherEffects()
+                end)
+            else
+                WeatherUtils.removeWeatherEffects()
+            end
+        end
+    })
+
+    WeatherSystem.SpreadSlider = WeatherMods.CreateSlider({
+        Name = "Spread",
+        Min = 1,
+        Max = 100,
+        Function = function(value) WeatherSystemConfig.Spread = value end,
+        Default = 35,
+        HoverText = "Controls the spread of weather particles"
+    })
+
+    WeatherSystem.RateSlider = WeatherMods.CreateSlider({
+        Name = "Rate",
+        Min = 1,
+        Max = 100,
+        Function = function(value) WeatherSystemConfig.Rate = value end,
+        Default = 28,
+        HoverText = "Sets the emission rate of particles"
+    })
+
+    WeatherSystem.HeightSlider = WeatherMods.CreateSlider({
+        Name = "Height",
+        Min = 1,
+        Max = 200,
+        Function = function(value) WeatherSystemConfig.Height = value end,
+        Default = 100,
+        HoverText = "Adjusts the height of the weather effect"
+    })
+
+    WeatherSystem.WindToggle = WeatherMods.CreateToggle({
+        Name = "Wind Effect",
+        Function = function(enabled) WeatherSystemConfig.WindEnabled = enabled end,
+        Default = true,
+        HoverText = "Enables wind-driven particle movement"
+    })
+
+    WeatherSystem.ColorSlider = WeatherMods.CreateColorSlider({
+        Name = "Particle Color",
+        Function = function(hue, sat, val)
+            WeatherSystemConfig.Color = Color3.fromHSV(hue, sat, val)
+        end,
+        Default = {Hue = 0, Sat = 0, Val = 1},
+        HoverText = "Customizes the color of weather particles"
+    })
 end)
 
 run(function()
-    local function getDiamonds()
-        local function getItem(itemName, inv)
-            for slot, item in pairs(inv or store.localInventory.inventory.items) do if item.itemType == itemName then return item, slot end end
-            return nil
-        end
-        local inv = store.localInventory.inventory
-        if inv.items and type(inv.items) == "table" and getItem("diamond", inv.items) and getItem("diamond", inv.items).amount then return tostring(getItem("diamond", inv.items).amount) ~= "inf" and tonumber(getItem("diamond", inv.items).amount) or 9999999999999
-        else return 0 end
-    end
-    local resolve = {["Armor"] = {Name = "ARMOR", Upgrades = {[1] = 4, [2] = 8, [3] = 20}, CurrentUpgrade = 0, Function = function() end}, ["Damage"] = {Name = "DAMAGE", Upgrades = {[1] = 5, [2] = 10, [3] = 18}, CurrentUpgrade = 0, Function = function() end}, ["Diamond Gen"] = {Name = "DIAMOND_GENERATOR", Upgrades = {[1] = 4, [2] = 8, [3] = 12}, CurrentUpgrade = 0, Function = function() end}, ["Team Gen"] = {Name = "TEAM_GENERATOR", Upgrades = {[1] = 4, [2] = 8, [3] = 16}, CurrentUpgrade = 0, Function = function() end}}
-    local function buyUpgrade(translation)
-        if not translation or not resolve[translation] or not type(resolve[translation]) == "table" then return warn(debug.traceback("[buyUpgrade]: Invalid translation given! "..tostring(translation))) end
-        local res = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("RequestPurchaseTeamUpgrade"):InvokeServer(resolve[translation].Name)
-        if res == true then resolve[translation].CurrentUpgrade = resolve[translation].CurrentUpgrade + 1 else
-            if getDiamonds() >= resolve[translation].Upgrades[resolve[translation].CurrentUpgrade + 1] then
-                local res2 = game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("RequestPurchaseTeamUpgrade"):InvokeServer(resolve[translation].Name)
-                if res2 == true then resolve[translation].CurrentUpgrade = resolve[translation].CurrentUpgrade + 1 else
-                    warn("Using force use of current upgrade...", translation, tostring(res), tostring(res2))
-                    resolve[translation].CurrentUpgrade = resolve[translation].CurrentUpgrade + 1
+    local AutoUpgradeSystem = {
+        Enabled = false
+    }
+	local AutoUpgradeSystemConnections = {}
+	local AutoUpgradeSystemNPCs = {}
+	local AutoUpgradeSystemConfig = {
+		Range = 20,
+		PreferredUpgrade = "Damage",
+		CheckGui = false
+	}
+	local AutoUpgradeSystemUpgrades = {
+		Armor = {ID = "ARMOR", Costs = {4, 8, 20}, Level = 0},
+		Damage = {ID = "DAMAGE", Costs = {5, 10, 18}, Level = 0},
+		DiamondGen = {ID = "DIAMOND_GENERATOR", Costs = {4, 8, 12}, Level = 0},
+		TeamGen = {ID = "TEAM_GENERATOR", Costs = {4, 8, 16}, Level = 0}
+	}
+
+    local Players = game:GetService("Players")
+    local CollectionService = game:GetService("CollectionService")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+    local UpgradeUtils = {
+        getDiamondCount = function()
+            local inv = store.localInventory.inventory
+            if not inv.items or type(inv.items) ~= "table" then return 0 end
+            
+            for _, item in pairs(inv.items) do
+                if item.itemType == "diamond" and item.amount then
+                    return item.amount ~= "inf" and tonumber(item.amount) or 9999999999999
                 end
             end
-        end
-    end
-    local function resolveTeamUpgradeApp(app)
-        if (not app) or not app:IsA("ScreenGui") then return "invalid app! "..tostring(app) end
-        local function findChild(name, className, children)
-            for i,v in pairs(children) do if v.Name == name and v.ClassName == className then return v end end
-            local args = {Name = tostring(name), ClassName == tostring(className), Children = children}
-            warn(debug.traceback("[findChild]: CHILD NOT FOUND! Args: "), game:GetService("HttpService"):JSONEncode(args), name, className, children)
-            return nil
-        end
-        local function resolveCard(card, translation)
-            local a = "["..tostring(card).." | "..tostring(translation).."] "
-            local suc, res = true, a
-            local function p(b) suc = false; res = a..tostring(b).." not found!" return suc, res end
-            if not card or not translation or not card:IsA("Frame") then suc = false; res = a.."Invalid use of resolveCard!" return suc, res end
-            translation = tostring(translation)
-            local function resolveUpgradeCost(cost)
-                if not cost then return warn(debug.traceback("[resolveUpgradeCost]: Invalid cost given!")) end
-                cost = tonumber(cost)
-                if resolve[translation] and resolve[translation].Upgrades and type(resolve[translation].Upgrades) == "table" then
-                    for i,v in pairs(resolve[translation].Upgrades) do 
-                        if v == cost then return i end
-                    end
+            return 0
+        end,
+
+        purchaseUpgrade = function(upgradeKey)
+            local upgrade = AutoUpgradeSystemUpgrades[upgradeKey]
+            if not upgrade then
+                warn("[AutoUpgrade] Invalid upgrade key:", upgradeKey)
+                return false
+            end
+
+            local path = ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("RequestPurchaseTeamUpgrade")
+            
+            local success = path:InvokeServer(upgrade.ID)
+            if success then
+                upgrade.Level = upgrade.Level + 1
+                return true
+            end
+
+            local diamonds = UpgradeUtils.getDiamondCount()
+            local nextLevel = upgrade.Level + 1
+            if nextLevel <= 3 and diamonds >= upgrade.Costs[nextLevel] then
+                local retrySuccess = path:InvokeServer(upgrade.ID)
+                if retrySuccess then
+                    upgrade.Level = upgrade.Level + 1
+                    return true
+                else
+                    warn("[AutoUpgrade] Forced upgrade attempt failed:", upgradeKey, "Diamonds:", diamonds)
+                    upgrade.Level = upgrade.Level + 1 
+                    return false
                 end
             end
-            local Content = findChild("Content", "Frame", card:GetChildren())
-            if Content then
-                local PurchaseSection = findChild("PurchaseSection", "Frame", Content:GetChildren())
-                if PurchaseSection then
-                    local Cost_Info = findChild("Cost Info", "Frame", PurchaseSection:GetChildren())
-                    if Cost_Info then
-                        local Current_Diamond_Required = findChild("2", "TextLabel", Cost_Info:GetChildren())
-                        if Current_Diamond_Required then
-                            local upgrade = resolveUpgradeCost(Current_Diamond_Required.Text)
-                            if upgrade then
-                                resolve[translation].CurrentUpgrade = upgrade - 1
-                            else warn("invalid upgrade", translation, Current_Diamond_Required.Text) end
-                        else return p("Card->Content->PurchaseSection->Cost Info") end
-                    else resolve[translation].CurrentUpgrade = 3 return p("Card->Content->PurchaseSection->Cost Info") end
-                else return p("Card->Content->PurchaseSection") end
-            else return p("Card->Content") end
-        end
-        local frame2 = findChild("2", "Frame", app:GetChildren())
-        if frame2 then
-            local TeamUpgradeAppContainer = findChild("TeamUpgradeAppContainer", "ImageButton", frame2:GetChildren())
-            if TeamUpgradeAppContainer then
-                local UpgradesWrapper = findChild("UpgradesWrapper", "Frame", TeamUpgradeAppContainer:GetChildren())
-                if UpgradesWrapper then
-                    local suc1, res1, suc2, res2, suc3, res3, suc4, res4 = resolveCard(findChild("ARMOR_Card", "Frame", UpgradesWrapper:GetChildren()), "Armor"), resolveCard(findChild("DAMAGE_Card", "Frame", UpgradesWrapper:GetChildren()), "Damage"), resolveCard(findChild("DIAMOND_GENERATOR_Card", "Frame", UpgradesWrapper:GetChildren()), "Diamond Gen"), resolveCard(findChild("TEAM_GENERATOR_Card", "Frame", UpgradesWrapper:GetChildren()), "Team Gen")
+            return false
+        end,
+
+        scanTeamUpgradeApp = function(app)
+            if not app:IsA("ScreenGui") or app.Name ~= "TeamUpgradeApp" then return end
+
+            local function findChild(parent, name, class)
+                for _, child in pairs(parent:GetChildren()) do
+                    if child.Name == name and child.ClassName == class then return child end
                 end
+                return nil
             end
-        end
-    end
-    local function check(app) if app.Name and app:IsA("ScreenGui") and app.Name == "TeamUpgradeApp" then resolveTeamUpgradeApp(app) end end
-    local con = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui").ChildAdded:Connect(check)
-    GuiLibrary.SelfDestructEvent.Event:Connect(function() pcall(function() con:Disconnect() end) end)
-    for i, app in pairs(game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):GetChildren()) do check(app) end
 
-    local bedwarsshopnpcs = {}
-    task.spawn(function()
-		repeat task.wait() until store.matchState ~= 0 or not shared.VapeExecuted
-		for i,v in pairs(collectionService:GetTagged("TeamUpgradeShopkeeper")) do table.insert(bedwarsshopnpcs, {Position = v.Position, TeamUpgradeNPC = false, Id = v.Name}) end
-	end)
-
-    local function nearNPC(range)
-		local npc, npccheck, enchant, newid = nil, false, false, nil
-		if entityLibrary.isAlive then
-			for i, v in pairs(bedwarsshopnpcs) do
-				if ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - v.Position).magnitude <= (range or 20) then
-					npc, npccheck, enchant = true, (v.TeamUpgradeNPC or npccheck), false
-					newid = v.TeamUpgradeNPC and v.Id or newid
-				end
-			end
-		end
-		return npc, not npccheck, enchant, newid
-	end
-
-    local AutoBuyDiamond = {Enabled = false}
-    local PreferredUpgrade = {Value = "Damage"}
-    local AutoBuyDiamondGui = {Enabled = false}
-    local AutoBuyDiamondRange = {Value = 20}
-
-    AutoBuyDiamond = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-        Name = "AutoBuyDiamondUpgrades",
-        Function = function(call)
-            if call then
-                repeat task.wait()
-                    if nearNPC(AutoBuyDiamondRange.Value) then
-                        if (not AutoBuyDiamondGui.Enabled) or bedwars.AppController:isAppOpen("TeamUpgradeApp") then
-                            if resolve[PreferredUpgrade.Value].CurrentUpgrade ~= 3 and getDiamonds() >= resolve[PreferredUpgrade.Value].Upgrades[resolve[PreferredUpgrade.Value].CurrentUpgrade + 1] then buyUpgrade(PreferredUpgrade.Value) end
-                            for i,v in pairs(resolve) do if v.CurrentUpgrade ~= 3 and getDiamonds() >= v.Upgrades[v.CurrentUpgrade + 1] then buyUpgrade(i) end end
+            local function updateUpgradeLevel(card, upgradeKey)
+                local content = findChild(card, "Content", "Frame")
+                if not content then return end
+                
+                local purchaseSection = findChild(content, "PurchaseSection", "Frame")
+                if not purchaseSection then
+                    AutoUpgradeSystemUpgrades[upgradeKey].Level = 3
+                    return
+                end
+                
+                local costInfo = findChild(purchaseSection, "Cost Info", "Frame")
+                if not costInfo then return end
+                
+                local costLabel = findChild(costInfo, "2", "TextLabel")
+                if costLabel and costLabel.Text then
+                    local cost = tonumber(costLabel.Text)
+                    for level, upgradeCost in pairs(AutoUpgradeSystemUpgrades[upgradeKey].Costs) do
+                        if upgradeCost == cost then
+                            AutoUpgradeSystemUpgrades[upgradeKey].Level = level - 1
+                            return
                         end
                     end
-                until (not AutoBuyDiamond.Enabled)
+                end
+            end
+
+            local frame2 = findChild(app, "2", "Frame")
+            if frame2 then
+                local container = findChild(frame2, "TeamUpgradeAppContainer", "ImageButton")
+                if container then
+                    local wrapper = findChild(container, "UpgradesWrapper", "Frame")
+                    if wrapper then
+                        updateUpgradeLevel(findChild(wrapper, "ARMOR_Card", "Frame"), "Armor")
+                        updateUpgradeLevel(findChild(wrapper, "DAMAGE_Card", "Frame"), "Damage")
+                        updateUpgradeLevel(findChild(wrapper, "DIAMOND_GENERATOR_Card", "Frame"), "DiamondGen")
+                        updateUpgradeLevel(findChild(wrapper, "TEAM_GENERATOR_Card", "Frame"), "TeamGen")
+                    end
+                end
             end
         end,
-        HoverText = "Auto buys diamond upgrades"
+
+        isNearNPC = function(range)
+            if not entityLibrary.isAlive then return false, false end
+            
+            local position = entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position
+            for _, npc in pairs(AutoUpgradeSystemNPCs) do
+                if (position - npc.Position).Magnitude <= range then
+                    return true, not npc.TeamUpgradeNPC
+                end
+            end
+            return false, false
+        end
+    }
+
+    local localPlayer = Players.LocalPlayer
+    local playerGui = localPlayer:WaitForChild("PlayerGui")
+    
+    table.insert(AutoUpgradeSystemConnections, playerGui.ChildAdded:Connect(UpgradeUtils.scanTeamUpgradeApp))
+    GuiLibrary.SelfDestructEvent.Event:Connect(function()
+        for _, conn in pairs(AutoUpgradeSystemConnections) do
+            pcall(function() conn:Disconnect() end)
+        end
+    end)
+    for _, app in pairs(playerGui:GetChildren()) do
+        UpgradeUtils.scanTeamUpgradeApp(app)
+    end
+
+    task.spawn(function()
+        repeat task.wait() until store.matchState ~= 0 or not shared.VapeExecuted
+        for _, npc in pairs(CollectionService:GetTagged("TeamUpgradeShopkeeper")) do
+            table.insert(AutoUpgradeSystemNPCs, {Position = npc.Position, TeamUpgradeNPC = false, Id = npc.Name})
+        end
+    end)
+
+    AutoUpgradeSystem = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+        Name = "AutoBuyDiamondUpgrades",
+        Function = function(enabled)
+            AutoUpgradeSystem.Enabled = enabled
+            if enabled then
+                task.spawn(function()
+                    while AutoUpgradeSystem.Enabled do
+                        local near, isTeamUpgrade = UpgradeUtils.isNearNPC(AutoUpgradeSystemConfig.Range)
+                        if near and (not AutoUpgradeSystemConfig.CheckGui or bedwars.AppController:isAppOpen("TeamUpgradeApp")) then
+                            local preferred = AutoUpgradeSystemConfig.PreferredUpgrade
+                            if AutoUpgradeSystemUpgrades[preferred].Level < 3 then
+                                local nextLevel = AutoUpgradeSystemUpgrades[preferred].Level + 1
+                                if UpgradeUtils.getDiamondCount() >= AutoUpgradeSystemUpgrades[preferred].Costs[nextLevel] then
+                                    UpgradeUtils.purchaseUpgrade(preferred)
+                                end
+                            end
+
+                            for key, upgrade in pairs(AutoUpgradeSystemUpgrades) do
+                                if upgrade.Level < 3 then
+                                    local nextLevel = upgrade.Level + 1
+                                    if UpgradeUtils.getDiamondCount() >= upgrade.Costs[nextLevel] then
+                                        UpgradeUtils.purchaseUpgrade(key)
+                                    end
+                                end
+                            end
+                        end
+                        task.wait(0.5)
+                    end
+                end)
+            end
+        end,
+        HoverText = "Automatically purchases team upgrades with diamonds"
     })
-    AutoBuyDiamond.Restart = function() if AutoBuyDiamond.Enabled then AutoBuyDiamond.ToggleButton(false); AutoBuyDiamond.ToggleButton(false) end end
-    AutoBuyDiamondRange = AutoBuyDiamond.CreateSlider({Name = "Range", Function = function() end, Min = 1, Max = 20, Default = 20})
-    local real_list = {}
-    for i,v in pairs(resolve) do table.insert(real_list, tostring(i)) end
-    PreferredUpgrade = AutoBuyDiamond.CreateDropdown({Name = "PreferredUpgrade", Function = AutoBuyDiamond.Restart, List = real_list, Default = "Damage"})
-    AutoBuyDiamondGui = AutoBuyDiamond.CreateToggle({Name = "Gui Check", Function = AutoBuyDiamond.Restart})
+
+    AutoUpgradeSystem.Restart = function()
+        if AutoUpgradeSystem.Enabled then
+            AutoUpgradeSystem.ToggleButton(false)
+            task.wait(0.1)
+            AutoUpgradeSystem.ToggleButton(true)
+        end
+    end
+
+    AutoUpgradeSystem.RangeSlider = AutoUpgradeSystem.CreateSlider({
+        Name = "Detection Range",
+        Function = function(value) AutoUpgradeSystemConfig.Range = value end,
+        Min = 1,
+        Max = 20,
+        Default = 20,
+        HoverText = "Range to detect nearby upgrade NPCs"
+    })
+
+    local upgradeOptions = {}
+    for key in pairs(AutoUpgradeSystemUpgrades) do table.insert(upgradeOptions, key) end
+    AutoUpgradeSystem.UpgradeDropdown = AutoUpgradeSystem.CreateDropdown({
+        Name = "Priority Upgrade",
+        Function = function(value)
+            AutoUpgradeSystemConfig.PreferredUpgrade = value
+            AutoUpgradeSystem.Restart()
+        end,
+        List = upgradeOptions,
+        Default = "Damage",
+        HoverText = "Preferred upgrade to prioritize"
+    })
+
+    AutoUpgradeSystem.GuiToggle = AutoUpgradeSystem.CreateToggle({
+        Name = "Require GUI Open",
+        Function = function(enabled)
+            AutoUpgradeSystemConfig.CheckGui = enabled
+            AutoUpgradeSystem.Restart()
+        end,
+        HoverText = "Only buy when Team Upgrade GUI is open"
+    })
 end)
 
 local isAlive = function(plr, healthblacklist)
@@ -9485,7 +9966,7 @@ run(function()
 	})
 end)
 
-if not shared.CheatEngineMode then
+--[[if not shared.CheatEngineMode then
 	run(function()
 		local AntiLagback = {Enabled = false}
 		local control_module = require(lplr:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule")).controls
@@ -9581,4 +10062,4 @@ if not shared.CheatEngineMode then
 			end
 		})
 	end)
-end
+end--]]

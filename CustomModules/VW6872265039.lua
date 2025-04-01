@@ -83,80 +83,120 @@ if shared.TeleportExploitAutowinEnabled then
 end
 
 run(function()
-	local QueueCardMods = {}
-	local QueueCardGradientToggle = {}
-	local QueueCardGradient = {Hue = 0, Sat = 0, Value = 0}
-	local QueueCardGradient2 = {Hue = 0, Sat = 0, Value = 0}
-	local function patchQueueCard()
-		if lplr.PlayerGui:FindFirstChild('QueueApp') then 
-			if lplr.PlayerGui.QueueApp:WaitForChild('1'):IsA('Frame') then 
-                if shared.RiseMode and GuiLibrary.MainColor then
-                    lplr.PlayerGui.QueueApp['1'].BackgroundColor3 = GuiLibrary.MainColor
-                else
-				    lplr.PlayerGui.QueueApp['1'].BackgroundColor3 = Color3.fromHSV(QueueCardGradient.Hue, QueueCardGradient.Sat, QueueCardGradient.Value)
-                end
-			end
-            for i = 1, 3 do
-                if QueueCardGradientToggle.Enabled then 
-                    lplr.PlayerGui.QueueApp['1'].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                    local gradient = (lplr.PlayerGui.QueueApp['1']:FindFirstChildWhichIsA('UIGradient') or Instance.new('UIGradient', lplr.PlayerGui.QueueApp['1']))
-                    if shared.RiseMode and GuiLibrary.MainColor and GuiLibrary.SecondaryColor then
-                        local v = {GuiLibrary.MainColor, GuiLibrary.SecondaryColor, GuiLibrary.ThirdColor}
-                        print(encode(v))
-                        if v[3] then 
-                            gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, v[1]), ColorSequenceKeypoint.new(0.5, v[2]), ColorSequenceKeypoint.new(1, v[3])})
-                        else
-                            gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, v[1]), ColorSequenceKeypoint.new(1, v[2])})
-                        end
-                    else
-                        gradient.Color = ColorSequence.new({
-                            ColorSequenceKeypoint.new(0, Color3.fromHSV(QueueCardGradient.Hue, QueueCardGradient.Sat, QueueCardGradient.Value)), 
-                            ColorSequenceKeypoint.new(1, Color3.fromHSV(QueueCardGradient2.Hue, QueueCardGradient2.Sat, QueueCardGradient2.Value))
-                        })
-                    end
-                end
-                task.wait()
-            end
-		end
-	end
-	QueueCardMods = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
-		Name = 'QueueCardMods',
-		HoverText = 'Mods the QueueApp at the end of the game.',
-		Function = function(calling) 
-			if calling then 
-				patchQueueCard()
-				table.insert(QueueCardMods.Connections, lplr.PlayerGui.ChildAdded:Connect(patchQueueCard))
-			end
-		end
-	})
-    QueueCardGradientToggle = QueueCardMods.CreateToggle({
-        Name = 'Gradient',
-        Function = function(calling)
-            pcall(function() QueueCardGradient2.Object.Visible = calling end) 
+    local QueueDisplayConfig = {
+        ActiveState = false,
+        GradientControl = {Enabled = true},
+        ColorSettings = {
+            Gradient1 = {Hue = 0, Saturation = 0, Brightness = 1},
+            Gradient2 = {Hue = 0, Saturation = 0, Brightness = 0.8}
+        },
+        Animation = {Speed = 0.5, Progress = 0}
+    }
+
+    local DisplayUtils = {
+        createGradient = function(parent)
+            local gradient = parent:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient")
+            gradient.Parent = parent
+            return gradient
+        end,
+        updateColor = function(gradient, config)
+            local time = tick() * config.Animation.Speed
+            local interp = (math.sin(time) + 1) / 2
+            local h = config.ColorSettings.Gradient1.Hue + (config.ColorSettings.Gradient2.Hue - config.ColorSettings.Gradient1.Hue) * interp
+            local s = config.ColorSettings.Gradient1.Saturation + (config.ColorSettings.Gradient2.Saturation - config.ColorSettings.Gradient1.Saturation) * interp
+            local b = config.ColorSettings.Gradient1.Brightness + (config.ColorSettings.Gradient2.Brightness - config.ColorSettings.Gradient1.Brightness) * interp
+            gradient.Color = ColorSequence.new(Color3.fromHSV(h, s, b))
         end
-    })
-    if (not shared.RiseMode) and not GuiLibrary.MainColor and not GuiLibrary.SecondaryColor then
-        QueueCardGradient = QueueCardMods.CreateColorSlider({
-            Name = 'Color',
-            Function = function()
-                pcall(patchQueueCard)
+    }
+
+	local CoreConnection
+	local CoreConnection2
+
+    local function enhanceQueueDisplay()
+		pcall(function() 
+			CoreConnection:Disconnect()
+		end)
+        local success, err = pcall(function()
+            if not lplr.PlayerGui:FindFirstChild('QueueApp') then return end
+            
+            for attempt = 1, 3 do
+                if QueueDisplayConfig.GradientControl.Enabled then
+                    local queueFrame = lplr.PlayerGui.QueueApp['1']
+                    queueFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                    
+                    local gradient = DisplayUtils.createGradient(queueFrame)
+                    gradient.Rotation = 180
+                    
+                    local displayInterface = {
+                        module = vape.watermark,
+                        gradient = gradient,
+                        GetEnabled = function()
+                            return QueueDisplayConfig.ActiveState
+                        end,
+                        SetGradientEnabled = function(state)
+                            QueueDisplayConfig.GradientControl.Enabled = state
+                            gradient.Enabled = state
+                        end
+                    }
+                    --vape.whitelistedlines["enhancedQueueDisplay"] = displayInterface
+                    CoreConnection = game:GetService("RunService").RenderStepped:Connect(function()
+                        if QueueDisplayConfig.ActiveState and QueueDisplayConfig.GradientControl.Enabled then
+                            DisplayUtils.updateColor(gradient, QueueDisplayConfig)
+                        end
+                    end)
+                end
+                task.wait(0.1)
             end
-        })
-        QueueCardGradient2 = QueueCardMods.CreateColorSlider({
-            Name = 'Color 2',
-            Function = function()
-                pcall(patchQueueCard)
-            end
-        })
-    else
-        if shared.RiseMode then
-            pcall(function()
-                GuiLibrary.GUIColorChanged.Event:Connect(function()
-                    pcall(patchQueueCard)
-                end)
-            end)
+        end)
+        
+        if not success then
+            warn("Queue display enhancement failed: " .. tostring(err))
         end
     end
+
+    local QueueDisplayEnhancer
+    QueueDisplayEnhancer = GuiLibrary.ObjectsThatCanBeSaved.CustomisationWindow.Api.CreateOptionsButton({
+        Name = 'QueueCardMods',
+       	HoverText = 'Enhances the QueueApp display with dynamic gradients',
+        Function = function(enabled)
+            QueueDisplayConfig.ActiveState = enabled
+            if enabled then
+                enhanceQueueDisplay()
+                CoreConnection2 = lplr.PlayerGui.ChildAdded:Connect(enhanceQueueDisplay)
+			else
+				pcall(function() 
+					CoreConnection:Disconnect()
+				end)
+				pcall(function()
+					CoreConnection2:Disconnect()
+				end)
+			end
+        end
+    })
+
+   	QueueDisplayEnhancer.CreateSlider({
+        Name = "Animation Speed",
+        Function = function(speed)
+            QueueDisplayConfig.Animation.Speed = math.clamp(speed, 0.1, 5)
+        end,
+        Min = 1,
+        Max = 5,
+        Default = 5
+    })
+
+    QueueDisplayEnhancer.CreateColorSlider({
+        Name = "Color 1",
+        Function = function(h, s, v)
+            QueueDisplayConfig.ColorSettings.Gradient1 = {Hue = h, Saturation = s, Brightness = v}
+        end
+    })
+
+    QueueDisplayEnhancer.CreateColorSlider({
+        Name = "Color 2",
+        Function = function(h, s, v)
+            QueueDisplayConfig.ColorSettings.Gradient2 = {Hue = h, Saturation = s, Brightness = v}
+        end
+    })
 end)
 
 run(function()
@@ -234,308 +274,242 @@ end)
 
 local GuiLibrary = shared.GuiLibrary
 shared.slowmode = 0
-run(function() 
-    local function resetSlowmode()
-        task.spawn(function()
-            repeat shared.slowmode = shared.slowmode - 1 task.wait(1) until shared.slowmode < 1
-            shared.slowmode = 0
-        end)
-    end
-    local HS = game:GetService("HttpService")
-    local StaffDetector = {}
-    local StaffDetector_Games = {Value = "Bedwars"}
-    local Custom_Group = {Enabled = false}
-	local IgnoreOnlineStaff = {Enabled = false}
-	local AutoCheck = {Enabled = false}
-    local Roles_List = {ObjectList = {}}
-    local Custom_GroupId = {Value = ""}
-    local Staff_Members_Limit = {Value = 50}
-    local Games_StaffTable = {
-        ["Bedwars"] = {
-            ["groupid"] = 5774246,
-            ["roles"] = {
-                79029254,
-                86172137,
-                43926962,
-                37929139,
-                87049509,
-                37929138
-            }
+run(function()
+    local HttpService = game:GetService("HttpService")
+    local StaffDetectionSystem = {
+        Enabled = false,
+        Config = {
+            GameMode = "Bedwars",
+            CustomGroupEnabled = false,
+            IgnoreOnline = false,
+            AutoCheck = false,
+            MemberLimit = 50,
+            CustomGroupId = "",
+            CustomRoles = {}
         },
-		["PS99"] = {
-			["groupid"] = 5060810,
-			["roles"] = {
-				33738740,
-				33738765
-			}
-		}
-    }
-    local function getUsersInRole(groupId, roleId, cursor)
-        local limit = Staff_Members_Limit.Value or 100
-        local url = "https://groups.roblox.com/v1/groups/"..groupId.."/roles/"..roleId.."/users?limit="..limit
-        if cursor then
-            url = url .. "&cursor=" .. cursor
-        end
-    
-        local response = request({
-            Url = url,
-            Method = "GET"
-        })
-    
-        return game:GetService("HttpService"):JSONDecode(response.Body)
-    end
-    local function getUserPresence(userIds)
-        local url = "https://presence.roblox.com/v1/presence/users"
-        local requestBody = game:GetService("HttpService"):JSONEncode({userIds = userIds})
-    
-        local response = request({
-            Url = url,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
+        StaffData = {
+            Games = {
+                Bedwars = {groupId = 5774246, roles = {79029254, 86172137, 43926962, 37929139, 87049509, 37929138}},
+                PS99 = {groupId = 5060810, roles = {33738740, 33738765}}
             },
-            Body = requestBody
-        })
-        return game:GetService("HttpService"):JSONDecode(response.Body)
-    end
-    local function getUsersInRoleWithPresence(groupId, roleId)
-        local users = {}
-        local cursor = nil
-        local userIds = {}
-        repeat
-            local data = getUsersInRole(groupId, roleId, cursor)
-            for _, user in pairs(data.data) do
-                table.insert(users, user)
-                table.insert(userIds, user.userId)
-            end
-            cursor = data.nextPageCursor
-        until not cursor
-        local presenceData = getUserPresence(userIds)
-        for _, user in pairs(users) do
-            for _, presence in pairs(presenceData.userPresences) do
-                if user.userId == presence.userId then
-                    user.presenceType = presence.userPresenceType
-                    user.lastLocation = presence.lastLocation
-                    break
+            Detected = {}
+        }
+    }
+
+    local DetectionUtils = {
+        resetSlowmode = function()
+            task.spawn(function()
+                while shared.slowmode > 0 do
+                    shared.slowmode = shared.slowmode - 1
+                    task.wait(1)
                 end
+                shared.slowmode = 0
+            end)
+        end,
+
+        fetchUsersInRole = function(groupId, roleId, cursor)
+            local url = string.format("https://groups.roblox.com/v1/groups/%d/roles/%d/users?limit=%d%s", groupId, roleId, StaffDetectionSystem.Config.MemberLimit, cursor and "&cursor=" .. cursor or "")
+            local success, response = pcall(function()
+                return request({Url = url, Method = "GET"})
+            end)
+            return success and HttpService:JSONDecode(response.Body) or {}
+        end,
+
+        fetchUserPresence = function(userIds)
+            local success, response = pcall(function()
+                return request({
+                    Url = "https://presence.roblox.com/v1/presence/users",
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode({userIds = userIds})
+                })
+            end)
+            return success and HttpService:JSONDecode(response.Body) or {userPresences = {}}
+        end,
+
+        fetchGroupRoles = function(groupId)
+            local success, response = pcall(function()
+                return request({
+                    Url = "https://groups.roblox.com/v1/groups/" .. groupId .. "/roles",
+                    Method = "GET"
+                })
+            end)
+            if success and response.StatusCode == 200 then
+                local roles = {}
+                for _, role in pairs(HttpService:JSONDecode(response.Body).roles) do
+                    table.insert(roles, role.id)
+                end
+                return true, roles
             end
-        end
-        return users
-    end
-    local function getGroupRoles(groupId)
-        local url = "https://groups.roblox.com/v1/groups/"..groupId.."/roles"
-        local res = request({
-            Url = url,
-            Method = "GET"
-        })
-        if res.StatusCode == 200 then
-            local roles = {}
-            for i,v in pairs(HS:JSONDecode(res.Body).roles) do
-                table.insert(roles, v.id)
-            end
-            return true, roles, nil
-        else
-            return false, nil, "Status Code isnt 200! "..res.StatusCode
-        end
-    end
-    local function getData()
-        if Custom_Group.Enabled then
-            local suc1, custom_group_id, err1 = false, "", nil
-            if Custom_GroupId.Value ~= "" then
-                suc1 = true
-                custom_group_id = tonumber(Custom_GroupId.Value)
-            else 
-                suc1 = false
-                custom_group_id = nil
-                err1 = "Custom GroupID not specified!" 
-            end
-            local suc2, roles, err2 = false, {}, nil
-            if #Roles_List.ObjectList < 1 then
-                suc2 = false
-                roles = nil
-                err2 = "Roles not specified!"
+            return false, nil, "Failed to fetch roles: " .. (success and response.StatusCode or "Network error")
+        end,
+
+        getDetectionConfig = function()
+            if StaffDetectionSystem.Config.CustomGroupEnabled then
+                if not StaffDetectionSystem.Config.CustomGroupId or StaffDetectionSystem.Config.CustomGroupId == "" then
+                    return false, nil, "Custom Group ID not specified", false, nil, "Custom"
+                end
+                if #StaffDetectionSystem.Config.CustomRoles == 0 then
+                    return true, tonumber(StaffDetectionSystem.Config.CustomGroupId), nil, false, nil, "Custom roles not specified"
+                end
+                local success, roles, error = DetectionUtils.fetchGroupRoles(StaffDetectionSystem.Config.CustomGroupId)
+                return true, tonumber(StaffDetectionSystem.Config.CustomGroupId), nil, success, roles, error, "Custom"
             else
-                if suc1 then
-                    local suc3, res, err3 = getGroupRoles(custom_group_id)
-                    if suc3 then
-                        suc2 = true
-                        roles = res
-                    else
-                        err2 = err3
+                local gameData = StaffDetectionSystem.StaffData.Games[StaffDetectionSystem.Config.GameMode]
+                return true, gameData.groupId, nil, true, gameData.roles, nil, "Normal"
+            end
+        end,
+
+        scanStaff = function(groupId, roleId)
+            local users, userIds = {}, {}
+            local cursor = nil
+            repeat
+                local data = DetectionUtils.fetchUsersInRole(groupId, roleId, cursor)
+                for _, user in pairs(data.data or {}) do
+                    table.insert(users, user)
+                    table.insert(userIds, user.userId)
+                end
+                cursor = data.nextPageCursor
+            until not cursor
+
+            local presenceData = DetectionUtils.fetchUserPresence(userIds)
+            for _, user in pairs(users) do
+                for _, presence in pairs(presenceData.userPresences) do
+                    if user.userId == presence.userId then
+                        user.presenceType = presence.userPresenceType
+                        user.lastLocation = presence.lastLocation
+                        break
                     end
                 end
             end
-            return {suc1, custom_group_id, err1}, {suc2, roles, err2}, "Custom"
-        else
-            if StaffDetector_Games.Value ~= "" then
-                local roles = Games_StaffTable[StaffDetector_Games.Value]["roles"]
-                local groupid = Games_StaffTable[StaffDetector_Games.Value]["groupid"]
-                return {true, groupid, nil}, {true, roles, nil}, "Normal"
-            else
-                return {false, nil, nil}, {false, nil, nil}, "Normal"
+            return users
+        end
+    }
+
+    local function processStaffCheck()
+        if shared.slowmode > 0 and not StaffDetectionSystem.Config.AutoCheck then
+            errorNotification("StaffDetector", "Slowmode active! Wait " .. shared.slowmode .. " seconds", shared.slowmode)
+            return
+        end
+
+        shared.slowmode = 5
+        DetectionUtils.resetSlowmode()
+        InfoNotification("StaffDetector", "Checking staff presence...", 5)
+
+        local groupSuccess, groupId, groupError, rolesSuccess, roles, rolesError, mode = DetectionUtils.getDetectionConfig()
+        if not groupSuccess or not rolesSuccess then
+            shared.slowmode = 0
+            if groupError then errorNotification("StaffDetector", groupError, 5) end
+            if rolesError then errorNotification("StaffDetector", rolesError, 5) end
+            return
+        end
+
+        local detectedStaff, uniqueIds = {}, {}
+        for _, roleId in pairs(roles) do
+            for _, user in pairs(DetectionUtils.scanStaff(groupId, roleId)) do
+                local status = ({
+                    [0] = "Offline",
+                    [1] = "Online",
+                    [2] = "In Game",
+                    [3] = "In Studio"
+                })[user.presenceType or 0]
+
+                if (status == "In Game" or (not StaffDetectionSystem.Config.IgnoreOnline and status == "Online")) and
+                   not table.find(uniqueIds, user.userId) then
+                    table.insert(uniqueIds, user.userId)
+                    local userData = {UserID = tostring(user.userId), Username = user.username, Status = status}
+                    if not table.find(detectedStaff, userData, function(a, b) return a.UserID == b.UserID and a.Status == b.Status end) then
+                        table.insert(detectedStaff, userData)
+                        errorNotification("StaffDetector", "@" .. userData.Username .. "(" .. userData.UserID .. ") is " .. status, 7)
+                    end
+                end
             end
         end
+        InfoNotification("StaffDetector", #detectedStaff .. " staff members detected online/in-game!", 7)
     end
-    local core_table = {}
-    local function handle_checks(groupid, roleid)
-        local res = getUsersInRoleWithPresence(groupid, roleid)
-        for _, user in pairs(res) do
-            local presenceStatus = "Offline"
-            if user.presenceType == 1 then
-                presenceStatus = "Online"
-            elseif user.presenceType == 2 then
-                presenceStatus = "In Game"
-            elseif user.presenceType == 3 then
-                presenceStatus = "In Studio"
+
+    StaffDetectionSystem = GuiLibrary.ObjectsThatCanBeSaved.VoidwareWindow.Api.CreateOptionsButton({
+        Name = 'StaffFetcher - Roblox',
+        Function = function(enabled)
+            StaffDetectionSystem.Enabled = enabled
+            if enabled then
+                if StaffDetectionSystem.Config.AutoCheck then
+                    task.spawn(function()
+                        repeat
+                            processStaffCheck()
+                            task.wait(30)
+                        until not StaffDetectionSystem.Enabled or not StaffDetectionSystem.Config.AutoCheck
+                        StaffDetectionSystem["ToggleButton"](false)
+                    end)
+                else
+                    processStaffCheck()
+                    StaffDetectionSystem["ToggleButton"](false)
+                end
             end
-			local function online()
-				if IgnoreOnlineStaff.Enabled then
-					if presenceStatus == "Online" then
-						return true
-					else
-						return false
-					end
-				else
-					return false
-				end
-			end
-            if (presenceStatus == "In Game" or online()) then
-                table.insert(core_table, {["UserID"] = user.userId, ["Username"] = user.username, ["Status"] = presenceStatus})
-            end
-            print("Username: " .. user.username .. " - UserID: " .. user.userId .. " - Status: " .. presenceStatus)
         end
-    end
-	local checked_data = {}
-	StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.VoidwareWindow.Api.CreateOptionsButton({
-		Name = 'StaffDetector',
-		Function = function(calling)
-			if calling then 
-				if (not AutoCheck.Enabled) then
-					StaffDetector["ToggleButton"](false) 
-				end
-				if AutoCheck.Enabled then errorNotification("StaffDetector-AutoCheck", "Please disable auto check to manually use this module!", 5) end
-                if shared.slowmode > 0 then if (not AutoCheck.Enabled) then return errorNotification("StaffDetector-Slowmode", "You are currently on slowmode! Wait "..tostring(shared.slowmode).."seconds!", shared.slowmode) end end
-				shared.slowmode = 5
-                resetSlowmode()
-				InfoNotification("StaffDetector", "Sent request! Please wait...", 5)
-				local function dostuff()
-					local limit = Staff_Members_Limit.Value
-					local tbl1, tbl2, Type = getData()
-                    local suc1, res1, err1 = tbl1[1], tbl1[2], tbl1[3]
-                    local suc2, res2, err2 = tbl2[1], tbl2[2], tbl2[3]    
-					local handle_table = {}    
-					local number = 0      
-					if (suc1 and suc2) then
-						for i,v in pairs(res2) do handle_checks(res1, v) end
-						for i,v in pairs(core_table) do
-							if (not table.find(handle_table, tostring(v["UserID"]))) then
-								table.insert(handle_table, tostring(v["UserID"]))
-								number = number + 1
-                                local a, b, c = tostring(v["UserID"]), tostring(v["Username"]), tostring(v["Status"])
-								local function checked()
-									for i,v in pairs(checked_data) do
-										if v["UserID"] == a then
-											if v["Status"] == c then
-												return true
-											end
-										end
-									end
-									return false
-								end
-								if checked() then return end
-								table.insert(checked_data, {["UserID"] = a, ["Status"] = c})
-								if tostring(v["Status"]) == "Online" then
-									if (not IgnoreOnlineStaff.Enabled) then
-										errorNotification("StaffDetector", "@"..b.."("..a..") is currently "..c, 7)
-									end
-								else
-									errorNotification("StaffDetector", "@"..b.."("..a..") is currently "..c, 7)
-								end
-							end
-						end
-						InfoNotification("StaffDetector", tostring(number).." total staffs were detected as online/ingame!", 7)
-					else
-						shared.slowmode = 0
-						if (not suc1) then
-							errorNotification("StaffDetector-GroupID Error", tostring(err1), 5)
-						end
-						if (not suc2) then
-							errorNotification("StaffDetector-Roles Error", tostring(err2), 5)
-						end
-					end
-				end
-				if (not AutoCheck.Enabled) then
-					dostuff()
-				else
-					task.spawn(function()
-						repeat 
-							dostuff()
-							task.wait(30)
-						until (not StaffDetector.Enabled) or (not AutoCheck.Enabled)
-						StaffDetector["ToggleButton"](false) 
-					end)
-				end
-			end
-		end
-	}) 
-    local list = {}
-    for i,v in pairs(Games_StaffTable) do table.insert(list, i) end
-    StaffDetector_Games = StaffDetector.CreateDropdown({
-		Name = "GameChoice",
-		Function = function() end,
-		List = list
-	})
-    Roles_List = StaffDetector.CreateTextList({
-		Name = "CustomRoles",
-		TempText = "RoleId (number)"
-	})
-    Custom_GroupId = StaffDetector.CreateTextBox({
-        Name = "CustomGroupId",
-        TempText = "Type here a groupid",
-        TempText = "GroupId (number)",
-        Function = function() end
     })
-    Custom_GroupId.Object.Visible = false
-    Roles_List.Object.Visible = false
-    Custom_Group = StaffDetector.CreateToggle({
-		Name = "CustomGroup",
-		Function = function(calling)
-            if calling then
-                Custom_GroupId.Object.Visible = true
-                Roles_List.Object.Visible = true
-                StaffDetector_Games.Object.Visible = false
-            else
-                Custom_GroupId.Object.Visible = false
-                Roles_List.Object.Visible = false
-                StaffDetector_Games.Object.Visible = true
+
+    local gameList = {}
+    for game in pairs(StaffDetectionSystem.StaffData.Games) do table.insert(gameList, game) end
+    StaffDetectionSystem.GameSelector = StaffDetector.CreateDropdown({
+        Name = "Game Mode",
+        Function = function(value) StaffDetectionSystem.Config.GameMode = value end,
+        List = gameList
+    })
+
+    StaffDetectionSystem.RolesList = StaffDetector.CreateTextList({
+        Name = "Custom Roles",
+        TempText = "Role ID (number)",
+        Function = function(values) StaffDetectionSystem.Config.CustomRoles = values end
+    })
+
+    StaffDetectionSystem.GroupIdInput = StaffDetector.CreateTextBox({
+        Name = "Custom Group ID",
+        TempText = "Group ID (number)",
+        Function = function(value) StaffDetectionSystem.Config.CustomGroupId = value end
+    })
+
+    StaffDetectionSystem.CustomGroupToggle = StaffDetector.CreateToggle({
+        Name = "Custom Group",
+        Function = function(enabled)
+            StaffDetectionSystem.Config.CustomGroupEnabled = enabled
+            StaffDetectionSystem.GroupIdInput.Object.Visible = enabled
+            StaffDetectionSystem.RolesList.Object.Visible = enabled
+            StaffDetectionSystem.GameSelector.Object.Visible = not enabled
+        end,
+        HoverText = "Use a custom staff group",
+        Default = false
+    })
+
+    StaffDetectionSystem.IgnoreOnlineToggle = StaffDetector.CreateToggle({
+        Name = "Ignore Online Staff",
+        Function = function(enabled) StaffDetectionSystem.Config.IgnoreOnline = enabled end,
+        HoverText = "Only show in-game staff, ignoring online staff",
+        Default = false
+    })
+
+    StaffDetectionSystem.MemberLimitSlider = StaffDetector.CreateSlider({
+        Name = "Member Limit",
+        Min = 1,
+        Max = 100,
+        Function = function(value) StaffDetectionSystem.Config.MemberLimit = value end,
+        Default = 50
+    })
+
+    StaffDetectionSystem.AutoCheckToggle = StaffDetector.CreateToggle({
+        Name = "Auto Check",
+        Function = function(enabled)
+            StaffDetectionSystem.Config.AutoCheck = enabled
+            if enabled and shared.slowmode > 0 then
+                errorNotification("StaffDetector", "Disable Auto Check to use manually during slowmode!", 5)
             end
         end,
-		HoverText = "Choose another staff group",
-		Default = false
-	})
-	IgnoreOnlineStaff = StaffDetector.CreateToggle({
-		Name = "IgnoreOnlineStaff",
-		Function = function() end,
-		HoverText = "Make the module ignore online staff and only \n show ingame staff",
-		Default = false
-	})
-    Staff_Members_Limit = StaffDetector.CreateSlider({
-		Name = "StaffMembersLimit",
-		Min = 1,
-		Max = 100,
-		Function = function() end,
-		Default = 100
-	})
-	AutoCheck = StaffDetector.CreateToggle({
-		Name = "AutoCheck",
-		Function = function() end,
-		HoverText = "Checks for new staffs every 30 seconds",
-		Default = false
-	}) --- work in progress
-	task.spawn(function()
-		repeat task.wait() until shared.vapewhitelist.loaded
-		if shared.vapewhitelist:get(game:GetService("Players").LocalPlayer) ~= 2 then AutoCheck.Object.Visible = false end
-	end)
+        HoverText = "Automatically check every 30 seconds",
+        Default = false
+    })
+
+    StaffDetectionSystem.GroupIdInput.Object.Visible = false
+    StaffDetectionSystem.RolesList.Object.Visible = false
 end)
 
 run(function() 
