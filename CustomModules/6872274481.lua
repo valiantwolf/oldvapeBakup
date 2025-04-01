@@ -870,7 +870,12 @@ local function EntityNearPosition(distance, ignore, overridepos)
     if currentTime - entityCache.lastUpdate >= entityCache.updateInterval then
         entityCache.entities = {}
 
-		for i,v in pairs(entityLibrary.entityList) do table.insert(entityCache.entities, v) end
+		for i, v in pairs(entityLibrary.entityList) do
+			if not v.Targetable then continue end
+			if isVulnerable(v) then
+				table.insert(entityCache.entities, v) 
+			end
+		end
         
         if not ignore then
             for _, name in ipairs(entityCache.dummyNames) do
