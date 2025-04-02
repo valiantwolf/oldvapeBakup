@@ -3140,6 +3140,7 @@ run(function()
 	local FlyAnywayProgressBar = {Enabled = false}
 	local FlyDamageAnimation = {Enabled = false}
 	local FlyTP = {Enabled = false}
+	local FlyMobileButtons = {Enabled = false}
 	local FlyAnywayProgressBarFrame
 	local olddeflate
 	local FlyUp = false
@@ -3149,6 +3150,54 @@ run(function()
 	local onground = false
 	local lastonground = false
 	local alternatelist = {"Normal", "AntiCheat A", "AntiCheat B"}
+	local mobileControls = {}
+
+	local function createMobileButton(name, position, icon)
+		local button = Instance.new("TextButton")
+		button.Name = name
+		button.Size = UDim2.new(0, 60, 0, 60)
+		button.Position = position
+		button.BackgroundTransparency = 0.2
+		button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		button.BorderSizePixel = 0
+		button.Text = icon
+		button.TextScaled = true
+		button.TextColor3 = Color3.fromRGB(255, 255, 255)
+		button.Font = Enum.Font.SourceSansBold
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, 8)
+		corner.Parent = button
+		return button
+	end
+
+	local function cleanupMobileControls()
+		for _, control in pairs(mobileControls) do
+			if control then
+				control:Destroy()
+			end
+		end
+		mobileControls = {}
+	end
+
+	local function setupMobileControls()
+		cleanupMobileControls()
+		local gui = Instance.new("ScreenGui")
+		gui.Name = "FlyControls"
+		gui.ResetOnSpawn = false
+		gui.Parent = lplr.PlayerGui
+
+		local upButton = createMobileButton("UpButton", UDim2.new(0.9, -70, 0.7, -140), "↑")
+		local downButton = createMobileButton("DownButton", UDim2.new(0.9, -70, 0.7, -70), "↓")
+
+		mobileControls.UpButton = upButton
+		mobileControls.DownButton = downButton
+		mobileControls.ScreenGui = gui
+
+		upButton.Parent = gui
+		downButton.Parent = gui
+
+		return upButton, downButton
+	end
 
 	local function inflateBalloon()
 		if not Fly.Enabled then return end
@@ -3187,15 +3236,39 @@ run(function()
 						FlyDown = false
 					end
 				end))
+
+				local isMobile = inputService.TouchEnabled and not inputService.KeyboardEnabled and not inputService.MouseEnabled
+				if FlyMobileButtons.Enabled or isMobile then
+					local upButton, downButton = setupMobileControls()
+					
+					table.insert(Fly.Connections, upButton.MouseButton1Down:Connect(function()
+						if FlyVertical.Enabled then FlyUp = true end
+					end))
+					table.insert(Fly.Connections, upButton.MouseButton1Up:Connect(function()
+						FlyUp = false
+					end))
+					table.insert(Fly.Connections, downButton.MouseButton1Down:Connect(function()
+						if FlyVertical.Enabled then FlyDown = true end
+					end))
+					table.insert(Fly.Connections, downButton.MouseButton1Up:Connect(function()
+						FlyDown = false
+					end))
+				end
+
 				if inputService.TouchEnabled then
 					pcall(function()
 						local jumpButton = lplr.PlayerGui.TouchGui.TouchControlFrame.JumpButton
 						table.insert(Fly.Connections, jumpButton:GetPropertyChangedSignal("ImageRectOffset"):Connect(function()
-							FlyUp = jumpButton.ImageRectOffset.X == 146
+							if not mobileControls.UpButton then
+								FlyUp = jumpButton.ImageRectOffset.X == 146 and FlyVertical.Enabled
+							end
 						end))
-						FlyUp = jumpButton.ImageRectOffset.X == 146
+						if not mobileControls.UpButton then
+							FlyUp = jumpButton.ImageRectOffset.X == 146 and FlyVertical.Enabled
+						end
 					end)
 				end
+
 				table.insert(Fly.Connections, vapeEvents.BalloonPopped.Event:Connect(function(poppedTable)
 					if poppedTable.inflatedBalloon and poppedTable.inflatedBalloon:GetAttribute("BalloonOwner") == lplr.UserId then
 						lastonground = not onground
@@ -3269,7 +3342,7 @@ run(function()
 						playerMass = playerMass + (flyAllowed > 0 and 4 or 0) * (tick() % 0.4 < 0.2 and -1 or 1)
 
 						if FlyAnywayProgressBarFrame then
-							FlyAnywayProgressBarFrame.Visible = flyAllowed <= 0
+							FlyAnywayProgressBarFrame.Visible = flyAllowed <= 0 and  FlyAnywayProgressBar.Enabled
 							FlyAnywayProgressBarFrame.BackgroundColor3 = Color3.fromHSV(GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api.Hue, GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api.Sat, GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api.Value)
 							FlyAnywayProgressBarFrame.Frame.BackgroundColor3 = Color3.fromHSV(GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api.Hue, GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api.Sat, GuiLibrary.ObjectsThatCanBeSaved["Gui ColorSliderColor"].Api.Value)
 						end
@@ -3325,6 +3398,7 @@ run(function()
 				end
 				bedwars.BalloonController.deflateBalloon = olddeflate
 				olddeflate = nil
+				cleanupMobileControls()
 			end
 		end,
 		HoverText = "Makes you go zoom (longer Fly discovered by exelys and Cqded)",
@@ -3443,7 +3517,7 @@ run(function()
 				FlyAnywayProgressBartext.Text = "2s"
 				FlyAnywayProgressBartext.Font = Enum.Font.Gotham
 				FlyAnywayProgressBartext.TextStrokeTransparency = 0
-				FlyAnywayProgressBartext.TextColor3 =  Color3.new(0.9, 0.9, 0.9)
+				FlyAnywayProgressBartext.TextColor3 = Color3.new(0.9, 0.9, 0.9)
 				FlyAnywayProgressBartext.TextSize = 20
 				FlyAnywayProgressBartext.Size = UDim2.new(1, 0, 1, 0)
 				FlyAnywayProgressBartext.BackgroundTransparency = 1
@@ -3460,6 +3534,16 @@ run(function()
 		Name = "TP Down",
 		Function = function() end,
 		Default = true
+	})
+	FlyMobileButtons = Fly.CreateToggle({
+		Name = "Mobile Buttons",
+		Default = false,
+		Function = function(callback)
+			if Fly.Enabled then
+				Fly.ToggleButton(false) 
+				Fly.ToggleButton(true) 
+			end
+		end
 	})
 end)
 
@@ -10526,6 +10610,7 @@ end)
 run(function()
 	local entitylib = entityLibrary
     local BedProtector = {Enabled = false}
+	local Priority = {ObjectList = {}}
 	local Layers = {Value = 2}
 	local CPS = {Value = 50}
     
@@ -10537,19 +10622,70 @@ run(function()
             end
         end
     end
-    
-    local function getBlocks()
+
+	local function isAllowed(block)
+		local allowed = {"wool", "stone_brick", "wood_plank_oak", "ceramic", "obsidian"}
+		for i,v in pairs(allowed) do
+			if string.find(string.lower(tostring(block)), v) then 
+				return true
+			end
+		end
+		return false
+	end
+
+	local function getBlocks()
         local blocks = {}
         for _, item in store.localInventory.inventory.items do
             local block = bedwars.ItemTable[item.itemType].block
-            if block then
-                table.insert(blocks, {item.itemType, block.health})
+            if block and isAllowed(item.itemType) then
+                table.insert(blocks, {itemType = item.itemType, health = block.health})
             end
         end
-        table.sort(blocks, function(a, b) 
-            return a[2] > b[2]
+
+        local priorityMap = {}
+        for i, v in pairs(Priority.ObjectList) do
+			local core = v:split("/")
+            local blockType, layer = core[1], core[2]
+            if blockType and layer then
+                priorityMap[blockType] = tonumber(layer)
+            end
+        end
+
+        local prioritizedBlocks = {}
+        local fallbackBlocks = {}
+
+        for _, block in pairs(blocks) do
+			local prioLayer
+			for i,v in pairs(priorityMap) do
+				if string.find(string.lower(tostring(block.itemType)), string.lower(tostring(i))) then
+					prioLayer = v
+					break
+				end
+			end
+            if prioLayer then
+                table.insert(prioritizedBlocks, {itemType = block.itemType, health = block.health, layer = prioLayer})
+            else
+                table.insert(fallbackBlocks, {itemType = block.itemType, health = block.health})
+            end
+        end
+
+        table.sort(prioritizedBlocks, function(a, b)
+            return a.layer < b.layer
         end)
-        return blocks
+
+        table.sort(fallbackBlocks, function(a, b)
+            return a.health > b.health
+        end)
+
+        local finalBlocks = {}
+        for _, block in pairs(prioritizedBlocks) do
+            table.insert(finalBlocks, {block.itemType, block.health})
+        end
+        for _, block in pairs(fallbackBlocks) do
+            table.insert(finalBlocks, {block.itemType, block.health})
+        end
+
+        return finalBlocks
     end
     
     local function getPyramid(size, grid)
@@ -10629,7 +10765,7 @@ run(function()
                     local blocks = getBlocks()
                     if #blocks == 0 then 
                         warningNotification("BedProtector", "No blocks for bed defense found!", 3) 
-                        BedProtector.ToggleButton(false)
+                        BedProtector.ToggleButton(false) 
                         return 
                     end
                     
@@ -10647,7 +10783,7 @@ run(function()
                     
                     buildProtection(bedPos, blocks, Layers.Value, CPS.Value)
                 else
-                    InfoNotification('BedProtector', 'Unable to locate bed', 5)
+                    InfoNotification('BedProtector', 'Please get closer to your bed!', 5)
                     BedProtector.ToggleButton(false)
                 end
             else
@@ -10674,6 +10810,19 @@ run(function()
         Default = 50,
         HoverText = "Blocks placed per second"
     })
+
+	Priority = BedProtector.CreateTextList({
+		Name = "Block/Layer",
+		Function = function() end,
+		TempText = "block/layer",
+		SortFunction = function(a, b)
+			local layer1 = a:split("/")
+			local layer2 = b:split("/")
+			layer1 = #layer1 and tonumber(layer1[2]) or 1
+			layer2 = #layer2 and tonumber(layer2[2]) or 1
+			return layer1 < layer2
+		end
+	})
 end)
 
 run(function()
@@ -10701,6 +10850,61 @@ run(function()
 		return nearest
 	end
 
+	local speed_was_disabled = nil
+
+	local function disableSpeed()
+		pcall(function()
+			if GuiLibrary.ObjectsThatCanBeSaved.SpeedOptionsButton.Api.Enabled then
+				GuiLibrary.ObjectsThatCanBeSaved.SpeedOptionsButton.Api.ToggleButton(false)
+				speed_was_disabled = true
+			else
+				speed_was_disabled = false
+			end	
+		end)
+	end
+
+	local function enableSpeed()
+		task.wait(3)
+		if speed_was_disabled then
+			pcall(function()
+				if not GuiLibrary.ObjectsThatCanBeSaved.SpeedOptionsButton.Api.Enabled then
+					GuiLibrary.ObjectsThatCanBeSaved.SpeedOptionsButton.Api.ToggleButton(false)
+				end
+				speed_was_disabled = nil
+			end)
+		end
+	end
+	
+	local function breakCannon(cannon, shootfunc)
+		local pos = cannon.Position
+		local res
+		task.delay(0.1, function()
+			local block, pos2 = getPlacedBlock(pos)
+			if block and block.Name == "cannon" and (entityLibrary.character.HumanoidRootPart.CFrame.p - block.Position).Magnitude < 20 then
+				switchToAndUseTool(block)
+				local vec = entityLibrary.character.HumanoidRootPart.CFrame.lookVector
+				local damage = bedwars.BlockController:calculateBlockDamage(lplr, {
+					blockPosition = pos2
+				})
+				local broken = 0.1
+				if damage < block:GetAttribute("Health") then
+					task.spawn(function()
+						broken = 0.4
+						bedwars.breakBlock(block.Position, true, getBestBreakSide(block.Position), true, true)
+					end)
+				end
+				task.delay(broken, function()
+					if BetterDaveyAutojump.Enabled then
+						lplr.Character.Humanoid:ChangeState(3)
+					end
+					res = shootfunc()
+					bedwars.breakBlock(block.Position, true, getBestBreakSide(block.Position), true, true)
+					return res
+				end)
+			end
+		end)
+	end
+
 	BetterDavey = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 		Name = 'BetterDavey',
 		Function = function(callback)
@@ -10708,22 +10912,23 @@ run(function()
 				local stopIndex = 0
 
 				CannonHandController.launchSelf = function(...)
-
-					if BetterDaveyAutojump.Enabled then
-						lplr.Character.Humanoid:ChangeState(3)
-					end
+					disableSpeed()
 
 					if BetterDaveyAutoBreak.Enabled then
 						local cannon = getNearestCannon()
 						if cannon then
-							local result = oldLaunchSelf(...)
-							for i = 1,2 do
-								bedwars.breakBlock(cannon, true, true)
-							end
+							local args = {...}
+							local result = breakCannon(cannon, function() return oldLaunchSelf(unpack(args)) end)
+							enableSpeed()
 							return result
 						end
 					else
-						return oldLaunchSelf(...)
+						if BetterDaveyAutojump.Enabled then
+							lplr.Character.Humanoid:ChangeState(3)
+						end
+						local res = oldLaunchSelf(...)
+						enableSpeed()
+						return res
 					end
 				end
 
@@ -10750,22 +10955,25 @@ run(function()
 				CannonController.stopAiming = oldStopAiming
 				CannonController.startAiming = oldStartAiming
 			end
-		end,
+		end
 	})
 	BetterDaveyAutojump = BetterDavey.CreateToggle({
 		Name = 'Auto jump',
 		Default = true,
-		HoverText = 'Automatically jumps when launching from a cannon'
+		HoverText = 'Automatically jumps when launching from a cannon',
+		Function = function() end
 	})
 	BetterDaveyAutoLaunch = BetterDavey.CreateToggle({
 		Name = 'Auto launch',
 		Default = true,
-		HoverText = 'Automatically launches you from a cannon when you finish aiming'
+		HoverText = 'Automatically launches you from a cannon when you finish aiming',
+		Function = function() end
 	})
 	BetterDaveyAutoBreak = BetterDavey.CreateToggle({
 		Name = 'Auto break',
 		Default = true,
-		HoverText = 'Automatically breaks a cannon when you launch from it'
+		HoverText = 'Automatically breaks a cannon when you launch from it',
+		Function = function() end
 	})
 end)
 
