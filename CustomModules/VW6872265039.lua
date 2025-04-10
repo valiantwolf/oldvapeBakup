@@ -127,18 +127,6 @@ run(function()
                     local gradient = DisplayUtils.createGradient(queueFrame)
                     gradient.Rotation = 180
                     
-                    local displayInterface = {
-                        module = vape.watermark,
-                        gradient = gradient,
-                        GetEnabled = function()
-                            return QueueDisplayConfig.ActiveState
-                        end,
-                        SetGradientEnabled = function(state)
-                            QueueDisplayConfig.GradientControl.Enabled = state
-                            gradient.Enabled = state
-                        end
-                    }
-                    --vape.whitelistedlines["enhancedQueueDisplay"] = displayInterface
                     CoreConnection = game:GetService("RunService").RenderStepped:Connect(function()
                         if QueueDisplayConfig.ActiveState and QueueDisplayConfig.GradientControl.Enabled then
                             DisplayUtils.updateColor(gradient, QueueDisplayConfig)
@@ -277,26 +265,35 @@ shared.slowmode = 0
 run(function()
     local HttpService = game:GetService("HttpService")
     local StaffDetectionSystem = {
-        Enabled = false,
-        Config = {
-            GameMode = "Bedwars",
-            CustomGroupEnabled = false,
-            IgnoreOnline = false,
-            AutoCheck = false,
-            MemberLimit = 50,
-            CustomGroupId = "",
-            CustomRoles = {}
+        Enabled = false
+    }
+    local StaffDetectionSystemConfig = {
+        GameMode = "Bedwars",
+        CustomGroupEnabled = false,
+        IgnoreOnline = false,
+        AutoCheck = false,
+        MemberLimit = 50,
+        CustomGroupId = "",
+        CustomRoles = {}
+    }
+    local StaffDetectionSystemStaffData = {
+        Games = {
+            Bedwars = {groupId = 5774246, roles = {79029254, 86172137, 43926962, 37929139, 87049509, 37929138}},
+            PS99 = {groupId = 5060810, roles = {33738740, 33738765}}
         },
-        StaffData = {
-            Games = {
-                Bedwars = {groupId = 5774246, roles = {79029254, 86172137, 43926962, 37929139, 87049509, 37929138}},
-                PS99 = {groupId = 5060810, roles = {33738740, 33738765}}
-            },
-            Detected = {}
-        }
+        Detected = {}
     }
 
     local DetectionUtils = {
+        resetSlowmode = function() end,
+        fetchUsersInRole = function() end,
+        fetchUserPresence = function() end,
+        fetchGroupRoles = function() end,
+        getDetectionConfig = function() end,
+        scanStaff = function() end
+    }
+
+    DetectionUtils = {
         resetSlowmode = function()
             task.spawn(function()
                 while shared.slowmode > 0 do
@@ -308,7 +305,7 @@ run(function()
         end,
 
         fetchUsersInRole = function(groupId, roleId, cursor)
-            local url = string.format("https://groups.roblox.com/v1/groups/%d/roles/%d/users?limit=%d%s", groupId, roleId, StaffDetectionSystem.Config.MemberLimit, cursor and "&cursor=" .. cursor or "")
+            local url = string.format("https://groups.roblox.com/v1/groups/%d/roles/%d/users?limit=%d%s", groupId, roleId, StaffDetectionSystemConfig.MemberLimit, cursor and "&cursor=" .. cursor or "")
             local success, response = pcall(function()
                 return request({Url = url, Method = "GET"})
             end)
@@ -345,17 +342,17 @@ run(function()
         end,
 
         getDetectionConfig = function()
-            if StaffDetectionSystem.Config.CustomGroupEnabled then
-                if not StaffDetectionSystem.Config.CustomGroupId or StaffDetectionSystem.Config.CustomGroupId == "" then
+            if StaffDetectionSystemConfig.CustomGroupEnabled then
+                if not StaffDetectionSystemConfig.CustomGroupId or StaffDetectionSystemConfig.CustomGroupId == "" then
                     return false, nil, "Custom Group ID not specified", false, nil, "Custom"
                 end
-                if #StaffDetectionSystem.Config.CustomRoles == 0 then
-                    return true, tonumber(StaffDetectionSystem.Config.CustomGroupId), nil, false, nil, "Custom roles not specified"
+                if #StaffDetectionSystemConfig.CustomRoles == 0 then
+                    return true, tonumber(StaffDetectionSystemConfig.CustomGroupId), nil, false, nil, "Custom roles not specified"
                 end
-                local success, roles, error = DetectionUtils.fetchGroupRoles(StaffDetectionSystem.Config.CustomGroupId)
-                return true, tonumber(StaffDetectionSystem.Config.CustomGroupId), nil, success, roles, error, "Custom"
+                local success, roles, error = DetectionUtils.fetchGroupRoles(StaffDetectionSystemConfig.CustomGroupId)
+                return true, tonumber(StaffDetectionSystemConfig.CustomGroupId), nil, success, roles, error, "Custom"
             else
-                local gameData = StaffDetectionSystem.StaffData.Games[StaffDetectionSystem.Config.GameMode]
+                local gameData = StaffDetectionSystemStaffData.Games[StaffDetectionSystemConfig.GameMode]
                 return true, gameData.groupId, nil, true, gameData.roles, nil, "Normal"
             end
         end,
@@ -387,7 +384,7 @@ run(function()
     }
 
     local function processStaffCheck()
-        if shared.slowmode > 0 and not StaffDetectionSystem.Config.AutoCheck then
+        if shared.slowmode > 0 and not StaffDetectionSystemConfig.AutoCheck then
             errorNotification("StaffDetector", "Slowmode active! Wait " .. shared.slowmode .. " seconds", shared.slowmode)
             return
         end
@@ -414,11 +411,11 @@ run(function()
                     [3] = "In Studio"
                 })[user.presenceType or 0]
 
-                if (status == "In Game" or (not StaffDetectionSystem.Config.IgnoreOnline and status == "Online")) and
+                if (status == "In Game" or (not StaffDetectionSystemConfig.IgnoreOnline and status == "Online")) and
                    not table.find(uniqueIds, user.userId) then
                     table.insert(uniqueIds, user.userId)
                     local userData = {UserID = tostring(user.userId), Username = user.username, Status = status}
-                    if not table.find(detectedStaff, userData, function(a, b) return a.UserID == b.UserID and a.Status == b.Status end) then
+                    if not table.find(detectedStaff, userData) then
                         table.insert(detectedStaff, userData)
                         errorNotification("StaffDetector", "@" .. userData.Username .. "(" .. userData.UserID .. ") is " .. status, 7)
                     end
@@ -433,12 +430,12 @@ run(function()
         Function = function(enabled)
             StaffDetectionSystem.Enabled = enabled
             if enabled then
-                if StaffDetectionSystem.Config.AutoCheck then
+                if StaffDetectionSystemConfig.AutoCheck then
                     task.spawn(function()
                         repeat
                             processStaffCheck()
                             task.wait(30)
-                        until not StaffDetectionSystem.Enabled or not StaffDetectionSystem.Config.AutoCheck
+                        until not StaffDetectionSystem.Enabled or not StaffDetectionSystemConfig.AutoCheck
                         StaffDetectionSystem["ToggleButton"](false)
                     end)
                 else
@@ -449,57 +446,59 @@ run(function()
         end
     })
 
+    local StaffDetectionSystemUI = {}
+
     local gameList = {}
-    for game in pairs(StaffDetectionSystem.StaffData.Games) do table.insert(gameList, game) end
-    StaffDetectionSystem.GameSelector = StaffDetector.CreateDropdown({
+    for game in pairs(StaffDetectionSystemStaffData.Games) do table.insert(gameList, game) end
+    StaffDetectionSystemUI.GameSelector = StaffDetectionSystem.CreateDropdown({
         Name = "Game Mode",
-        Function = function(value) StaffDetectionSystem.Config.GameMode = value end,
+        Function = function(value) StaffDetectionSystemConfig.GameMode = value end,
         List = gameList
     })
 
-    StaffDetectionSystem.RolesList = StaffDetector.CreateTextList({
+    StaffDetectionSystemUI.RolesList = StaffDetectionSystem.CreateTextList({
         Name = "Custom Roles",
         TempText = "Role ID (number)",
-        Function = function(values) StaffDetectionSystem.Config.CustomRoles = values end
+        Function = function(values) StaffDetectionSystemConfig.CustomRoles = values end
     })
 
-    StaffDetectionSystem.GroupIdInput = StaffDetector.CreateTextBox({
+    StaffDetectionSystemUI.GroupIdInput = StaffDetectionSystem.CreateTextBox({
         Name = "Custom Group ID",
         TempText = "Group ID (number)",
-        Function = function(value) StaffDetectionSystem.Config.CustomGroupId = value end
+        Function = function(value) StaffDetectionSystemConfig.CustomGroupId = value end
     })
 
-    StaffDetectionSystem.CustomGroupToggle = StaffDetector.CreateToggle({
+    StaffDetectionSystem.CreateToggle({
         Name = "Custom Group",
         Function = function(enabled)
-            StaffDetectionSystem.Config.CustomGroupEnabled = enabled
-            StaffDetectionSystem.GroupIdInput.Object.Visible = enabled
-            StaffDetectionSystem.RolesList.Object.Visible = enabled
-            StaffDetectionSystem.GameSelector.Object.Visible = not enabled
+            StaffDetectionSystemConfig.CustomGroupEnabled = enabled
+            StaffDetectionSystemUI.GroupIdInput.Object.Visible = enabled
+            StaffDetectionSystemUI.RolesList.Object.Visible = enabled
+            StaffDetectionSystemUI.GameSelector.Object.Visible = not enabled
         end,
         HoverText = "Use a custom staff group",
         Default = false
     })
 
-    StaffDetectionSystem.IgnoreOnlineToggle = StaffDetector.CreateToggle({
+    StaffDetectionSystem.CreateToggle({
         Name = "Ignore Online Staff",
-        Function = function(enabled) StaffDetectionSystem.Config.IgnoreOnline = enabled end,
+        Function = function(enabled) StaffDetectionSystemConfig.IgnoreOnline = enabled end,
         HoverText = "Only show in-game staff, ignoring online staff",
         Default = false
     })
 
-    StaffDetectionSystem.MemberLimitSlider = StaffDetector.CreateSlider({
+    StaffDetectionSystem.CreateSlider({
         Name = "Member Limit",
         Min = 1,
         Max = 100,
-        Function = function(value) StaffDetectionSystem.Config.MemberLimit = value end,
+        Function = function(value) StaffDetectionSystemConfig.MemberLimit = value end,
         Default = 50
     })
 
-    StaffDetectionSystem.AutoCheckToggle = StaffDetector.CreateToggle({
+    StaffDetectionSystem.CreateToggle({
         Name = "Auto Check",
         Function = function(enabled)
-            StaffDetectionSystem.Config.AutoCheck = enabled
+            StaffDetectionSystemConfig.AutoCheck = enabled
             if enabled and shared.slowmode > 0 then
                 errorNotification("StaffDetector", "Disable Auto Check to use manually during slowmode!", 5)
             end
@@ -508,8 +507,8 @@ run(function()
         Default = false
     })
 
-    StaffDetectionSystem.GroupIdInput.Object.Visible = false
-    StaffDetectionSystem.RolesList.Object.Visible = false
+    StaffDetectionSystemUI.GroupIdInput.Object.Visible = false
+    StaffDetectionSystemUI.RolesList.Object.Visible = false
 end)
 
 run(function() 

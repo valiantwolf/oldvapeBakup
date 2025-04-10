@@ -634,19 +634,7 @@ run(function()
                     
                     local gradient = DisplayUtils.createGradient(queueFrame)
                     gradient.Rotation = 180
-                    
-                    local displayInterface = {
-                        module = vape.watermark,
-                        gradient = gradient,
-                        GetEnabled = function()
-                            return QueueDisplayConfig.ActiveState
-                        end,
-                        SetGradientEnabled = function(state)
-                            QueueDisplayConfig.GradientControl.Enabled = state
-                            gradient.Enabled = state
-                        end
-                    }
-                    --vape.whitelistedlines["enhancedQueueDisplay"] = displayInterface
+                
                     CoreConnection = game:GetService("RunService").RenderStepped:Connect(function()
                         if QueueDisplayConfig.ActiveState and QueueDisplayConfig.GradientControl.Enabled then
                             DisplayUtils.updateColor(gradient, QueueDisplayConfig)
@@ -3181,86 +3169,179 @@ run(function()
 end)--]]
 
 run(function()
-	function IsAlive(plr)
-		plr = plr or lplr
-		if not plr.Character then return false end
-		if not plr.Character:FindFirstChild("Head") then return false end
-		if not plr.Character:FindFirstChild("Humanoid") then return false end
-		if plr.Character:FindFirstChild("Humanoid").Health < 0.11 then return false end
-		return true
+	local AntiHit = {}
+	local physEngine = game:GetService("RunService")
+	local worldSpace = game.Workspace
+	local camView = worldSpace.CurrentCamera
+	local plyr = lplr
+	local entitylib = loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VWRewrite/main/libraries/entity.lua", true))()
+	local entSys = entitylib 
+	local queryutil = {}
+	function queryutil:setQueryIgnored(part, index)
+		if index == nil then index = true end
+		part:SetAttribute("gamecore_GameQueryIgnore", index)
 	end
-	local Slowmode = {Value = 2}
-	local CoreConnection
-	GodMode = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
-		Name = "AntiHit/Godmode",
-		Function = function(callback)
-			if callback then
-				task.spawn(function()
-					repeat task.wait()
-						local res, msg = pcall(function()
-							if (not GuiLibrary.ObjectsThatCanBeSaved.FlyOptionsButton.Api.Enabled) and (not GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled) then
-								for i, v in pairs(game:GetService("Players"):GetChildren()) do
-									if v.Team ~= lplr.Team and IsAlive(v) and IsAlive(lplr) then
-										if v and v ~= lplr then
-											local TargetDistance = lplr:DistanceFromCharacter(v.Character:FindFirstChild("HumanoidRootPart").CFrame.p)
-											if TargetDistance < 25 then
-												if not lplr.Character:WaitForChild("HumanoidRootPart"):FindFirstChildOfClass("BodyVelocity") then
-													repeat task.wait() until shared.GlobalStore.matchState ~= 0
-													if not (v.Character.HumanoidRootPart.Velocity.Y < -10*5) then
-														lplr.Character.Archivable = true
-				
-														local Clone = lplr.Character:Clone()
-														Clone.Parent = game.Workspace
-														Clone.Head:ClearAllChildren()
-														gameCamera.CameraSubject = Clone:FindFirstChild("Humanoid")
-					
-														for i,v in pairs(Clone:GetChildren()) do
-															if string.lower(v.ClassName):find("part") and v.Name ~= "HumanoidRootPart" then
-																v.Transparency = 1
-															end
-															if v:IsA("Accessory") then
-																v:FindFirstChild("Handle").Transparency = 1
-															end
-														end
-					
-														lplr.Character:WaitForChild("HumanoidRootPart").CFrame = lplr.Character:WaitForChild("HumanoidRootPart").CFrame + Vector3.new(0,100,0)
-					
-														CoreConnection = game:GetService("RunService").RenderStepped:Connect(function()
-															if Clone ~= nil and Clone:FindFirstChild("HumanoidRootPart") then
-																Clone.HumanoidRootPart.Position = Vector3.new(lplr.Character:WaitForChild("HumanoidRootPart").Position.X, Clone.HumanoidRootPart.Position.Y, lplr.Character:WaitForChild("HumanoidRootPart").Position.Z)
-															end
-														end)
-					
-														task.wait(Slowmode.Value/10)
-														lplr.Character:WaitForChild("HumanoidRootPart").Velocity = Vector3.new(lplr.Character:WaitForChild("HumanoidRootPart").Velocity.X, -1, lplr.Character:WaitForChild("HumanoidRootPart").Velocity.Z)
-														lplr.Character:WaitForChild("HumanoidRootPart").CFrame = Clone.HumanoidRootPart.CFrame
-														gameCamera.CameraSubject = lplr.Character:FindFirstChild("Humanoid")
-														Clone:Destroy()
-														task.wait(0.15)
-													end
-												end
-											end
-										end
-									end
-								end
-							end
-						end)
-						if not res then warn(msg) end
-					until (not GodMode.Enabled)
-				end)
-			else
-				pcall(function()
-					CoreConnection:Disconnect()
-				end)
+	local utilPack = {QueryUtil = queryutil}
+	
+	local dupeNode, altHeight, initOk, sysOk = nil, nil, false, true
+	shared.anchorBase = nil
+	shared.evadeFlag = false
+	
+	local trigSet = {p = true, n = false, w = false}
+	local shiftMode = "Up"
+	local scanRad = 30
+	
+	local function genTwin()
+		if entSys.isAlive and entSys.character.Humanoid.Health > 0 then
+			altHeight = entSys.character.Humanoid.HipHeight
+			shared.anchorBase = entSys.character.HumanoidRootPart
+			utilPack.QueryUtil:setQueryIgnored(shared.anchorBase, true)
+			if not plyr.Character.Parent then return false end
+	
+			plyr.Character.Parent = game
+			dupeNode = shared.anchorBase:Clone()
+			dupeNode.Parent = plyr.Character
+			shared.anchorBase.Parent = camView
+			dupeNode.CFrame = shared.anchorBase.CFrame
+	
+			plyr.Character.PrimaryPart = dupeNode
+			entSys.character.HumanoidRootPart = dupeNode
+			entSys.character.RootPart = dupeNode
+			plyr.Character.Parent = worldSpace
+	
+			for _, x in plyr.Character:GetDescendants() do
+				if x:IsA('Weld') or x:IsA('Motor6D') then
+					if x.Part0 == shared.anchorBase then x.Part0 = dupeNode end
+					if x.Part1 == shared.anchorBase then x.Part1 = dupeNode end
+				end
+			end
+			return true
+		end
+		return false
+	end
+	
+	local function resetCore()
+		if not shared.anchorBase or not shared.anchorBase:IsDescendantOf(worldSpace) or not entSys.isAlive then
+			return false
+		end
+	
+		plyr.Character.Parent = game
+		shared.anchorBase.Parent = plyr.Character
+		plyr.Character.PrimaryPart = shared.anchorBase
+		entSys.character.HumanoidRootPart = shared.anchorBase
+		entSys.character.RootPart = shared.anchorBase
+		plyr.Character.Parent = worldSpace
+		shared.anchorBase.CanCollide = true
+	
+		for _, x in plyr.Character:GetDescendants() do
+			if x:IsA('Weld') or x:IsA('Motor6D') then
+				if x.Part0 == dupeNode then x.Part0 = shared.anchorBase end
+				if x.Part1 == dupeNode then x.Part1 = shared.anchorBase end
 			end
 		end
+	
+		local prevLoc = dupeNode.CFrame
+		if dupeNode then dupeNode:Destroy() dupeNode = nil end
+		shared.anchorBase.CFrame = prevLoc
+		shared.anchorBase = nil
+		entSys.character.Humanoid.HipHeight = altHeight or 2
+		shared.evadeFlag = false
+		return true
+	end
+	
+	local function shiftPos()
+		if not entSys.isAlive or not shared.anchorBase or not AntiHit.on then return end
+	
+		local hits = entSys.AllPosition({
+			Range = scanRad,
+			Wallcheck = trigSet.w or nil,
+			Part = 'RootPart',
+			Players = trigSet.p,
+			NPCs = trigSet.n,
+			Limit = 1
+		})
+	
+		if #hits > 0 and not shared.evadeFlag then
+			local base = entSys.character.RootPart
+			if base then
+				shared.evadeFlag = true
+				shared.anchorBase.CFrame = (shiftMode == "Up" and CFrame.new(base.CFrame.X, 200, base.CFrame.Z) or CFrame.new(base.CFrame.X, 0, base.CFrame.Z))
+				task.wait(0.15) 
+				shared.anchorBase.CFrame = base.CFrame
+				task.wait(0.05)
+				shared.evadeFlag = false
+			end
+		end
+	end
+	
+	function AntiHit:engage()
+		if self.on then return end
+		self.on = true
+	
+		initOk = genTwin()
+		if not initOk then self:disengage() return end
+	
+		self.physHook = physEngine.PreSimulation:Connect(function(dt)
+			if entSys.isAlive and shared.anchorBase then
+				local currBase = entSys.character.RootPart
+				local currPos = currBase.CFrame
+	
+				if not isnetworkowner(shared.anchorBase) then
+					currBase.CFrame = shared.anchorBase.CFrame
+					currBase.Velocity = shared.anchorBase.Velocity
+					return
+				end
+				if not shared.evadeFlag then shared.anchorBase.CFrame = currPos end
+				shared.anchorBase.Velocity = Vector3.zero
+				shared.anchorBase.CanCollide = false
+				shiftPos()
+			end
+		end)
+	
+		self.respawnHook = entSys.Events.LocalAdded:Connect(function(_)
+			if self.on then
+				self:disengage()
+				self:engage()
+			end
+		end)
+	end
+
+	local Antihit_core = {Enabled = false}
+	
+	function AntiHit:disengage()
+		self.on = false
+		pcall(resetCore)
+		if self.physHook then self.physHook:Disconnect() self.physHook = nil end
+		if self.respawnHook then self.respawnHook:Disconnect() self.respawnHook = nil end
+	end
+	
+	AntiHit_core = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+		Name = "AntiHit/Godmode",
+		Function = function(active)
+			task.spawn(function()
+				repeat task.wait() until store.matchState > 0 or not AntiHit_core.Enabled
+				if not AntiHit_core.Enabled then return end
+				if active then AntiHit:engage() else AntiHit:disengage() end
+			end)
+		end,
+		HoverText = "Dodges attacks."
 	})
-	Slowmode = GodMode.CreateSlider({
-		Name = "Slowmode",
-		Function = function() end,
-		Default = 2,
+	GodMode = AntiHit_core
+	
+	AntiHit_core.CreateTargetWindow({})
+	AntiHit_core.CreateDropdown({
+		Name = "Shift Type",
+		List = {"Up", "Down"},
+		Value = "Up",
+		Function = function(opt) shiftMode = opt end
+	})
+	AntiHit_core.CreateSlider({
+		Name = "Scan Perimeter",
 		Min = 1,
-		Max = 25
+		Max = 30,
+		Default = 30,
+		Suffix = function(v) return v == 1 and "span" or "spans" end,
+		Function = function(v) scanRad = v end
 	})
 end)
 
@@ -4974,8 +5055,14 @@ pcall(function()
 			},
 			JoinNotifier = {Enabled = false}
 		}
-	
+
 		local DetectionUtils = {
+			notify = function() end,
+			saveStaffRecord = function() end,
+			triggerAction = function() end
+		}
+	
+		DetectionUtils = {
 			saveStaffRecord = function(player, detectionMethod)
 				local success, data = pcall(function()
 					return HttpService:JSONDecode(readfile('vape/Libraries/StaffData.json') or '[]')
@@ -5017,8 +5104,15 @@ pcall(function()
 				StaffDetectionConfig.Actions.Options[StaffDetectionConfig.Actions.Current]()
 			end
 		}
-	
+
 		local DetectionMethods = {
+			checkBlacklist = function() end,
+			checkGroupRank = function() end,
+			checkPermissions = function() end,
+			scanPlayer = function() end
+		}
+	
+		DetectionMethods = {
 			checkBlacklist = function(player)
 				if table.find(StaffDetectionConfig.Blacklist.Users, player.Name) then
 					DetectionUtils.triggerAction(player, "Blacklist")
@@ -8248,24 +8342,33 @@ run(function()
     local StaffDetectionSystem = {
         Enabled = false
     }
-	local StaffDetectionSystemStaffData = {
-		Games = {
-			Bedwars = {groupId = 5774246, roles = {79029254, 86172137, 43926962, 37929139, 87049509, 37929138}},
-			PS99 = {groupId = 5060810, roles = {33738740, 33738765}}
-		},
-		Detected = {}
-	}
-	local StaffDetectionSystemConfig = {
-		GameMode = "Bedwars",
-		CustomGroupEnabled = false,
-		IgnoreOnline = false,
-		AutoCheck = false,
-		MemberLimit = 50,
-		CustomGroupId = "",
-		CustomRoles = {}
-	}
+    local StaffDetectionSystemConfig = {
+        GameMode = "Bedwars",
+        CustomGroupEnabled = false,
+        IgnoreOnline = false,
+        AutoCheck = false,
+        MemberLimit = 50,
+        CustomGroupId = "",
+        CustomRoles = {}
+    }
+    local StaffDetectionSystemStaffData = {
+        Games = {
+            Bedwars = {groupId = 5774246, roles = {79029254, 86172137, 43926962, 37929139, 87049509, 37929138}},
+            PS99 = {groupId = 5060810, roles = {33738740, 33738765}}
+        },
+        Detected = {}
+    }
 
     local DetectionUtils = {
+        resetSlowmode = function() end,
+        fetchUsersInRole = function() end,
+        fetchUserPresence = function() end,
+        fetchGroupRoles = function() end,
+        getDetectionConfig = function() end,
+        scanStaff = function() end
+    }
+
+    DetectionUtils = {
         resetSlowmode = function()
             task.spawn(function()
                 while shared.slowmode > 0 do
@@ -8387,7 +8490,7 @@ run(function()
                    not table.find(uniqueIds, user.userId) then
                     table.insert(uniqueIds, user.userId)
                     local userData = {UserID = tostring(user.userId), Username = user.username, Status = status}
-                    if not table.find(detectedStaff, userData, function(a, b) return a.UserID == b.UserID and a.Status == b.Status end) then
+                    if not table.find(detectedStaff, userData) then
                         table.insert(detectedStaff, userData)
                         errorNotification("StaffDetector", "@" .. userData.Username .. "(" .. userData.UserID .. ") is " .. status, 7)
                     end
@@ -8418,48 +8521,48 @@ run(function()
         end
     })
 
+    local StaffDetectionSystemUI = {}
+
     local gameList = {}
     for game in pairs(StaffDetectionSystemStaffData.Games) do table.insert(gameList, game) end
-    StaffDetectionSystem.GameSelector = StaffDetector.CreateDropdown({
+    StaffDetectionSystemUI.GameSelector = StaffDetectionSystem.CreateDropdown({
         Name = "Game Mode",
         Function = function(value) StaffDetectionSystemConfig.GameMode = value end,
         List = gameList
     })
 
-    StaffDetectionSystem.RolesList = StaffDetector.CreateTextList({
+    StaffDetectionSystemUI.RolesList = StaffDetectionSystem.CreateTextList({
         Name = "Custom Roles",
         TempText = "Role ID (number)",
         Function = function(values) StaffDetectionSystemConfig.CustomRoles = values end
     })
 
-    StaffDetectionSystem.GroupIdInput = StaffDetector.CreateTextBox({
+    StaffDetectionSystemUI.GroupIdInput = StaffDetectionSystem.CreateTextBox({
         Name = "Custom Group ID",
         TempText = "Group ID (number)",
         Function = function(value) StaffDetectionSystemConfig.CustomGroupId = value end
     })
 
-    StaffDetectionSystem.CustomGroupToggle = StaffDetector.CreateToggle({
+    StaffDetectionSystem.CreateToggle({
         Name = "Custom Group",
         Function = function(enabled)
-			pcall(function()
-				StaffDetectionSystemConfig.CustomGroupEnabled = enabled
-				StaffDetectionSystem.GroupIdInput.Object.Visible = enabled
-				StaffDetectionSystem.RolesList.Object.Visible = enabled
-				StaffDetectionSystem.GameSelector.Object.Visible = not enabled
-			end)
+            StaffDetectionSystemConfig.CustomGroupEnabled = enabled
+            StaffDetectionSystemUI.GroupIdInput.Object.Visible = enabled
+            StaffDetectionSystemUI.RolesList.Object.Visible = enabled
+            StaffDetectionSystemUI.GameSelector.Object.Visible = not enabled
         end,
         HoverText = "Use a custom staff group",
         Default = false
     })
 
-    StaffDetectionSystem.IgnoreOnlineToggle = StaffDetector.CreateToggle({
+    StaffDetectionSystem.CreateToggle({
         Name = "Ignore Online Staff",
         Function = function(enabled) StaffDetectionSystemConfig.IgnoreOnline = enabled end,
         HoverText = "Only show in-game staff, ignoring online staff",
         Default = false
     })
 
-    StaffDetectionSystem.MemberLimitSlider = StaffDetector.CreateSlider({
+    StaffDetectionSystem.CreateSlider({
         Name = "Member Limit",
         Min = 1,
         Max = 100,
@@ -8467,7 +8570,7 @@ run(function()
         Default = 50
     })
 
-    StaffDetectionSystem.AutoCheckToggle = StaffDetector.CreateToggle({
+    StaffDetectionSystem.CreateToggle({
         Name = "Auto Check",
         Function = function(enabled)
             StaffDetectionSystemConfig.AutoCheck = enabled
@@ -8479,8 +8582,8 @@ run(function()
         Default = false
     })
 
-    StaffDetectionSystem.GroupIdInput.Object.Visible = false
-    StaffDetectionSystem.RolesList.Object.Visible = false
+    StaffDetectionSystemUI.GroupIdInput.Object.Visible = false
+    StaffDetectionSystemUI.RolesList.Object.Visible = false
 end)
 
 task.spawn(function()
@@ -9095,7 +9198,7 @@ run(function()
         end
     })
 
-    DamageIndicatorSystem.ColorModeDropdown = DamageIndicator.CreateDropdown({
+    DamageIndicator.CreateDropdown({
         Name = 'Color Mode',
         List = {'Rainbow', 'Custom', 'GUI Sync'},
         HoverText = 'Selects the coloring mode for damage indicators',
@@ -9103,7 +9206,7 @@ run(function()
         Function = function(value) DamageIndicatorSystemConfig.ColorMode = value end
     })
 
-    DamageIndicatorSystem.RainbowModeDropdown = DamageIndicator.CreateDropdown({
+    DamageIndicator.CreateDropdown({
         Name = 'Rainbow Style',
         List = {'Gradient', 'Paint'},
         HoverText = 'Chooses the rainbow animation style',
@@ -9111,7 +9214,7 @@ run(function()
         Function = function(value) DamageIndicatorSystemConfig.RainbowStyle = value end
     })
 
-    DamageIndicatorSystem.TextModeDropdown = DamageIndicator.CreateDropdown({
+   	DamageIndicator.CreateDropdown({
         Name = 'Text Mode',
         List = {'Custom', 'Multiple', 'Lunar'},
         HoverText = 'Sets the text display mode for indicators',
@@ -9119,7 +9222,7 @@ run(function()
         Function = function(value) DamageIndicatorSystemConfig.TextMode = value end
     })
 
-    DamageIndicatorSystem.ColorToggle = DamageIndicator.CreateToggle({
+    DamageIndicator.CreateToggle({
         Name = 'Enable Custom Color',
         Function = function(enabled)
 			pcall(function()
@@ -9129,14 +9232,14 @@ run(function()
         end
     })
 
-    DamageIndicatorSystem.ColorSlider = DamageIndicator.CreateColorSlider({
+    local ColorSlider = DamageIndicator.CreateColorSlider({
         Name = 'Indicator Color',
         Function = function(hue, sat, val)
             DamageIndicatorSystemConfig.CustomColor = {Hue = hue, Sat = sat, Val = val}
         end
     })
 
-    DamageIndicatorSystem.TextToggle = DamageIndicator.CreateToggle({
+   	DamageIndicator.CreateToggle({
         Name = 'Enable Custom Text',
         HoverText = 'Enables custom text messages for indicators',
         Function = function(enabled)
@@ -9147,13 +9250,13 @@ run(function()
         end
     })
 
-    DamageIndicatorSystem.TextList = DamageIndicator.CreateTextList({
+   	local TextList = DamageIndicator.CreateTextList({
         Name = 'Custom Text',
         TempText = 'Enter indicator text',
         AddFunction = function(values) DamageIndicatorSystemConfig.CustomText = values end
     })
 
-    DamageIndicatorSystem.FontToggle = DamageIndicator.CreateToggle({
+    DamageIndicator.CreateToggle({
         Name = 'Enable Custom Font',
         Function = function(enabled)
 			pcall(function()
@@ -9163,16 +9266,16 @@ run(function()
         end
     })
 
-    DamageIndicatorSystem.FontDropdown = DamageIndicator.CreateDropdown({
+    local FontDropdown = DamageIndicator.CreateDropdown({
         Name = 'Font Style',
         List = GetEnumItems('Font'),
         Function = function(value) DamageIndicatorSystemConfig.Font = value end,
         Value = 'GothamBlack'
     })
 
-    DamageIndicatorSystem.ColorSlider.Object.Visible = DamageIndicatorSystemConfig.ColorEnabled
-    DamageIndicatorSystem.TextList.Object.Visible = DamageIndicatorSystemConfig.TextEnabled
-    DamageIndicatorSystem.FontDropdown.Object.Visible = DamageIndicatorSystemConfig.FontEnabled
+    ColorSlider.Object.Visible = DamageIndicatorSystemConfig.ColorEnabled
+    TextList.Object.Visible = DamageIndicatorSystemConfig.TextEnabled
+    FontDropdown.Object.Visible = DamageIndicatorSystemConfig.FontEnabled
 end)
 
 --[[run(function() -- someday this will come back up :(
@@ -9535,7 +9638,7 @@ run(function()
         end
     })
 
-    WeatherSystem.SpreadSlider = WeatherMods.CreateSlider({
+    WeatherSystem.CreateSlider({
         Name = "Spread",
         Min = 1,
         Max = 100,
@@ -9544,7 +9647,7 @@ run(function()
         HoverText = "Controls the spread of weather particles"
     })
 
-    WeatherSystem.RateSlider = WeatherMods.CreateSlider({
+    WeatherSystem.CreateSlider({
         Name = "Rate",
         Min = 1,
         Max = 100,
@@ -9553,7 +9656,7 @@ run(function()
         HoverText = "Sets the emission rate of particles"
     })
 
-    WeatherSystem.HeightSlider = WeatherMods.CreateSlider({
+   	WeatherSystem.CreateSlider({
         Name = "Height",
         Min = 1,
         Max = 200,
@@ -9562,14 +9665,14 @@ run(function()
         HoverText = "Adjusts the height of the weather effect"
     })
 
-    WeatherSystem.WindToggle = WeatherMods.CreateToggle({
+   	WeatherSystem.CreateToggle({
         Name = "Wind Effect",
         Function = function(enabled) WeatherSystemConfig.WindEnabled = enabled end,
         Default = true,
         HoverText = "Enables wind-driven particle movement"
     })
 
-    WeatherSystem.ColorSlider = WeatherMods.CreateColorSlider({
+	WeatherSystem.CreateColorSlider({
         Name = "Particle Color",
         Function = function(hue, sat, val)
             WeatherSystemConfig.Color = Color3.fromHSV(hue, sat, val)
@@ -9908,13 +10011,16 @@ run(function()
 				if (not shared.CheatEngineMode) then 
 					l__GameQueryUtil__8 = require(game:GetService("ReplicatedStorage")['rbxts_include']['node_modules']['@easy-games']['game-core'].out).GameQueryUtil 
 				else
-					local backup = {}; function backup:setQueryIgnored() end; l__GameQueryUtil__8 = backup;
+					local backup = {}; function backup:setQueryIgnored(part, index)
+						if index == nil then index = true end
+						part:SetAttribute("gamecore_GameQueryIgnore", index)
+					end; l__GameQueryUtil__8 = backup;
 				end
 				local l__TweenService__9 = game:GetService("TweenService")
 				local player = game:GetService("Players").LocalPlayer
 				local p6 = player.Character
 				
-				if not p6 then NightmareEmote:Toggle() return end
+				if not p6 then NightmareEmote.ToggleButton(false) return end
 				
 				local v10 = game:GetService("ReplicatedStorage"):WaitForChild("Assets"):WaitForChild("Effects"):WaitForChild("NightmareEmote"):Clone();
 				asset = v10
@@ -9927,7 +10033,7 @@ run(function()
 						if currentPosition and (currentPosition - lastPosition).Magnitude > 0.1 then
 							asset:Destroy()
 							asset = nil
-							NightmareEmote:Toggle()
+							NightmareEmote.ToggleButton(false)
 							break
 						end
 						lastPosition = currentPosition
