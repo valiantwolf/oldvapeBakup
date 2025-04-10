@@ -10392,7 +10392,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local Schematica = {Enabled = false}
 	local SchematicaBox = {Value = ""}
 	local SchematicaTransparency = {Value = 30}
@@ -10633,7 +10633,7 @@ run(function()
 			end
 		end
 	})
-end)
+end)--]]
 
 --[[run(function()
 	local Disabler = {Enabled = false}
