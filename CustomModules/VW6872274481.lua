@@ -9283,7 +9283,7 @@ run(function()
         end
     })
 
-    DamageIndicator.CreateDropdown({
+    DamageIndicatorSystem.CreateDropdown({
         Name = 'Color Mode',
         List = {'Rainbow', 'Custom', 'GUI Sync'},
         HoverText = 'Selects the coloring mode for damage indicators',
@@ -9291,7 +9291,7 @@ run(function()
         Function = function(value) DamageIndicatorSystemConfig.ColorMode = value end
     })
 
-    DamageIndicator.CreateDropdown({
+    DamageIndicatorSystem.CreateDropdown({
         Name = 'Rainbow Style',
         List = {'Gradient', 'Paint'},
         HoverText = 'Chooses the rainbow animation style',
@@ -9299,7 +9299,7 @@ run(function()
         Function = function(value) DamageIndicatorSystemConfig.RainbowStyle = value end
     })
 
-   	DamageIndicator.CreateDropdown({
+   	DamageIndicatorSystem.CreateDropdown({
         Name = 'Text Mode',
         List = {'Custom', 'Multiple', 'Lunar'},
         HoverText = 'Sets the text display mode for indicators',
@@ -9307,7 +9307,7 @@ run(function()
         Function = function(value) DamageIndicatorSystemConfig.TextMode = value end
     })
 
-    DamageIndicator.CreateToggle({
+    DamageIndicatorSystem.CreateToggle({
         Name = 'Enable Custom Color',
         Function = function(enabled)
 			pcall(function()
@@ -9317,14 +9317,14 @@ run(function()
         end
     })
 
-    local ColorSlider = DamageIndicator.CreateColorSlider({
+    local ColorSlider = DamageIndicatorSystem.CreateColorSlider({
         Name = 'Indicator Color',
         Function = function(hue, sat, val)
             DamageIndicatorSystemConfig.CustomColor = {Hue = hue, Sat = sat, Val = val}
         end
     })
 
-   	DamageIndicator.CreateToggle({
+   	DamageIndicatorSystem.CreateToggle({
         Name = 'Enable Custom Text',
         HoverText = 'Enables custom text messages for indicators',
         Function = function(enabled)
@@ -9335,13 +9335,13 @@ run(function()
         end
     })
 
-   	local TextList = DamageIndicator.CreateTextList({
+   	local TextList = DamageIndicatorSystem.CreateTextList({
         Name = 'Custom Text',
         TempText = 'Enter indicator text',
         AddFunction = function(values) DamageIndicatorSystemConfig.CustomText = values end
     })
 
-    DamageIndicator.CreateToggle({
+    DamageIndicatorSystem.CreateToggle({
         Name = 'Enable Custom Font',
         Function = function(enabled)
 			pcall(function()
@@ -9351,7 +9351,7 @@ run(function()
         end
     })
 
-    local FontDropdown = DamageIndicator.CreateDropdown({
+    local FontDropdown = DamageIndicatorSystem.CreateDropdown({
         Name = 'Font Style',
         List = GetEnumItems('Font'),
         Function = function(value) DamageIndicatorSystemConfig.Font = value end,
