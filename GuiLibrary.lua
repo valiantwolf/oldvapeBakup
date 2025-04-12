@@ -5935,7 +5935,12 @@ if shared.VapeExecuted then
 						slider3.Position = UDim2.new(math.clamp(hue, 0.02, 0.95), -9, 0, -7)
 						argstable["Function"](hue, sat, val)
 					end)
-					if (not suc) then warn("[SetValue Error - "..tostring(argstablemain["Name"]).."|CreateColorSlider]: "..tostring(debug.traceback(err))) end
+					if (not suc) then 
+						warn("[SetValue Error - "..tostring(argstablemain["Name"]).."|CreateColorSlider]: "..tostring(debug.traceback(err))) 
+						sliderapi.Hue = 0;
+						sliderapi.Sat = 0;
+						sliderapi.Value = 0;
+					end
 				end
 				sliderapi["SetRainbow"] = function(val)
 					sliderapi["RainbowValue"] = val

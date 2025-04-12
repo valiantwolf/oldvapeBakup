@@ -5584,6 +5584,7 @@ run(function()
 					updateOutline(plr)
 					
 					if plr and (plr.Character.PrimaryPart.Position - originPos).Magnitude <= Range.Value then
+						plr.HipHeight = plr.Character:FindFirstChild("Humanoid") and plr.Character:FindFirstChild("Humanoid").HipHeight or 2
 						local pos = shootpos or self:getLaunchPosition(origin)
 						if not pos then
 							return old(...)
