@@ -5155,6 +5155,8 @@ run(function()
 end)
 --]]
 
+shared.restore_function = shared.GuiLibrary.SelfDestruct
+
 pcall(function()
 	local StaffDetector = {Enabled = false}
 	run(function()
@@ -5186,7 +5188,7 @@ pcall(function()
 				Current = "Uninject",
 				Options = {
 					Uninject = function()
-						GuiLibrary.SelfDestruct()
+						shared.restore_function(shared.GuiLibrary)
 					end,
 					Panic = function()
 						task.spawn(function()
