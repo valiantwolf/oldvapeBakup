@@ -4792,70 +4792,96 @@ end)
 
 run(function()
     local AutoWhisper = {Enabled = false}
-	local FlyWhisper = {Enabled = false}
-	local HealWhisper = {Enabled = false}
-	local rayCheck = RaycastParams.new()
-	rayCheck.RespectCanCollide = true
+    local FlyWhisper = {Enabled = false}
+    local HealWhisper = {Enabled = false}
+    local BelowMapThreshold = {Enabled = false, Value = -50}
+    local rayCheck = RaycastParams.new()
+    rayCheck.RespectCanCollide = true
 
-	local CoreConnections = {}
-	local function clean(con)
-		table.insert(CoreConnections, con)
-	end
+    local CoreConnections = {}
+    local function clean(con)
+        table.insert(CoreConnections, con)
+    end
 
     AutoWhisper = GuiLibrary.ObjectsThatCanBeSaved.WorldWindow.Api.CreateOptionsButton({
         Name = 'AutoWhisper',
         Function = function(callback)
             if callback then
-				local isWhispering
-				clean(bedwars.Client:Get("OwlSummoned"):Connect(function(data)
-					if data.user == lplr then
-						local target = data.target
-						local chr = target.Character
-						local hum = chr:FindFirstChild('Humanoid')
-						local root = chr:FindFirstChild('HumanoidRootPart')
-						isWhispering = true
-						repeat
-							rayCheck.FilterDescendantsInstances = {lplr.Character, gameCamera, AntiVoidPart}
-							rayCheck.CollisionGroup = root.CollisionGroup
+                local isWhispering
+                clean(bedwars.Client:Get("OwlSummoned"):Connect(function(data)
+                    if data.user == lplr then
+                        local target = data.target
+                        local chr = target.Character
+                        local hum = chr:FindFirstChild('Humanoid')
+                        local root = chr:FindFirstChild('HumanoidRootPart')
+                        isWhispering = true
+                        local mapHeight = workspace:FindFirstChild("Map") and workspace.Map.Position.Y or 0 
+                        repeat
+                            rayCheck.FilterDescendantsInstances = {lplr.Character, gameCamera, AntiVoidPart}
+                            rayCheck.CollisionGroup = root.CollisionGroup
 
-							if FlyWhisper.Enabled and root.Velocity.Y <= -85 and not workspace:Raycast(root.Position, Vector3.new(0, -100, 0), rayCheck) then
-								if bedwars.AbilityController:canUseAbility('OWL_LIFT') then
-									bedwars.AbilityController:useAbility('OWL_LIFT')
-								end
-							end
-							if HealWhisper.Enabled and (hum.MaxHealth - hum.Health) >= 20 then
-								if bedwars.AbilityController:canUseAbility('OWL_HEAL') then
-									bedwars.AbilityController:useAbility('OWL_HEAL')
-								end
-							end
-							task.wait(0.05)
-						until not isWhispering or not AutoWhisper.Enabled
-					end
-				end))
-				clean(bedwars.Client:Get("OwlDeattached"):Connect(function(data)
-					if data.user == lplr then
-						isWhispering = false
-					end
-				end))
-			else
-				for i,v in pairs(CoreConnections) do
-					pcall(function() v:Disconnect() end)
-				end
-				table.clear(CoreConnections)
-			end
+                            if FlyWhisper.Enabled then
+                                local isFalling = root.Velocity.Y < -10 
+                                local noGround = not workspace:Raycast(root.Position, Vector3.new(0, -15, 0), rayCheck) 
+                                local belowMap = BelowMapThreshold.Enabled and root.Position.Y < (mapHeight + -BelowMapThreshold.Value)
+                                if (isFalling and noGround) or belowMap then
+                                    if bedwars.AbilityController:canUseAbility('OWL_LIFT') then
+                                        bedwars.AbilityController:useAbility('OWL_LIFT')
+                                    end
+                                end
+                            end
+                            if HealWhisper.Enabled and (hum.MaxHealth - hum.Health) >= 20 then
+                                if bedwars.AbilityController:canUseAbility('OWL_HEAL') then
+                                    bedwars.AbilityController:useAbility('OWL_HEAL')
+                                end
+                            end
+                            task.wait(0.05)
+                        until not isWhispering or not AutoWhisper.Enabled
+                    end
+                end))
+                clean(bedwars.Client:Get("OwlDeattached"):Connect(function(data)
+                    if data.user == lplr then
+                        isWhispering = false
+                    end
+                end))
+            else
+                for i, v in pairs(CoreConnections) do
+                    pcall(function() v:Disconnect() end)
+                end
+                table.clear(CoreConnections)
+            end
         end,
-        HoverText = "Automatically uses Whisper Kit's abilities. \n Thanks to nonamebetoo#0 for making it"
+        HoverText = "Automatically uses Whisper Kit's abilities.\nThanks to nonamebetoo#0 for making it"
     })
-	FlyWhisper = AutoWhisper.CreateToggle({
-		Name = 'Auto Fly',
-		Default = true,
-		Function = function() end
-	})
-	HealWhisper = AutoWhisper.CreateToggle({
-		Name = 'Auto Heal',
-		Default = true,
-		Function = function() end
-	})
+
+    FlyWhisper = AutoWhisper.CreateToggle({
+        Name = 'Auto Fly',
+        Default = true,
+        Function = function() end
+    })
+
+    HealWhisper = AutoWhisper.CreateToggle({
+        Name = 'Auto Heal',
+        Default = true,
+        Function = function() end
+    })
+
+    AutoWhisper.CreateToggle({
+        Name = 'Below Map Trigger',
+        Default = false,
+        Function = function(call)
+			BelowMapThreshold.Enabled = call
+		end
+    })
+
+    AutoWhisper.CreateSlider({
+        Name = 'Map Threshold',
+        Min = 10,
+        Max = 100,
+        Default = 50,
+        Suffix = function(v) return v == 1 and "stud" or "studs" end,
+        Function = function(v) BelowMapThreshold.Value = v end
+    })
 end)
 
 local LongJump = {Enabled = false}
@@ -5278,9 +5304,9 @@ run(function()
 end)
 
 run(function()
-	local entitylib = entityLibrary
     local BlockIn = {}
 	local HandCheck = {Enabled = false}
+	local AutoSwitch = {Enabled = false}
     
     local PatternArchitect = {}
     PatternArchitect.__index = PatternArchitect
@@ -5325,7 +5351,7 @@ run(function()
         for _, item in pairs(inventory) do
             local meta = bedwars.ItemTable[item.itemType]
             if meta.block then
-                blocks[#blocks + 1] = {itemType = item.itemType, score = meta.block.health or 0}
+				blocks[#blocks + 1] = {itemType = item.itemType, score = meta.block.health or 0, tool = item.tool}
             end
         end
         table.sort(blocks, function(a, b) return a.score < b.score end)
@@ -5341,18 +5367,14 @@ run(function()
         Name = 'BlockIn',
         Function = function(callback)
             if not callback then return end
-			
-			if entitylib.isAlive and entitylib.character then
-				entitylib.character.HumanoidRootPart = entitylib.character.HumanoidRootPart
-			end
-
+            
             if not entitylib.isAlive or not entitylib.character or not entitylib.character.HumanoidRootPart then
                 errorNotification('BlockIn', 'Unable to initialize BlockIn: Player data missing', 5)
                 BlockIn.ToggleButton(false)
                 return
             end
 
-			if HandCheck.Enabled then
+			if HandCheck.Enabled and not AutoSwitch.Enabled then
 				if not (store.hand and store.hand.toolType == "block") then
 					errorNotification("BlockIn | Hand Check", "You aren't holding a block!", 1.5)
 					BlockIn:Toggle()
@@ -5383,6 +5405,9 @@ run(function()
                     local blockAtPos = bedwars.BlockController:getStore():getBlockAt(bedwars.BlockController:getBlockPosition(pos))
                     if not blockAtPos then
                         local block = blocks[blockIndex]
+						if AutoSwitch.Enabled then 
+							switchItem(block.tool)
+						end
                         local success = pcall(function()
                             bedwars.placeBlock(pos, block.itemType, false)
                         end)
@@ -5407,6 +5432,12 @@ run(function()
 		Name = "Hand Check",
 		Function = function() end,
 		Default = false
+	})
+
+	AutoSwitch = BlockIn.CreateToggle({
+		Name = "Auto Switch", 
+		Function = function() end, 
+		Default = true
 	})
 end)
 
@@ -5508,12 +5539,15 @@ run(function()
 	local UserInputService = game:GetService("UserInputService")
 	local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 	
+	local ProjectileAimbot = {Enabled = false}
+	local TargetVisualiser = {Enabled = false}
+
 	local function updateOutline(target)
 		if targetOutline then
 			targetOutline:Destroy()
 			targetOutline = nil
 		end
-		if target then
+		if target and TargetVisualiser.Enabled then
 			targetOutline = Instance.new("Highlight")
 			targetOutline.FillTransparency = 1
 			targetOutline.OutlineColor = Color3.fromRGB(255, 0, 0)
@@ -5524,13 +5558,15 @@ run(function()
 	end
 
 	local CoreConnections = {}
+	local hovering = false
+	local Players = game:GetService("Players")
 	
 	local function handlePlayerSelection()
 		local mouse = lplr:GetMouse()
-		local function selectTarget()
-			local target = mouse.Target
+		local function selectTarget(target)
+			if not target then return end
 			if target and target.Parent then
-				local plr = game.Players:GetPlayerFromCharacter(target.Parent)
+				local plr = Players:GetPlayerFromCharacter(target.Parent)
 				if plr then
 					if selectedTarget == plr then
 						selectedTarget = nil
@@ -5543,28 +5579,29 @@ run(function()
 			end
 		end
 		
+		local con
 		if isMobile then
-			local con = UserInputService.TouchTapInWorld:Connect(function(touchPos)
+			con = UserInputService.TouchTapInWorld:Connect(function(touchPos)
+				if not hovering then updateOutline(nil); return end
+				if not ProjectileAimbot.Enabled then pcall(function() con:Disconnect() end); updateOutline(nil); return end
 				local ray = workspace.CurrentCamera:ScreenPointToRay(touchPos.X, touchPos.Y)
 				local result = workspace:Raycast(ray.Origin, ray.Direction * 1000)
 				if result and result.Instance then
-					mouse.Target = result.Instance
-					selectTarget()
+					selectTarget(target)
 				end
 			end)
 			table.insert(CoreConnections, con)
-		else
-			table.insert(CoreConnections, mouse.Button1Down:Connect(selectTarget))
 		end
 	end
 	
-	local ProjectileAimbot = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+	ProjectileAimbot = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = 'ProjectileAimbot',
 		Function = function(callback)
 			if callback then
 				handlePlayerSelection()
 				old = bedwars.ProjectileController.calculateImportantLaunchValues
 				bedwars.ProjectileController.calculateImportantLaunchValues = function(...)
+					hovering = true
 					local self, projmeta, worldmeta, origin, shootpos = ...
 					local originPos = entitylib.isAlive and (shootpos or entitylib.character.HumanoidRootPart.Position) or Vector3.zero
 					
@@ -5649,7 +5686,9 @@ run(function()
 							}
 						end
 					end
-	
+
+					hovering = false
+
 					return old(...)
 				end
 			else
@@ -5688,7 +5727,12 @@ run(function()
 		HoverText = 'Maximum distance for target locking',
 		Function = function() end
 	})
-	OtherProjectiles = ProjectileAimbot:CreateToggle({
+	TargetVisualiser = ProjectileAimbot.CreateToggle({
+		Name = "Target Visualiser",
+		Default = true,
+		Function = function() end
+	})
+	OtherProjectiles = ProjectileAimbot.CreateToggle({
 		Name = 'Other Projectiles',
 		Default = true,
 		Function = function() end
@@ -11013,6 +11057,10 @@ run(function()
 	local Priority = {ObjectList = {}}
 	local Layers = {Value = 2}
 	local CPS = {Value = 50}
+
+	local AutoSwitch = {Enabled = false}
+	local HandCheck = {Enabled = false}
+	local BlockTypeCheck = {Enabled = false}
     
     local function getBedNear()
         local localPosition = entitylib.isAlive and entitylib.character.HumanoidRootPart.Position or Vector3.zero
@@ -11024,6 +11072,7 @@ run(function()
     end
 
 	local function isAllowed(block)
+		if not BlockTypeCheck.Enabled then return true end
 		local allowed = {"wool", "stone_brick", "wood_plank_oak", "ceramic", "obsidian"}
 		for i,v in pairs(allowed) do
 			if string.find(string.lower(tostring(block)), v) then 
@@ -11038,7 +11087,7 @@ run(function()
         for _, item in store.localInventory.inventory.items do
             local block = bedwars.ItemTable[item.itemType].block
             if block and isAllowed(item.itemType) then
-                table.insert(blocks, {itemType = item.itemType, health = block.health})
+                table.insert(blocks, {itemType = item.itemType, health = block.healt, tool = item.tool})
             end
         end
 
@@ -11063,9 +11112,9 @@ run(function()
 				end
 			end
             if prioLayer then
-                table.insert(prioritizedBlocks, {itemType = block.itemType, health = block.health, layer = prioLayer})
+                table.insert(prioritizedBlocks, {itemType = block.itemType, health = block.health, layer = prioLayer, tool = block.tool})
             else
-                table.insert(fallbackBlocks, {itemType = block.itemType, health = block.health})
+                table.insert(fallbackBlocks, {itemType = block.itemType, health = block.health, tool = block.tool})
             end
         end
 
@@ -11135,6 +11184,10 @@ run(function()
                 return
             end
 
+			if AutoSwitch.Enabled then
+				switchItem(block.tool)
+			end
+
             local positions = getPyramid(blockIndex - 1, 3) 
             if posIndex > #positions then
                 blockIndex = blockIndex + 1
@@ -11162,6 +11215,15 @@ run(function()
                 local bed = getBedNear()
                 local bedPos = bed and bed.Position
                 if bedPos then
+
+					if HandCheck.Enabled and not AutoSwitch.Enabled then
+						if not (store.hand and store.hand.toolType == "block") then
+							errorNotification("BedProtector | Hand Check", "You aren't holding a block!", 1.5)
+							BedProtector.ToggleButton(false)
+							return
+						end
+					end
+
                     local blocks = getBlocks()
                     if #blocks == 0 then 
                         warningNotification("BedProtector", "No blocks for bed defense found!", 3) 
@@ -11210,6 +11272,23 @@ run(function()
         Default = 50,
         HoverText = "Blocks placed per second"
     })
+
+	AutoSwitch = BedProtector.CreateToggle({
+		Name = "Auto Switch",
+		Function = function() end,
+		Default = true
+	})
+
+	HandCheck = BedProtector.CreateToggle({
+		Name = "Hand Check",
+		Function = function() end
+	})
+
+	BlockTypeCheck = BedProtector.CreateToggle({
+		Name = "Block Type Check",
+		Function = function() end,
+		Default = true
+	})
 
 	Priority = BedProtector.CreateTextList({
 		Name = "Block/Layer",
