@@ -433,7 +433,7 @@ writefile(baseDirectory.."commithash2.txt", commit)
 if not shared.RiseMode then
     commit = "6d70576fe7026aba8e79e7cc0e77b6e385c83fd4"
 else
-    commit = '7993bb3fbe31f197807d8132f3d8dafd19616903'
+    commit = 'f193258bf7b9f417fefde0af1c9b25840c0c98e8'
 end
 commit = shared.CustomCommit and tostring(shared.CustomCommit) or commit
 writefile(baseDirectory.."commithash2.txt", commit)
