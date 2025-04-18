@@ -3252,47 +3252,133 @@ run(function()
 	})
 end)
 
---[[run(function()
+local function EntityNearPosition(distance, ignore, overridepos)
+    local currentTime = tick()
+    local playerPos = lplr.Character and lplr.Character.PrimaryPart and lplr.Character.PrimaryPart.Position
+    if not playerPos then return nil end
+
+    local closestEntity, closestMagnitude = nil, distance
+
+    if currentTime - entityCache.lastUpdate >= entityCache.updateInterval then
+        entityCache.entities = {}
+
+		for i, v in pairs(entityLibrary.entityList) do
+			if not v.Targetable then continue end
+			if isVulnerable(v) then
+				table.insert(entityCache.entities, v) 
+			end
+		end
+        
+        if not ignore then
+            for _, name in ipairs(entityCache.dummyNames) do
+                for _, v in pairs(workspace:GetChildren()) do
+                    if v.Name == name and v.PrimaryPart then
+                        table.insert(entityCache.entities, createEntityTemplate(
+                            v.Name, 
+                            v, 
+                            v.PrimaryPart, 
+                            v.Name == "Duck" and 2020831224 or 1443379645
+                        ))
+                    end
+                end
+            end
+
+            local tagChecks = {
+                Monster = function(v) return v:GetAttribute("Team") ~= lplr:GetAttribute("Team") end,
+                GuardianOfDream = function(v) return v:GetAttribute("Team") ~= lplr:GetAttribute("Team") end,
+                DiamondGuardian = true,
+                GolemBoss = true,
+                Drone = function(v)
+                    local droneUserId = tonumber(v:GetAttribute("PlayerUserId"))
+                    if droneUserId == lplr.UserId then return false end
+                    local droneplr = playersService:GetPlayerByUserId(droneUserId)
+                    return not droneplr or droneplr.Team ~= lplr.Team
+                end,
+                entity = function(v)
+                    if v:HasTag('inventory-entity') and not v:HasTag('Monster') then return false end
+                    return v:GetAttribute("Team") ~= lplr:GetAttribute("Team")
+                end
+            }
+
+            for tag, check in pairs(tagChecks) do
+                for _, v in pairs(collectionService:GetTagged(tag)) do
+                    if v.PrimaryPart and (check == true or check(v)) then
+                        table.insert(entityCache.entities, createEntityTemplate(
+                            v.Name, 
+                            v, 
+                            v.PrimaryPart, 
+                            v.Name == "Duck" and 2020831224 or 1443379645
+                        ))
+                    end
+                end
+            end
+
+            for _, v in pairs(workspace:GetChildren()) do
+                if v.Name == "InfectedCrateEntity" and v.ClassName == "Model" and v.PrimaryPart then
+                    table.insert(entityCache.entities, createEntityTemplate("InfectedCrateEntity", v, v.PrimaryPart))
+                end
+            end
+
+            for _, v in pairs(store.pots or {}) do
+                if v.PrimaryPart then
+                    table.insert(entityCache.entities, createEntityTemplate("Pot", v, v.PrimaryPart))
+                end
+            end
+        end
+
+        entityCache.lastUpdate = currentTime
+    end
+
+    for _, v in ipairs(entityCache.entities) do
+        local mag = getMagnitude(playerPos, v.RootPart.Position, overridepos, distance)
+        if mag <= closestMagnitude then
+            closestEntity, closestMagnitude = v, mag
+        end
+    end
+
+    return closestEntity
+end
+
+run(function()
 	local AntiHit = {}
 	local physEngine = game:GetService("RunService")
 	local worldSpace = game.Workspace
 	local camView = worldSpace.CurrentCamera
 	local plyr = lplr
-	local entitylib = loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VWRewrite/main/libraries/entity.lua", true))()
-	local entSys = entitylib 
+	local entSys = entitylib
 	local queryutil = {}
 	function queryutil:setQueryIgnored(part, index)
 		if index == nil then index = true end
-		part:SetAttribute("gamecore_GameQueryIgnore", index)
+		if part then part:SetAttribute("gamecore_GameQueryIgnore", index) end
 	end
 	local utilPack = {QueryUtil = queryutil}
-	
+
 	local dupeNode, altHeight, initOk, sysOk = nil, nil, false, true
 	shared.anchorBase = nil
 	shared.evadeFlag = false
-	
+
 	local trigSet = {p = true, n = false, w = false}
 	local shiftMode = "Up"
 	local scanRad = 30
-	
+
 	local function genTwin()
-		if entSys.isAlive and entSys.character.Humanoid.Health > 0 then
+		if entSys.isAlive and entSys.character.Humanoid.Health > 0 and entSys.character.HumanoidRootPart then
 			altHeight = entSys.character.Humanoid.HipHeight
 			shared.anchorBase = entSys.character.HumanoidRootPart
 			utilPack.QueryUtil:setQueryIgnored(shared.anchorBase, true)
-			if not plyr.Character.Parent then return false end
-	
+			if not plyr.Character or not plyr.Character.Parent then return false end
+
 			plyr.Character.Parent = game
 			dupeNode = shared.anchorBase:Clone()
 			dupeNode.Parent = plyr.Character
 			shared.anchorBase.Parent = camView
 			dupeNode.CFrame = shared.anchorBase.CFrame
-	
+
 			plyr.Character.PrimaryPart = dupeNode
 			entSys.character.HumanoidRootPart = dupeNode
 			entSys.character.RootPart = dupeNode
 			plyr.Character.Parent = worldSpace
-	
+
 			for _, x in plyr.Character:GetDescendants() do
 				if x:IsA('Weld') or x:IsA('Motor6D') then
 					if x.Part0 == shared.anchorBase then x.Part0 = dupeNode end
@@ -3303,124 +3389,161 @@ end)
 		end
 		return false
 	end
-	
+
 	local function resetCore()
-		if not shared.anchorBase or not shared.anchorBase:IsDescendantOf(worldSpace) or not entSys.isAlive then
+		if not entSys.isAlive or not shared.anchorBase or not shared.anchorBase:IsDescendantOf(game) then
+			shared.anchorBase = nil
+			dupeNode = nil
 			return false
 		end
-	
+
+		if not plyr.Character or not plyr.Character.Parent then return false end
+
 		plyr.Character.Parent = game
+
 		shared.anchorBase.Parent = plyr.Character
+		shared.anchorBase.CanCollide = true
+		shared.anchorBase.Velocity = Vector3.zero 
+		shared.anchorBase.Anchored = false 
+
 		plyr.Character.PrimaryPart = shared.anchorBase
 		entSys.character.HumanoidRootPart = shared.anchorBase
 		entSys.character.RootPart = shared.anchorBase
-		plyr.Character.Parent = worldSpace
-		shared.anchorBase.CanCollide = true
-	
+
 		for _, x in plyr.Character:GetDescendants() do
 			if x:IsA('Weld') or x:IsA('Motor6D') then
 				if x.Part0 == dupeNode then x.Part0 = shared.anchorBase end
 				if x.Part1 == dupeNode then x.Part1 = shared.anchorBase end
 			end
 		end
-	
-		local prevLoc = dupeNode.CFrame
-		if dupeNode then dupeNode:Destroy() dupeNode = nil end
+
+		local prevLoc = dupeNode and dupeNode.CFrame or shared.anchorBase.CFrame
+		if dupeNode then
+			dupeNode:Destroy()
+			dupeNode = nil
+		end
+
+		plyr.Character.Parent = worldSpace
 		shared.anchorBase.CFrame = prevLoc
+
+		if entSys.character.Humanoid then
+			entSys.character.Humanoid.HipHeight = altHeight or 2
+		end
+
 		shared.anchorBase = nil
-		entSys.character.Humanoid.HipHeight = altHeight or 2
 		shared.evadeFlag = false
+		altHeight = nil
+
 		return true
 	end
-	
+
 	local function shiftPos()
 		if not entSys.isAlive or not shared.anchorBase or not AntiHit.on then return end
-	
-		local hits = entSys.AllPosition({
-			Range = scanRad,
-			Wallcheck = trigSet.w or nil,
-			Part = 'RootPart',
-			Players = trigSet.p,
-			NPCs = trigSet.n,
-			Limit = 1
-		})
-	
+
+		local hits = {EntityNearPosition(scanRad, trigSet.n)}
+
 		if #hits > 0 and not shared.evadeFlag then
-			local base = entSys.character.RootPart
+			local base = entSys.character.HumanoidRootPart
 			if base then
 				shared.evadeFlag = true
-				shared.anchorBase.CFrame = (shiftMode == "Up" and CFrame.new(base.CFrame.X, 200, base.CFrame.Z) or CFrame.new(base.CFrame.X, 0, base.CFrame.Z))
-				task.wait(0.15) 
+				local targetY = shiftMode == "Up" and 150 or 0
+				shared.anchorBase.CFrame = CFrame.new(base.CFrame.X, targetY, base.CFrame.Z)
+				task.wait(0.15)
 				shared.anchorBase.CFrame = base.CFrame
 				task.wait(0.05)
 				shared.evadeFlag = false
 			end
 		end
 	end
-	
+
 	function AntiHit:engage()
 		if self.on then return end
 		self.on = true
-	
+
 		initOk = genTwin()
-		if not initOk then self:disengage() return end
-	
+		if not initOk then
+			self:disengage()
+			return
+		end
+
 		self.physHook = physEngine.PreSimulation:Connect(function(dt)
-			if entSys.isAlive and shared.anchorBase then
+			if entSys.isAlive and shared.anchorBase and entSys.character.RootPart then
 				local currBase = entSys.character.RootPart
 				local currPos = currBase.CFrame
-	
+
 				if not isnetworkowner(shared.anchorBase) then
 					currBase.CFrame = shared.anchorBase.CFrame
 					currBase.Velocity = shared.anchorBase.Velocity
 					return
 				end
-				if not shared.evadeFlag then shared.anchorBase.CFrame = currPos end
+				if not shared.evadeFlag then
+					shared.anchorBase.CFrame = currPos
+				end
 				shared.anchorBase.Velocity = Vector3.zero
 				shared.anchorBase.CanCollide = false
 				shiftPos()
+			else
+				self:disengage() 
 			end
 		end)
-	
+
 		self.respawnHook = entSys.Events.LocalAdded:Connect(function(_)
 			if self.on then
-				self:disengage()
-				self:engage()
+				self:disengage() 
+				task.wait(0.1) 
+				self:engage() 
 			end
 		end)
 	end
 
 	local Antihit_core = {Enabled = false}
-	
+
 	function AntiHit:disengage()
 		self.on = false
-		pcall(resetCore)
-		if self.physHook then self.physHook:Disconnect() self.physHook = nil end
-		if self.respawnHook then self.respawnHook:Disconnect() self.respawnHook = nil end
+		local success, err = pcall(resetCore)
+		if not success then
+			warn("AntiHit resetCore failed: " .. tostring(err))
+		end
+		if self.physHook then
+			self.physHook:Disconnect()
+			self.physHook = nil
+		end
+		if self.respawnHook then
+			self.respawnHook:Disconnect()
+			self.respawnHook = nil
+		end
 	end
-	
-	AntiHit_core = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+
+	Antihit_core = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = "AntiHit V2",
 		Function = function(active)
-			if active then warningNotification("AntiHit V2", "Warning this is still experimental", 3) end
+			if active then
+				warningNotification("Antihit V2", "Warning: this is still experimental!", 3)
+			end
 			task.spawn(function()
-				repeat task.wait() until store.matchState > 0 or not AntiHit_core.Enabled
-				if not AntiHit_core.Enabled then return end
-				if active then AntiHit:engage() else AntiHit:disengage() end
+				repeat task.wait() until store.matchState > 0 or not Antihit_core.Enabled
+				if not Antihit_core.Enabled then return end
+				if active then
+					AntiHit:engage()
+				else
+					AntiHit:disengage()
+				end
 			end)
 		end,
 		HoverText = "Dodges attacks."
 	})
-	--GodMode = AntiHit_core
-	
-	AntiHit_core.CreateTargetWindow({})
-	AntiHit_core.CreateDropdown({
+
+	--[[Antihit_core:CreateTargets({
+		Players = true,
+		NPCs = false
+	})--]]
+	Antihit_core:CreateDropdown({
 		Name = "Shift Type",
 		List = {"Up", "Down"},
 		Value = "Up",
 		Function = function(opt) shiftMode = opt end
 	})
-	AntiHit_core.CreateSlider({
+	Antihit_core:CreateSlider({
 		Name = "Scan Perimeter",
 		Min = 1,
 		Max = 30,
@@ -3428,7 +3551,7 @@ end)
 		Suffix = function(v) return v == 1 and "span" or "spans" end,
 		Function = function(v) scanRad = v end
 	})
-end)--]]
+end)
 
 run(function()
 	local ExploitUser = {Enabled = false}

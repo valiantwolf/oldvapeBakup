@@ -367,6 +367,7 @@ function bedwars.ClientStoreHandler:dispatch(tbl)
 end
 bedwars.ItemHandler = {}
 bedwars.ItemHandler.ItemMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("ItemMeta.json"))
+pcall(function() bedwars.QueueMeta = decode(VoidwareFunctions.fetchCheatEngineSupportFile("QueueMeta.json")) end)
 --decode(readfile("vape/CheatEngine/ItemMeta.json"))
 bedwars.ItemHandler.getItemMeta = function(item)
     for i,v in pairs(bedwars.ItemHandler.ItemMeta) do
@@ -3075,6 +3076,58 @@ local function Wallcheck(attackerCharacter, targetCharacter, additionalIgnore)
         return true
     end
 end
+
+run(function()
+	local Players = game:GetService("Players")
+	local playersService = Players
+	function getColor3FromDecimal(decimal)
+		if not decimal then return false end
+		local r = math.floor(decimal / (256 * 256)) % 256
+		local g = math.floor(decimal / 256) % 256
+		local b = decimal % 256
+		
+		return Color3.new(r / 255, g / 255, b / 255)
+	end
+	if shared.CORE_CUSTOM_CONNECTIONS and type(shared.CORE_CUSTOM_CONNECTIONS) == "table" then
+		for i,v in pairs(shared.CORE_CUSTOM_CONNECTIONS) do
+			pcall(function()
+				v:Disconnect()
+			end)
+		end
+		table.clear(shared.CORE_CUSTOM_CONNECTIONS)
+	end
+	shared.CORE_CUSTOM_CONNECTIONS = {}
+	shared.CORE_CUSTOM_CONNECTIONS.EntityDeathEvent = vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
+        local killer = playersService:GetPlayerFromCharacter(deathTable.fromEntity)
+        local killed = playersService:GetPlayerFromCharacter(deathTable.entityInstance)
+        if not killed or not killer then return end
+		shared.custom_notify("kill", killer, killed, deathTable.finalKill)
+    end)
+	shared.CORE_CUSTOM_CONNECTIONS.BedwarsBedBreak = vapeEvents.BedwarsBedBreak.Event:Connect(function(bedTable)
+		if not (bedTable ~= nil and type(bedTable) == "table" and bedTable.brokenBedTeam ~= nil and type(bedTable.brokenBedTeam) == "table" and bedTable.brokenBedTeam.id ~= nil) then return end
+		local team = bedwars.QueueMeta[store.queueType].teams[tonumber(bedTable.brokenBedTeam.id)]
+		local destroyer = Players:GetPlayerByUserId(tonumber(bedTable.player.UserId)) or {Name = "Unknown player"}
+		if not destroyer then destroyer = "Unknown player" end
+		shared.custom_notify("bedbreak", destroyer, nil, nil, {
+			Name = team and team.displayName:upper() or 'WHITE',
+			Color = team and team.colorHex and getColor3FromDecimal(tonumber(team.colorHex)) or Color3.fromRGB(255, 255, 255)
+		})
+	end)
+	shared.CORE_CUSTOM_CONNECTIONS.MatchEndEvent = vapeEvents.MatchEndEvent.Event:Connect(function(winTable)
+		local team = bedwars.QueueMeta[store.queueType].teams[tonumber(winTable.winningTeamId)]
+		if winTable.winningTeamId == lplr:GetAttribute('Team') then
+			shared.custom_notify("win", nil, nil, false, {
+				Name = team and team.displayName:upper() or 'WHITE',
+				Color = team and team.colorHex and getColor3FromDecimal(tonumber(team.colorHex)) or Color3.fromRGB(255, 255, 255)
+			})
+		else
+			shared.custom_notify("defeat", nil, nil, false, {
+				Name = team and team.displayName:upper() or 'WHITE',
+				Color = team and team.colorHex and getColor3FromDecimal(tonumber(team.colorHex)) or Color3.fromRGB(255, 255, 255)
+			})
+		end
+    end)
+end)
 
 --if (not shared.RiseMode) then
 	run(function()
@@ -5995,6 +6048,7 @@ run(function()
 	local scaffoldposcheck = tick()
 	local scaffoldstopmotionpos = Vector3.zero
 	local scaffoldposchecklist = {}
+	local AutoSwitch = {Enabled = false}
 	task.spawn(function()
 		for x = -3, 3, 3 do
 			for y = -3, 3, 3 do
@@ -6071,6 +6125,10 @@ run(function()
 							scaffoldtext.TextColor3 = woolamount and (woolamount >= 128 and Color3.fromRGB(9, 255, 198) or woolamount >= 64 and Color3.fromRGB(255, 249, 18)) or Color3.fromRGB(255, 0, 0)
 							if not wool then continue end
 
+							if AutoSwitch.Enabled then
+								pcall(function() switchItem(wool) end)
+							end
+
 							local towering = ScaffoldTower.Enabled and inputService:IsKeyDown(Enum.KeyCode.Space) and game:GetService("UserInputService"):GetFocusedTextBox() == nil
 							if towering then
 								if (not scaffoldstopmotionval) and ScaffoldStopMotion.Enabled then
@@ -6143,6 +6201,10 @@ run(function()
 		Name = "Wool Only",
 		Function = function() end,
 		HoverText = "Only places blocks if they are wool."
+	})
+	AutoSwitch = Scaffold.CreateToggle({
+		Name = "Auto Switch",
+		Function = function() end
 	})
 	ScaffoldMouseCheck = Scaffold.CreateToggle({
 		Name = "Require mouse down",
