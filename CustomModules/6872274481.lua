@@ -2810,6 +2810,48 @@ run(function()
     end)
 end)
 
+local function Wallcheck(attackerCharacter, targetCharacter, additionalIgnore)
+    if not (attackerCharacter and targetCharacter) then
+        return false
+    end
+
+    local humanoidRootPart = attackerCharacter.PrimaryPart
+    local targetRootPart = targetCharacter.PrimaryPart
+    if not (humanoidRootPart and targetRootPart) then
+        return false
+    end
+
+    local origin = humanoidRootPart.Position
+    local targetPosition = targetRootPart.Position
+    local direction = targetPosition - origin
+
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+    raycastParams.RespectCanCollide = true
+
+    local ignoreList = {attackerCharacter}
+    
+    if additionalIgnore and typeof(additionalIgnore) == "table" then
+        for _, item in pairs(additionalIgnore) do
+            table.insert(ignoreList, item)
+        end
+    end
+
+    raycastParams.FilterDescendantsInstances = ignoreList
+
+    local raycastResult = workspace:Raycast(origin, direction, raycastParams)
+
+    if raycastResult then
+        if raycastResult.Instance:IsDescendantOf(targetCharacter) then
+            return true
+        else
+            return false
+        end
+    else
+        return true
+    end
+end
+
 run(function()
 	local function isFirstPerson()
 		if not (lplr.Character and lplr.Character:FindFirstChild("Head")) then return nil end
@@ -2852,7 +2894,7 @@ run(function()
 									if store.matchState == 0 then return end
 								end
 								if AimAssistTargetFrame.Walls.Enabled then
-									if not bedwars.SwordController:canSee({instance = plr.Character, player = plr.Player, getInstance = function() return plr.Character end}) then return end
+									if not Wallcheck(lplr.Character, plr.Character) then return end
 								end
 								gameCamera.CFrame = gameCamera.CFrame:lerp(CFrame.new(gameCamera.CFrame.p, plr.Character.HumanoidRootPart.Position), ((1 / AimSpeed.Value) + (AimAssistStrafe.Enabled and (inputService:IsKeyDown(Enum.KeyCode.A) or inputService:IsKeyDown(Enum.KeyCode.D)) and 0.01 or 0)))
 							end
@@ -4600,7 +4642,7 @@ run(function()
 									end
 									local selfrootpos = entityLibrary.character.HumanoidRootPart.Position
 									if killauratargetframe.Walls.Enabled then
-										if not bedwars.SwordController:canSee({player = plr.Player, getInstance = function() return plr.Character end}) then continue end
+										if not Wallcheck(lplr.Character, plr.Character) then continue end
 									end
 									if killauranovape.Enabled and store.whitelist.clientUsers[plr.Player.Name] then
 										continue
@@ -5973,48 +6015,6 @@ local function Filter(tbl, check)
 		if check(v) then return v end
 	end
 	return nil
-end
-
-local function Wallcheck(attackerCharacter, targetCharacter, additionalIgnore)
-    if not (attackerCharacter and targetCharacter) then
-        return false
-    end
-
-    local humanoidRootPart = attackerCharacter.PrimaryPart
-    local targetRootPart = targetCharacter.PrimaryPart
-    if not (humanoidRootPart and targetRootPart) then
-        return false
-    end
-
-    local origin = humanoidRootPart.Position
-    local targetPosition = targetRootPart.Position
-    local direction = targetPosition - origin
-
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-    raycastParams.RespectCanCollide = true
-
-    local ignoreList = {attackerCharacter}
-    
-    if additionalIgnore and typeof(additionalIgnore) == "table" then
-        for _, item in pairs(additionalIgnore) do
-            table.insert(ignoreList, item)
-        end
-    end
-
-    raycastParams.FilterDescendantsInstances = ignoreList
-
-    local raycastResult = workspace:Raycast(origin, direction, raycastParams)
-
-    if raycastResult then
-        if raycastResult.Instance:IsDescendantOf(targetCharacter) then
-            return true
-        else
-            return false
-        end
-    else
-        return true
-    end
 end
 	
 run(function()
