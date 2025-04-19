@@ -2117,7 +2117,7 @@ local function getSword()
 	for slot, item in pairs(store.localInventory.inventory.items) do
 		local swordMeta = bedwars.ItemTable[item.itemType].sword
 		if swordMeta then
-			local swordDamage = swordMeta.damage or 0
+			local swordDamage = swordMeta.baseDamage or 0
 			if not bestSword or swordDamage > bestSwordDamage then
 				bestSword, bestSwordSlot, bestSwordDamage = item, slot, swordDamage
 			end
@@ -4848,6 +4848,8 @@ run(function()
 		until (not Killaura.Enabled) or (not killauraautoblock.Enabled)
 	end--]]
 
+	local ChargeRatio = {Value = 9}
+
 	Killaura = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = "Killaura",
 		Function = function(callback)
@@ -5020,7 +5022,7 @@ run(function()
 									store.attackReachUpdate = tick() + 1
 									killaurarealremote:FireServer({
 										weapon = sword.tool,
-										chargeRatio = swordmeta.sword.chargedAttack and not swordmeta.sword.chargedAttack.disableOnGrounded and 0.999 or 0,
+										chargeRatio = ChargeRatio.Value/10,
 										entityInstance = plr.Character,
 										validate = {
 											raycast = {
@@ -5036,7 +5038,7 @@ run(function()
 										switchItem(spear.tool)
 										killaurarealremote:FireServer({
 											weapon = spear.tool,
-											chargeRatio = swordmeta.sword.chargedAttack and not swordmeta.sword.chargedAttack.disableOnGrounded and 0.999 or 0,
+											chargeRatio = ChargeRatio.Value/10,
 											entityInstance = plr.Character,
 											validate = {
 												raycast = {
@@ -5140,6 +5142,13 @@ run(function()
 			end
 		end,
 		Default = 18
+	})
+	ChargeRatio = Killaura.CreateSlider({
+		Name = "Charge Ratio",
+		Function = function() end,
+		Min = 0,
+		Max = 10,
+		Default = 9
 	})
 	killauraangle = Killaura.CreateSlider({
 		Name = "Max angle",

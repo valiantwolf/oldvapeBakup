@@ -331,7 +331,7 @@ local function getSword()
 	for slot, item in pairs(store.localInventory.inventory.items) do
 		local swordMeta = bedwars.ItemTable[item.itemType].sword
 		if swordMeta then
-			local swordDamage = swordMeta.damage or 0
+			local swordDamage = swordMeta.baseDamage or 0
 			if not bestSword or swordDamage > bestSwordDamage then
 				bestSword, bestSwordSlot, bestSwordDamage = item, slot, swordDamage
 			end
@@ -2327,8 +2327,8 @@ run(function()
                     local bestSword, bestSlot, bestDamage = nil, nil, 0
                     for slot, item in newInventory.inventory.items do
                         local swordMeta = bedwars.ItemTable[item.itemType].sword
-                        if swordMeta and (swordMeta.damage or 0) > bestDamage then
-                            bestSword, bestSlot, bestDamage = item, slot, swordMeta.damage
+                        if swordMeta and (swordMeta.baseDamage or 0) > bestDamage then
+                            bestSword, bestSlot, bestDamage = item, slot, swordMeta.baseDamage
                         end
                     end
                     return bestSword, bestSlot
@@ -2932,7 +2932,8 @@ run(function()
 						if bedwars.DaoController.chargingMaid == nil then
 							task.spawn(function()
 								if firstClick <= tick() then
-									bedwars.SwordController:swingSwordAtMouse()
+									bedwars.SwordController:stopCharging()
+									bedwars.SwordController:swingSwordAtMouse(0.25 + math.random() / 8)
 								else
 									firstClick = tick()
 								end
@@ -4431,6 +4432,8 @@ run(function()
 		until (not Killaura.Enabled) or (not killauraautoblock.Enabled)
 	end
 
+	local ChargeRatio = {Value = 9}
+
 	Killaura = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = "Killaura",
 		Function = function(callback)
@@ -4622,7 +4625,7 @@ run(function()
 									store.attackReachUpdate = tick() + 1
 									killaurarealremote:FireServer({
 										weapon = sword.tool,
-										chargeRatio = swordmeta.sword.chargedAttack and not swordmeta.sword.chargedAttack.disableOnGrounded and 0.999 or 0,
+										chargeRatio = ChargeRatio.Value/10,
 										entityInstance = plr.Character,
 										validate = {
 											raycast = {
@@ -4638,7 +4641,7 @@ run(function()
 										switchItem(spear.tool)
 										killaurarealremote:FireServer({
 											weapon = spear.tool,
-											chargeRatio = swordmeta.sword.chargedAttack and not swordmeta.sword.chargedAttack.disableOnGrounded and 0.999 or 0,
+											chargeRatio = ChargeRatio.Value/10,
 											entityInstance = plr.Character,
 											validate = {
 												raycast = {
@@ -4742,6 +4745,13 @@ run(function()
 			end
 		end,
 		Default = 18
+	})
+	ChargeRatio = Killaura.CreateSlider({
+		Name = "Charge Ratio",
+		Function = function() end,
+		Min = 0,
+		Max = 10,
+		Default = 9
 	})
 	killauraangle = Killaura.CreateSlider({
 		Name = "Max angle",
@@ -7414,23 +7424,6 @@ run(function()
 	fpsboostkilleffect = FPSBoost.CreateToggle({
 		Name = "Remove Kill Effect",
 		Function = function(callback) if FPSBoost.Enabled then FPSBoost.ToggleButton(false) FPSBoost.ToggleButton(false) end end
-	})
-end)
-
-run(function()
-	local GameFixer = {Enabled = false}
-	local GameFixerHit = {Enabled = false}
-	GameFixer = GuiLibrary.ObjectsThatCanBeSaved.CombatWindow.Api.CreateOptionsButton({
-		Name = "HitFix",
-		Function = function(call)
-			if call then
-				pcall(function()
-					debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, callback and 'raycast' or 'Raycast')
-					debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, callback and bedwars.QueryUtil or game.Workspace)
-				end)
-			end
-		end,
-		HoverText = "Fixes game bugs"
 	})
 end)
 
