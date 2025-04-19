@@ -792,6 +792,7 @@ local function coreswitch(tool, ignore)
     if not humanoid then return end
 
     if not ignore then
+			for i, v in pairs(collectionService:GetTagged("trainingRoomDummy")) do
 		local currentHandItem
 		for _, acc in character:GetChildren() do
 			if acc:IsA("Accessory") and acc:GetAttribute("InvItem") == true and acc:GetAttribute("ArmorSlot") == nil and acc:GetAttribute("IsBackpack") == nil then
@@ -2117,7 +2118,7 @@ local function getSword()
 		local swordMeta = bedwars.ItemTable[item.itemType].sword
 		if swordMeta then
 			local swordDamage = swordMeta.damage or 0
-			if swordDamage > bestSwordDamage then
+			if not bestSword or swordDamage > bestSwordDamage then
 				bestSword, bestSwordSlot, bestSwordDamage = item, slot, swordDamage
 			end
 		end
@@ -2387,7 +2388,7 @@ local function EntityNearPosition(distance, ignore, overridepos)
         
         if not ignore then
             for _, name in ipairs(entityCache.dummyNames) do
-                for _, v in pairs(workspace:GetChildren()) do
+                for _, v in pairs(collectionService:GetTagged("trainingRoomDummy")) do
                     if v.Name == name and v.PrimaryPart then
                         table.insert(entityCache.entities, createEntityTemplate(
                             v.Name, 
@@ -5019,7 +5020,7 @@ run(function()
 									store.attackReachUpdate = tick() + 1
 									killaurarealremote:FireServer({
 										weapon = sword.tool,
-										chargedAttack = {chargeRatio = swordmeta.sword.chargedAttack and not swordmeta.sword.chargedAttack.disableOnGrounded and 0.999 or 0},
+										chargeRatio = swordmeta.sword.chargedAttack and not swordmeta.sword.chargedAttack.disableOnGrounded and 0.999 or 0,
 										entityInstance = plr.Character,
 										validate = {
 											raycast = {
@@ -5035,7 +5036,7 @@ run(function()
 										switchItem(spear.tool)
 										killaurarealremote:FireServer({
 											weapon = spear.tool,
-											chargedAttack = {chargeRatio = swordmeta.sword.chargedAttack and not swordmeta.sword.chargedAttack.disableOnGrounded and 0.999 or 0},
+											chargeRatio = swordmeta.sword.chargedAttack and not swordmeta.sword.chargedAttack.disableOnGrounded and 0.999 or 0,
 											entityInstance = plr.Character,
 											validate = {
 												raycast = {
