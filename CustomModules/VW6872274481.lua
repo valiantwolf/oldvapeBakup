@@ -3253,92 +3253,7 @@ run(function()
 	})
 end)
 
-local function EntityNearPosition(distance, ignore, overridepos)
-    local currentTime = tick()
-    local playerPos = lplr.Character and lplr.Character.PrimaryPart and lplr.Character.PrimaryPart.Position
-    if not playerPos then return nil end
-
-    local closestEntity, closestMagnitude = nil, distance
-
-    if currentTime - entityCache.lastUpdate >= entityCache.updateInterval then
-        entityCache.entities = {}
-
-		for i, v in pairs(entityLibrary.entityList) do
-			if not v.Targetable then continue end
-			if isVulnerable(v) then
-				table.insert(entityCache.entities, v) 
-			end
-		end
-        
-        if not ignore then
-            for _, name in ipairs(entityCache.dummyNames) do
-                for _, v in pairs(workspace:GetChildren()) do
-                    if v.Name == name and v.PrimaryPart then
-                        table.insert(entityCache.entities, createEntityTemplate(
-                            v.Name, 
-                            v, 
-                            v.PrimaryPart, 
-                            v.Name == "Duck" and 2020831224 or 1443379645
-                        ))
-                    end
-                end
-            end
-
-            local tagChecks = {
-                Monster = function(v) return v:GetAttribute("Team") ~= lplr:GetAttribute("Team") end,
-                GuardianOfDream = function(v) return v:GetAttribute("Team") ~= lplr:GetAttribute("Team") end,
-                DiamondGuardian = true,
-                GolemBoss = true,
-                Drone = function(v)
-                    local droneUserId = tonumber(v:GetAttribute("PlayerUserId"))
-                    if droneUserId == lplr.UserId then return false end
-                    local droneplr = playersService:GetPlayerByUserId(droneUserId)
-                    return not droneplr or droneplr.Team ~= lplr.Team
-                end,
-                entity = function(v)
-                    if v:HasTag('inventory-entity') and not v:HasTag('Monster') then return false end
-                    return v:GetAttribute("Team") ~= lplr:GetAttribute("Team")
-                end
-            }
-
-            for tag, check in pairs(tagChecks) do
-                for _, v in pairs(collectionService:GetTagged(tag)) do
-                    if v.PrimaryPart and (check == true or check(v)) then
-                        table.insert(entityCache.entities, createEntityTemplate(
-                            v.Name, 
-                            v, 
-                            v.PrimaryPart, 
-                            v.Name == "Duck" and 2020831224 or 1443379645
-                        ))
-                    end
-                end
-            end
-
-            for _, v in pairs(workspace:GetChildren()) do
-                if v.Name == "InfectedCrateEntity" and v.ClassName == "Model" and v.PrimaryPart then
-                    table.insert(entityCache.entities, createEntityTemplate("InfectedCrateEntity", v, v.PrimaryPart))
-                end
-            end
-
-            for _, v in pairs(store.pots or {}) do
-                if v.PrimaryPart then
-                    table.insert(entityCache.entities, createEntityTemplate("Pot", v, v.PrimaryPart))
-                end
-            end
-        end
-
-        entityCache.lastUpdate = currentTime
-    end
-
-    for _, v in ipairs(entityCache.entities) do
-        local mag = getMagnitude(playerPos, v.RootPart.Position, overridepos, distance)
-        if mag <= closestMagnitude then
-            closestEntity, closestMagnitude = v, mag
-        end
-    end
-
-    return closestEntity
-end
+local EntityNearPosition = shared.EntityNearPosition
 
 run(function()
 	local AntiHit = {}
@@ -3346,7 +3261,7 @@ run(function()
 	local worldSpace = game.Workspace
 	local camView = worldSpace.CurrentCamera
 	local plyr = lplr
-	local entSys = entitylib
+	local entSys = entityLibrary
 	local queryutil = {}
 	function queryutil:setQueryIgnored(part, index)
 		if index == nil then index = true end
@@ -3488,7 +3403,7 @@ run(function()
 			end
 		end)
 
-		self.respawnHook = entSys.Events.LocalAdded:Connect(function(_)
+		self.respawnHook = lplr.CharacterAdded:Connect(function(_)
 			if self.on then
 				self:disengage() 
 				task.wait(0.1) 
