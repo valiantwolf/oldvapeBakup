@@ -1885,7 +1885,8 @@ run(function()
         SoundManager = function() return require(replicatedStorage["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out).SoundManager end,
         TeamUpgradeMeta = function() return debug.getupvalue(require(replicatedStorage.TS.games.bedwars["team-upgrade"]["team-upgrade-meta"]).getTeamUpgradeMeta, 1) end,
         UILayers = function() return require(replicatedStorage["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out).UILayers end,
-        WeldTable = function() return require(replicatedStorage.TS.util["weld-util"]).WeldUtil end
+        WeldTable = function() return require(replicatedStorage.TS.util["weld-util"]).WeldUtil end,
+		ZapNetworking = function() return require(lplr.PlayerScripts.TS.lib.network) end
     }
 
 	local healthbarblocktable = {
@@ -2424,23 +2425,45 @@ run(function()
     table.insert(vapeConnections, bedwars.ClientStoreHandler.changed:connect(updateStore))
     updateStore(bedwars.ClientStoreHandler:getState(), {})--]]
 
-    task.spawn(function()
+	task.spawn(function()
         pcall(function()
-            local events = {"MatchEndEvent", "EntityDeathEvent", "BedwarsBedBreak", "BalloonPopped", "AngelProgress"}
-            for _, event in events do
+            for _, event in {'MatchEndEvent', 'EntityDeathEvent', 'BedwarsBedBreak', 'BalloonPopped', 'AngelProgress', 'GrapplingHookFunctions'} do
                 bedwars.Client:WaitFor(event):andThen(function(connection)
-                    table.insert(vapeConnections, connection:Connect(function(...)
+					table.insert(vapeConnections, connection:Connect(function(...)
                         vapeEvents[event]:Fire(...)
                     end))
                 end)
             end
-            for _, event in {"PlaceBlockEvent", "BreakBlockEvent"} do
-                bedwars.ClientDamageBlock:WaitFor(event):andThen(function(connection)
-                    table.insert(vapeConnections, connection:Connect(function(...)
-                        vapeEvents[event]:Fire(...)
-                    end))
-                end)
-            end
+			table.insert(vapeConnections, bedwars.ZapNetworking.EntityDamageEventZap.On(function(...)
+				vapeEvents.EntityDamageEvent:Fire({
+					entityInstance = ...,
+					damage = select(2, ...),
+					damageType = select(3, ...),
+					fromPosition = select(4, ...),
+					fromEntity = select(5, ...),
+					knockbackMultiplier = select(6, ...),
+					knockbackId = select(7, ...),
+					disableDamageHighlight = select(13, ...)
+				})
+			end))
+            for _, event in {'PlaceBlockEvent', 'BreakBlockEvent'} do
+				table.insert(vapeConnections, bedwars.ZapNetworking[event..'Zap'].On(function(...)
+					local data = {
+						blockRef = {
+							blockPosition = ...,
+						},
+						player = select(5, ...)
+					}
+					for i, v in cache do
+						if ((data.blockRef.blockPosition * 3) - v[1]).Magnitude <= 30 then
+							table.clear(v[3])
+							table.clear(v)
+							cache[i] = nil
+						end
+					end
+					vapeEvents[event]:Fire(data)
+				end))
+			end
         end)
     end)
 
