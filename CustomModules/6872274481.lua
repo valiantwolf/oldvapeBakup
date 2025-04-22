@@ -3060,7 +3060,7 @@ run(function()
 										bedwars.SwordController:stopCharging(store.hand.tool.Name)
 										bedwars.SwordController.chargingMaid:DoCleaning()
 									end
-									bedwars.SwordController:swingSwordAtMouse(0.25 + math.random() / 8)
+									bedwars.SwordController:swingSwordAtMouse(0.39)
 								else
 									firstClick = tick()
 								end
@@ -4877,7 +4877,7 @@ run(function()
 		Function = function() end,
 		Min = 0,
 		Max = 10,
-		Default = 9
+		Default = 6.5
 	})
 	killauraangle = Killaura.CreateSlider({
 		Name = "Max angle",
