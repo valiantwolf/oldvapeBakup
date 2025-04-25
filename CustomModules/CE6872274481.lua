@@ -864,7 +864,20 @@ local function coreswitch(tool, ignore)
     return true
 end
 
+local function getItem(itemName, inv)
+	for slot, item in pairs(inv or store.localInventory.inventory.items) do
+		if item.itemType == itemName then
+			return item, slot
+		end
+	end
+	return nil
+end
+VoidwareFunctions.GlobaliseObject("getItem", getItem)
+
 local function switchItem(tool, delayTime)
+	if tool ~= nil and type(tool) == "string" then
+		tool = getItem(tool) and getItem(tool).tool
+	end
 	local _tool = lplr.Character and lplr.Character:FindFirstChild('HandInvItem') and lplr.Character:FindFirstChild('HandInvItem').Value or nil
 	if _tool ~= nil and _tool ~= tool then
 		coreswitch(tool, true)
@@ -6128,7 +6141,7 @@ run(function()
 				task.spawn(function()
 					repeat
 						task.wait()
-						if ScaffoldHandCheck.Enabled then
+						if ScaffoldHandCheck.Enabled and not AutoSwitch.Enabled then
 							if store.localHand.Type ~= "block" then continue end
 						end
 						if ScaffoldMouseCheck.Enabled then
