@@ -3177,7 +3177,7 @@ end)
 				if callback then
 					RunLoops:BindToRenderStep("AimAssist", function(dt)
 						vapeTargetInfo.Targets.AimAssist = nil
-						if ((not AimAssistClickAim.Enabled) or (tick() - bedwars.SwordController.lastSwing) < 0.4) then
+						if ((not AimAssistClickAim.Enabled) or (workspace:GetServerTimeNow() - bedwars.SwordController.lastAttack) < 0.4) then
 							if HandCheck.Enabled and not (store.localHand and store.localHand.Type and store.localHand.Type == "sword") then return end
 							local plr = EntityNearPosition(18, IgnoreEntities.Enabled)
 							if plr then
@@ -4668,6 +4668,11 @@ run(function()
 	local killauracurrentanim
 	local animationdelay = tick()
 
+	local lastSwingServerTime = 0
+	local lastSwingServerTimeDelta = 0
+
+	local OneTapCooldown = {Value = 5}
+
 	local function createRangeCircle()
 		local suc, err = pcall(function()
 			if identifyexecutor and not string.find(string.lower(identifyexecutor()), "wave") and not shared.CheatEngineMode then
@@ -4838,7 +4843,7 @@ run(function()
 			if store.matchState == 0 then return false end
 		end
 		if killauramouse.Enabled then
-			if (tick() - bedwars.SwordController.lastSwing) > 0.1 then return false end
+			if (workspace:GetServerTimeNow() - bedwars.SwordController.lastAttack) > 0.2 then return false end
 			--if not inputService:IsMouseButtonPressed(0) then return false end
 		end
 		--[[if killauragui.Enabled then
@@ -4873,12 +4878,13 @@ run(function()
 		until (not Killaura.Enabled) or (not killauraautoblock.Enabled)
 	end--]]
 
-	local ChargeRatio = {Value = 9}
-
 	Killaura = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = "Killaura",
 		Function = function(callback)
 			if callback then
+				lastSwingServerTime = Workspace:GetServerTimeNow()
+                lastSwingServerTimeDelta = 0
+				
 				if killaurarangecircle.Enabled then
 					createRangeCircle()
 				end
@@ -5005,6 +5011,7 @@ run(function()
 									if not root then
 										continue
 									end
+									if workspace:GetServerTimeNow() - bedwars.SwordController.lastAttack < OneTapCooldown.Value/10 then continue end
 									local localfacing = entityLibrary.character.HumanoidRootPart.CFrame.lookVector
 									local vec = (plr.RootPart.Position - entityLibrary.character.HumanoidRootPart.Position).unit
 									local angle = math.acos(localfacing:Dot(vec))
@@ -5041,13 +5048,18 @@ run(function()
 									end
 									--if (game.Workspace:GetServerTimeNow() - bedwars.SwordController.lastAttack) < 0.02 then break end
 									local selfpos = selfrootpos + (killaurarange.Value > 14 and (selfrootpos - root.Position).magnitude > 14.4 and (CFrame.lookAt(selfrootpos, root.Position).lookVector * ((selfrootpos - root.Position).magnitude - 14)) or Vector3.zero)
-									bedwars.SwordController.lastAttack = game.Workspace:GetServerTimeNow()
-									bedwars.SwordController.lastSwing = tick()
+									
+									bedwars.SwordController.lastAttack = workspace:GetServerTimeNow()
+                                    bedwars.SwordController.lastSwingServerTime = workspace:GetServerTimeNow()
+
+									lastSwingServerTimeDelta = workspace:GetServerTimeNow() - lastSwingServerTime
+                                    lastSwingServerTime = workspace:GetServerTimeNow()
+									
 									store.attackReach = math.floor((selfrootpos - root.Position).magnitude * 100) / 100
 									store.attackReachUpdate = tick() + 1
 									killaurarealremote:FireServer({
 										weapon = sword.tool,
-										chargeRatio = ChargeRatio.Value/10,
+										chargedAttack = {chargeRatio = 0},
 										entityInstance = plr.Character,
 										validate = {
 											raycast = {
@@ -5056,14 +5068,15 @@ run(function()
 											},
 											targetPosition = attackValue(root.Position),
 											selfPosition = attackValue(selfpos)
-										}
+										},
+										lastSwingServerTimeDelta = lastSwingServerTimeDelta
 									})
 									local spear = getItemNear('spear')
 									if spear then
 										switchItem(spear.tool)
 										killaurarealremote:FireServer({
 											weapon = spear.tool,
-											chargeRatio = ChargeRatio.Value/10,
+											chargedAttack = {chargeRatio = 0},
 											entityInstance = plr.Character,
 											validate = {
 												raycast = {
@@ -5072,7 +5085,8 @@ run(function()
 												},
 												targetPosition = attackValue(root.Position),
 												selfPosition = attackValue(selfpos)
-											}
+											},
+											lastSwingServerTimeDelta = lastSwingServerTimeDelta
 										})
 									end
 									break
@@ -5168,12 +5182,12 @@ run(function()
 		end,
 		Default = 18
 	})
-	ChargeRatio = Killaura.CreateSlider({
-		Name = "Charge Ratio",
+	OneTapCooldown = Killaura.CreateSlider({
+		Name = "OneTap Cooldown",
 		Function = function() end,
 		Min = 0,
-		Max = 10,
-		Default = 6.5
+		Max = 5,
+		Default = 5
 	})
 	killauraangle = Killaura.CreateSlider({
 		Name = "Max angle",
@@ -11000,7 +11014,7 @@ run(function()
 		end
 		local block, blockpos = nil, nil
 		if not bypass then block, blockpos = getLastCovered(pos, normal) end
-		if not block then block, blockpos = getPlacedBlock(bedwars.BlockController:getBlockPosition(pos)) end
+		--if not block then block, blockpos = getPlacedBlock(bedwars.BlockController:getBlockPosition(pos)) end
 		if not block then blockpos, block = bedwars.BlockController:getBlockPosition(pos) end
 		updateVisualizer(block, true)
 		if not isblockbreakable(block, lplr) then blockpos, block = nil, nil end
