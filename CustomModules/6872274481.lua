@@ -2162,7 +2162,7 @@ run(function()
         return not isWhitelistedBed(bedwars.BlockController:getStore():getBlockAt(breakTable.blockPosition)) and OldBreak(self, breakTable, plr)
     end
 
-	local function extractTime(timeText)
+	--[[local function extractTime(timeText)
 		local minutes, seconds = string.match(timeText, "(%d+):(%d%d)")
 		local tbl = {
 			minutes = tonumber(minutes),
@@ -2365,9 +2365,9 @@ run(function()
 			RunService.Heartbeat:Wait()
 			pcall(function() bedwars.StoreController:updateStore() end)
 		until (not shared.vape)
-	end)
+	end)--]]
 
-    --[[local function updateStore(newStore, oldStore)
+    local function updateStore(newStore, oldStore)
         if newStore.Game ~= oldStore.Game then
             store.matchState = newStore.Game.matchState
             store.queueType = newStore.Game.queueType or "bedwars_test"
@@ -2426,7 +2426,9 @@ run(function()
     end
 
     table.insert(vapeConnections, bedwars.ClientStoreHandler.changed:connect(updateStore))
-    updateStore(bedwars.ClientStoreHandler:getState(), {})--]]
+    updateStore(bedwars.ClientStoreHandler:getState(), {})
+
+	local cache = {}
 
 	task.spawn(function()
         pcall(function()
