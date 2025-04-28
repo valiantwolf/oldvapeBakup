@@ -2420,6 +2420,7 @@ run(function()
                 ) or ""
                 store.localHand = {tool = currentHand and currentHand.tool, Type = handType, amount = currentHand and currentHand.amount or 0}
                 store.localHand.toolType = handType
+				store.localHand.itemType = store.localHand.tool and store.localHand.tool.Name
                 store.hand = store.localHand
             end
         end
