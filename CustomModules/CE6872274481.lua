@@ -5784,9 +5784,10 @@ run(function()
     local MitigationStrategies = {}
     local velocityHistory = {}
     local maxHistory = 10
+	local tracked = 0
     
     local function recordVelocity()
-        if not entitylib.isAlive or not entitylib.character or not entitylib.character.HumanoidRootPart then return end
+		if not entitylib.isAlive or not entitylib.character or not entitylib.character.HumanoidRootPart then return end
         local velocity = entitylib.character.HumanoidRootPart.Velocity
         table.insert(velocityHistory, velocity.Y)
         if #velocityHistory > maxHistory then
@@ -5851,15 +5852,24 @@ run(function()
         local belowPos = root.Position - Vector3.new(0, 3, 0)
         bedwars.placeBlock(belowPos, item.itemType, true)
     end
+
+	MitigationStrategies.HumanoidState = function()
+		if entitylib.isAlive then
+			tracked = entitylib.character.Humanoid.FloorMaterial == Enum.Material.Air and math.min(tracked, entitylib.character.RootPart.AssemblyLinearVelocity.Y) or 0
+			if tracked < -85 then
+				entitylib.character.Humanoid:ChangeState(Enum.HumanoidStateType.Landed)
+			end
+		end
+	end
     
     NoFall = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
         Name = 'NoFall',
         Function = function(callback)
             if callback then
                 RunLoops:BindToHeartbeat('NoFallMonitor', function()
-                    recordVelocity()
-                    local risk, distance = analyzeFallRisk()
-                    if risk > RishThreshold.Value then
+					recordVelocity()
+					local risk, distance = analyzeFallRisk()
+					if risk > RishThreshold.Value then
 						if MitigationChoice.Value ~= "ItemDeploy" then
 							MitigationStrategies[MitigationChoice.Value](MitigationChoice.Value == "VelocityClamp" and risk or MitigationChoice.Value == "TeleportBuffer" and distance)
 						else
@@ -5873,11 +5883,12 @@ run(function()
 								MitigationStrategies.VelocityClamp(risk)
 							end
 						end
-                    end
+					end
                 end)
             else
                 RunLoops:UnbindFromHeartbeat('NoFallMonitor')
                 table.clear(velocityHistory)
+				tracked = 0
             end
         end,
         HoverText = 'Prevents fall damage'
@@ -5893,8 +5904,8 @@ run(function()
 
 	MitigationChoice = NoFall.CreateDropdown({
 		Name = "Mitigation Strategies",
-		Default = "VelocityClamp",
-		List = {"VelocityClamp", "TeleportBuffer", "ItemDeploy"},
+		Default = "HumanoidState",
+		List = {"HumanoidState", "VelocityClamp", "TeleportBuffer", "ItemDeploy"},
 		Function = function()
 			if MitigationChoice.Value == "ItemDeploy" then
 				warningNotification("Mitigation Strategies - ItemDeploy", "Not yet finished! Its recommended to use VelocityClamp instead.", 1.5)
