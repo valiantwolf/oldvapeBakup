@@ -431,9 +431,9 @@ local url = shared.RiseMode and "https://github.com/VapeVoidware/VWRise/" or "ht
 local commit = "main"
 writefile(baseDirectory.."commithash2.txt", commit)
 if not shared.RiseMode then
-    commit = "c0557b5a5e23af95059c1cb187f19d7e798a475d"
+    commit = "da553a20eb370ef757e4ba39643c2ed1c5810bf2"
 else
-    commit = '64f373954a9b0fc9230a88087959426ce300a505'
+    commit = '0b9e933f5ee19b56e2f6448a0ebeffb13b4722bc'
 end
 commit = shared.CustomCommit and tostring(shared.CustomCommit) or commit
 writefile(baseDirectory.."commithash2.txt", commit)
