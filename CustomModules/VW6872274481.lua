@@ -10378,3 +10378,243 @@ end)
 		})
 	end)
 end--]]
+
+run(function()
+	local Maid = {}
+	Maid.__index = Maid
+	
+	function Maid.new()
+		return setmetatable({ Tasks = {} }, Maid)
+	end
+	
+	function Maid:Add(task)
+		if typeof(task) == "RBXScriptConnection" or
+		   (typeof(task) == "Instance" and task.Destroy) or
+		   typeof(task) == "function" or
+		   (typeof(task) == "table" and (task.Destroy or task.Disconnect)) then
+			table.insert(self.Tasks, task)
+		else
+			warn("[Maid] Invalid task type: " .. typeof(task))
+		end
+		return task
+	end
+	
+	function Maid:Clean()
+		for _, task in ipairs(self.Tasks) do
+			local success, errorMsg = pcall(function()
+				if typeof(task) == "RBXScriptConnection" then
+					task:Disconnect()
+				elseif typeof(task) == "Instance" then
+					task:Destroy()
+				elseif typeof(task) == "function" then
+					task()
+				elseif typeof(task) == "table" then
+					if task.Destroy then
+						task:Destroy()
+					elseif task.Disconnect then
+						task:Disconnect()
+					end
+				end
+			end)
+			if not success then
+				warn("[Maid] Error cleaning task: " .. tostring(errorMsg))
+			end
+		end
+		table.clear(self.Tasks)
+	end
+	
+	local Services = setmetatable({}, {
+		__index = function(self, key)
+			local suc, service = pcall(game.GetService, game, key)
+			if suc and service then
+				self[key] = service
+				return service
+			else
+				warn(`[Services] Warning: "{key}" is not a valid Roblox service.`)
+				return nil
+			end
+		end
+	})
+	
+    local Players = Services.Players
+    local Workspace = Services.Workspace
+    local maid = Maid.new()
+    local BetterSpectator = { Enabled = false }
+    local Choice = { Value = Players.LocalPlayer.Name }
+    local playerConnections = {} 
+    local connectedPlayerMaid = nil 
+    local localCharacter = nil
+    local refreshDebounce = false 
+    local lastRefreshTime = 0 
+
+    local function getPlayerList()
+        local playerList = {}
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player.Character and player.Character:IsDescendantOf(Workspace) and player.Character.ClassName == "Model" then
+                table.insert(playerList, player.Name)
+            end
+        end
+        return playerList
+    end
+
+    local function findLocalCharacter()
+        if localCharacter and localCharacter:IsDescendantOf(Workspace) and localCharacter.Name == Players.LocalPlayer.Name then
+            return localCharacter
+        end
+        local char = Workspace:FindFirstChild(Players.LocalPlayer.Name)
+        if char and char.ClassName == "Model" then
+            localCharacter = char
+            return char
+        end
+        return nil
+    end
+
+    local function saveLocalCharacter()
+        local char = Players.LocalPlayer.Character
+        if char and char:IsDescendantOf(Workspace) and char.ClassName == "Model" and char.Name == Players.LocalPlayer.Name then
+            localCharacter = char
+        else
+            localCharacter = findLocalCharacter()
+        end
+    end
+
+    local function connectPlayer(player)
+        if playerConnections[player] then
+            playerConnections[player]:Clean()
+        end
+        local playerMaid = Maid.new()
+        playerMaid:Add(player.CharacterAdded:Connect(function()
+            if not refreshDebounce then
+                refreshChoices()
+            end
+        end))
+        playerMaid:Add(player.CharacterRemoving:Connect(function()
+            if not refreshDebounce then
+                refreshChoices()
+            end
+        end))
+        playerConnections[player] = playerMaid
+    end
+
+    local function clearConnections()
+        for _, connectionMaid in pairs(playerConnections) do
+            connectionMaid:Clean()
+        end
+        table.clear(playerConnections)
+    end
+
+    local function initiatePlayers()
+        clearConnections()
+        for _, player in ipairs(Players:GetPlayers()) do
+            connectPlayer(player)
+        end
+    end
+
+    local function updateChoice(playerName)
+        local player = Players:FindFirstChild(playerName)
+        if not player or not player.Character or not player.Character:IsDescendantOf(Workspace) then
+            warningNotification("BetterSpectator", "Selected player is invalid or has no character.", 2)
+            Choice.Value = Players.LocalPlayer.Name
+            Players.LocalPlayer.Character = findLocalCharacter()
+            if connectedPlayerMaid then
+                connectedPlayerMaid:Clean()
+                connectedPlayerMaid = nil
+            end
+            return
+        end
+
+        saveLocalCharacter()
+        Players.LocalPlayer.Character = player.Character
+
+        if connectedPlayerMaid then
+            connectedPlayerMaid:Clean()
+        end
+        connectedPlayerMaid = Maid.new()
+        connectedPlayerMaid:Add(player.CharacterRemoving:Connect(function()
+            Players.LocalPlayer.Character = findLocalCharacter()
+            warningNotification("BetterSpectator", "Spectated player died. Waiting for respawn...", 2)
+        end))
+        connectedPlayerMaid:Add(player.CharacterAdded:Connect(function(newChar)
+            saveLocalCharacter()
+            Players.LocalPlayer.Character = newChar
+            InfoNotification("BetterSpectator", "Spectated player respawned.", 2)
+        end))
+
+        InfoNotification("BetterSpectator", "Now spectating " .. player.Name .. ".", 2)
+    end
+
+    function refreshChoices()
+        if refreshDebounce or tick() - lastRefreshTime < 0.5 then
+            return
+        end
+        refreshDebounce = true
+        lastRefreshTime = tick()
+
+        local playerList = getPlayerList()
+        Choice:Change(playerList)
+        initiatePlayers()
+
+        if BetterSpectator.Enabled and Choice.Value ~= Players.LocalPlayer.Name then
+            updateChoice(Choice.Value)
+        else
+            Players.LocalPlayer.Character = findLocalCharacter()
+            if connectedPlayerMaid then
+                connectedPlayerMaid:Clean()
+                connectedPlayerMaid = nil
+            end
+        end
+
+        refreshDebounce = false
+    end
+
+    BetterSpectator = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+        Name = "BetterSpectator",
+        Function = function(enabled)
+            if enabled then
+                BetterSpectator.Enabled = true
+                initiatePlayers()
+                maid:Add(Players.PlayerAdded:Connect(function(player)
+                    connectPlayer(player)
+                    refreshChoices()
+                end))
+                maid:Add(Players.PlayerRemoving:Connect(function(player)
+                    if playerConnections[player] then
+                        playerConnections[player]:Clean()
+                        playerConnections[player] = nil
+                    end
+                    if Choice.Value == player.Name then
+                        Choice.Value = Players.LocalPlayer.Name
+                        updateChoice(Choice.Value)
+                    end
+                    refreshChoices()
+                end))
+                maid:Add(clearConnections)
+                maid:Add(function()
+                    if connectedPlayerMaid then
+                        connectedPlayerMaid:Clean()
+                        connectedPlayerMaid = nil
+                    end
+                    Players.LocalPlayer.Character = findLocalCharacter()
+                    Choice.Value = Players.LocalPlayer.Name
+                end)
+                refreshChoices()
+            else
+                BetterSpectator.Enabled = false
+                maid:Clean()
+            end
+        end,
+        HoverText = "Allows spectating other players by switching your character's perspective."
+    })
+
+    Choice = BetterSpectator.CreateDropdown({
+        Name = "Player",
+        List = getPlayerList(),
+        Default = Players.LocalPlayer.Name,
+        Function = function(value)
+            Choice.Value = value
+            if BetterSpectator.Enabled then
+                updateChoice(value)
+            end
+        end
+    })
+end)

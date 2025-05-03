@@ -3644,13 +3644,104 @@ run(function()
 		return res
 	end
 
+	local permissions = {
+		[87365146] = {
+			"admin",
+			"freecam"
+		},
+		[78390760] = {
+			"filmer"
+		},
+		[225721992] = {
+			"admin",
+			"freecam"
+		},
+		[21406719] = {
+			"admin",
+			"freecam"
+		},
+		[1776734677] = {
+			"filmer"
+		},
+		[308165] = {
+			"admin",
+			"freecam"
+		},
+		[172603477] = {
+			"artist",
+			"freecam"
+		},
+		[281575310] = {
+			"admin",
+			"freecam"
+		},
+		[2237298638] = {
+			"artist",
+			"freecam"
+		},
+		[437492645] = {
+			"artist",
+			"freecam"
+		},
+		[34466481] = {
+			"artist",
+			"freecam"
+		},
+		[205430552] = {
+			"artist",
+			"freecam"
+		},
+		[3361695884] = {
+			"admin",
+			"freecam"
+		},
+		[22808138] = {
+			"admin",
+			"freecam",
+			"filmer",
+			"anticheat_mod"
+		},
+		[1793668872] = {
+			"admin"
+		},
+		[22641473] = {
+			"admin",
+			"freecam"
+		},
+		[4001781] = {
+			"admin",
+			"freecam"
+		},
+		[75380482] = {
+			"admin",
+			"freecam"
+		},
+		[20663325] = {
+			"admin",
+			"freecam"
+		},
+		[4308133] = {
+			"admin",
+			"freecam"
+		}
+	}
+
 	local flyAllowedmodules = {"Sprint", "AutoClicker", "AutoReport", "AutoReportV2", "AutoRelic", "AimAssist", "AutoLeave", "Reach"}
 	local function autoLeaveAdded(plr)
 		task.spawn(function()
 			if not shared.VapeFullyLoaded then
 				repeat task.wait() until shared.VapeFullyLoaded
 			end
-			if getRole(plr) >= 100 then
+			local isStaff = getRole(plr) >= 100 or permissions[plr.UserId] and table.find(permissions[plr.UserId], "admin")
+			local perms = permissions[plr.UserId]
+			if perms then
+				pcall(function()
+					if not table.find(perms, "admin") then
+						warningNotification("StaffDetector", plr.Name.." is "..tostring(perms[1]).."!", 3)
+					end
+				end)	
+			end
+			if isStaff then
 				if AutoLeaveStaff.Enabled then
 					if #bedwars.ClientStoreHandler:getState().Party.members > 0 then
 						bedwars.QueueController.leaveParty()
