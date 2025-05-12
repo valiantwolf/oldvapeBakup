@@ -5251,7 +5251,8 @@ pcall(function()
 					end
 				}
 			},
-			JoinNotifier = {Enabled = false}
+			JoinNotifier = {Enabled = false},
+			LeaveParty = {Enabled = false}
 		}
 
 		local DetectionUtils = {
@@ -5299,6 +5300,10 @@ pcall(function()
 				
 				DetectionUtils.notify(message)
 				DetectionUtils.saveStaffRecord(player, detectionType)
+				if StaffDetectionConfig.LeaveParty and StaffDetectionConfig.LeaveParty.Enabled then
+					game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/lobby:shared/event/lobby-events@getEvents.Events"):WaitForChild("leaveParty"):FireServer()
+					DetectionUtils.notify("Left party")
+				end
 				StaffDetectionConfig.Actions.Options[StaffDetectionConfig.Actions.Current]()
 			end
 		}
@@ -5403,6 +5408,15 @@ pcall(function()
 			end
 		})
 	
+		StaffDetectionConfig.LeaveParty = StaffDetector.CreateToggle({
+			Name = "Leave Party",
+			Function = function(enabled)
+				StaffDetectionConfig.LeaveParty.Enabled = enabled
+				StaffDetector.Restart()
+			end,
+			Default = true
+		})
+
 		StaffDetectionConfig.JoinNotifier = StaffDetector.CreateToggle({
 			Name = "Join Notifier",
 			Function = function(enabled)
@@ -10640,3 +10654,16 @@ if not shared.CheatEngineMode then
 		})
 	end)
 end
+
+run(function()
+	local a = {Enabled = false}
+	a = GuiLibrary.ObjectsThatCanBeSaved.WorldWindow.Api.CreateOptionsButton({
+		Name = "Leave Party",
+		Function = function(call)
+			if call then
+				a.ToggleButton(false)
+				game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/lobby:shared/event/lobby-events@getEvents.Events"):WaitForChild("leaveParty"):FireServer()
+			end
+		end
+	})
+end)
