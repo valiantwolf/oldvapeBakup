@@ -2236,7 +2236,6 @@ local function InfoNotification(title, text, delay)
 		local frame = GuiLibrary.CreateNotification(title or "Voidware", text or "Successfully called function", delay or 7, "assets/InfoNotification.png")
 		return frame
 	end)
-    warn(title..": "..text)
 	return (suc and res)
 end
 task.spawn(function() repeat task.wait() until shared.VapeFullyLoaded; for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do if v.Type == "Window" then if (not v.Api.Expanded) then v.Api.ExpandToggle(false) end end end end)
