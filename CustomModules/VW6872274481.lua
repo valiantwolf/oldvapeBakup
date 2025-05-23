@@ -4155,7 +4155,7 @@ VoidwareFunctions.GlobaliseObject("EntityNearPosition", EntityNearPosition)
 	})
 end)--]]
 
-run(function()
+--[[run(function()
 	local Autowin = {Enabled = false}
 	local AutowinNotification = {Enabled = true}
 	local bedtween
@@ -4271,7 +4271,7 @@ run(function()
 		end,
 		HoverText = "best paid autowin 2023!1!!! rel11!11!1"
 	})
-end)
+end)--]]
 
 --[[run(function()
 	local function getItemNear(itemName, inv)
