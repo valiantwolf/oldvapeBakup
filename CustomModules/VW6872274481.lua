@@ -10777,6 +10777,8 @@ if not shared.CheatEngineMode then
 					areFriends = suc and res or false
 
 					if suc then
+						self.Friends = self.Friends or {}
+						self.Friends[playerId] = self.Friends[playerId] or {}
 						self.Friends[playerId][otherPlayerId] = areFriends
 						self.Friends[otherPlayerId] = self.Friends[otherPlayerId] or {}
 						self.Friends[otherPlayerId][playerId] = areFriends
