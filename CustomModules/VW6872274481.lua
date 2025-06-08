@@ -5361,7 +5361,7 @@ pcall(function()
 						permissionController = KnitClient.Controllers.PermissionController
 						task.wait()
 					until permissionController
-					
+					if player == game:GetService("Players").LocalPlayer then return end
 					if permissionController:isStaffMember(player) then
 						DetectionUtils.triggerAction(player, "Permissions")
 					end
