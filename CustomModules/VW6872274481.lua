@@ -11263,3 +11263,120 @@ run(function()
         end
     end))
 end)
+
+run(function()
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
+    local LocalPlayer = Players.LocalPlayer
+    local invisibilityEnabled = false
+
+    local function modifyHRP(onEnable)
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+        if onEnable then
+            hrp.Transparency = 0.3
+            hrp.Color = Color3.new(1, 1, 1)
+            hrp.Material = Enum.Material.Plastic
+        else
+            hrp.Transparency = 1
+        end
+        hrp.CanCollide = true
+        hrp.Anchored = false
+    end
+
+    local function setCharacterVisibility(isVisible)
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                part.LocalTransparencyModifier = isVisible and 0 or 1
+            elseif part:IsA("Decal") then
+                part.Transparency = isVisible and 0 or 1
+            elseif part:IsA("LayerCollector") then
+                part.Enabled = isVisible
+            end
+        end
+    end
+
+    local maid = {
+		Clean = function(self)
+			for _, v in pairs(self) do
+				pcall(function()
+					v:Disconnect()
+				end)
+			end
+		end,
+		Add = function(self, connection)
+			table.insert(self, connection)
+		end
+	}
+
+    Invisibility = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+        Name = 'Invisibility',
+        Function = function(callback)
+            invisibilityEnabled = callback
+            maid:Clean()
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+            if callback then
+                InfoNotification('Invisibility Enabled', 'You are now invisible.', 4)
+                modifyHRP(true)
+                setCharacterVisibility(false)
+                maid:Add(RunService.Heartbeat:Connect(function()
+                    if not invisibilityEnabled then return end
+                    local char = LocalPlayer.Character
+                    if not char then return end
+                    local humanoid = char:FindFirstChild("Humanoid")
+                    local rootPart = char:FindFirstChild("HumanoidRootPart")
+                    if not humanoid or not rootPart or humanoid.RigType == Enum.HumanoidRigType.R6 then return end
+                    for _, part in ipairs(char:GetDescendants()) do
+                        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                            part.LocalTransparencyModifier = 1
+                        elseif part:IsA("Decal") then
+                            part.Transparency = 1
+                        elseif part:IsA("LayerCollector") then
+                            part.Enabled = false
+                        end
+                    end
+                    local oldcf = rootPart.CFrame
+                    local oldcamoffset = humanoid.CameraOffset
+                    local newcf = rootPart.CFrame - Vector3.new(0, humanoid.HipHeight + (rootPart.Size.Y / 2) - 1, 0)
+                    rootPart.CFrame = newcf * CFrame.Angles(0, 0, math.rad(180))
+                    humanoid.CameraOffset = Vector3.new(0, -5, 0)
+                    local anim = Instance.new("Animation")
+                    anim.AnimationId = "http://www.roblox.com/asset/?id=11360825341"
+                    local loaded = humanoid.Animator:LoadAnimation(anim)
+                    loaded.Priority = Enum.AnimationPriority.Action4
+                    loaded:Play()
+                    loaded.TimePosition = 0.2
+                    loaded:AdjustSpeed(0)
+                    RunService.RenderStepped:Wait()
+                    loaded:Stop()
+                    humanoid.CameraOffset = oldcamoffset
+                    rootPart.CFrame = oldcf
+                end))
+                maid:Add(LocalPlayer.CharacterAdded:Connect(function()
+                    if invisibilityEnabled then
+                        task.wait(0.5)
+                        if Invisibility and Invisibility.Function then
+                            Invisibility.Function(true, Invisibility)
+                        end
+                    end
+                end))
+            else
+                modifyHRP(false)
+                setCharacterVisibility(true)
+                maid:Clean()
+            end
+        end,
+        Default = false,
+        Tooltip = ""
+    })
+
+    LocalPlayer.CharacterAdded:Connect(function()
+        if invisibilityEnabled then
+            task.wait(0.5)
+            Invisibility.Function(true)
+        end
+    end)
+end)
