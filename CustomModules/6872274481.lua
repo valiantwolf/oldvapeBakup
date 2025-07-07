@@ -11324,6 +11324,7 @@ run(function()
 			if callback then
 				task.spawn(function()
 					AntiVoidPart = Instance.new("Part")
+					shared.AntiVoidPart = AntiVoidPart
 					AntiVoidPart.CanCollide = AntiVoidMode.Value == "Collide"
 					AntiVoidPart.Size = Vector3.new(10000, 1, 10000)
 					AntiVoidPart.Anchored = true
