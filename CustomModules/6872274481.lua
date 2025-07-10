@@ -1824,7 +1824,7 @@ run(function()
     local KnitClient
     repeat
         local success, result = pcall(function()
-            return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6)
+            return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 9)
         end)
         KnitClient = success and result
         if KnitClient then break end
