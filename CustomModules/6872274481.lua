@@ -1679,51 +1679,79 @@ bedwars2.Client = {}
 local cache = {} 
 local namespaceCache = {}
 
+local remoteThrottleTable = {}
+local REMOTE_THROTTLE_TIME = {
+    SwordHit = 0.1,
+    ChestGetItem = 1.0,
+    SetObservedChest = 0.2,
+    _default = 0.1
+}
+
+local function shouldThrottle(remoteName)
+    local now = tick()
+    local throttleTime = REMOTE_THROTTLE_TIME[remoteName] or REMOTE_THROTTLE_TIME._default
+    if not remoteThrottleTable[remoteName] or now - remoteThrottleTable[remoteName] > throttleTime then
+        remoteThrottleTable[remoteName] = now
+        return false
+    end
+	if shared.VoidDev and shared.ThrottleDebug then
+   	 	warn("[Remote Throttle] Throttled remote call to '" .. tostring(remoteName) .. "' at " .. tostring(now))
+	end
+    return true
+end
+
 local function decorateRemote(remote, src)
-	local isFunction = string.find(string.lower(remote.ClassName), "function")
-	local isEvent = string.find(string.lower(remote.ClassName), "remoteevent")
-	local isBindable = string.find(string.lower(remote.ClassName), "bindable")
+    local isFunction = string.find(string.lower(remote.ClassName), "function")
+    local isEvent = string.find(string.lower(remote.ClassName), "remoteevent")
+    local isBindable = string.find(string.lower(remote.ClassName), "bindable")
 
-	if isFunction then
-		function src:CallServer(...)
-			local args = {...}
-			return remote:InvokeServer(unpack(args))
-		end
-	elseif isEvent then
-		function src:CallServer(...)
-			local args = {...}
-			return remote:FireServer(unpack(args))
-		end
-	elseif isBindable then
-		function src:CallServer(...)
-			local args = {...}
-			return remote:Fire(unpack(args))
-		end
-	end
-
-	function src:InvokeServer(...)
+    local function middlewareCall(method, ...)
+        local remoteName = remote.Name
 		local args = {...}
-		src:CallServer(unpack(args))
-	end
+        if shouldThrottle(remoteName) then
+            return
+        end
+        return method(...)
+    end
 
-	function src:FireServer(...)
-		local args = {...}
-		src:CallServer(unpack(args))
-	end
+    if isFunction then
+        function src:CallServer(...)
+            return middlewareCall(function(...) return remote:InvokeServer(...) end, ...)
+        end
+    elseif isEvent then
+        function src:CallServer(...)
+            return middlewareCall(function(...) return remote:FireServer(...) end, ...)
+        end
+    elseif isBindable then
+        function src:CallServer(...)
+            return middlewareCall(function(...) return remote:Fire(...) end, ...)
+        end
+    end
 
-	function src:SendToServer(...)
-		local args = {...}
-		src:CallServer(unpack(...))
-	end
+    function src:InvokeServer(...)
+        local args = {...}
+        src:CallServer(unpack(args))
+    end
 
-	function src:CallServerAsync(...)
-		local args = {...}
-		src:CallServer(unpack(args))
-	end
+    function src:FireServer(...)
+        local args = {...}
+        src:CallServer(unpack(args))
+    end
 
-	src.instance = remote
+    function src:SendToServer(...)
+        local args = {...}
+        src:CallServer(unpack(args))
+    end
 
-	return src
+    function src:CallServerAsync(...)
+        local args = {...}
+        src:CallServer(unpack(args))
+    end
+
+    src.instance = remote
+	src._custom = true
+
+    return src
 end
 
 local remotes_cache
@@ -2079,10 +2107,11 @@ run(function()
     }
 
     local remoteDefinitions = {
-        AttackRemote = function() return dumpRemote(debug.getconstants(KnitClient.Controllers.SwordController.sendServerRequest)) end,
+        --AttackRemote = function() return dumpRemote(debug.getconstants(KnitClient.Controllers.SwordController.sendServerRequest)) end,
         MageRemote = function() return dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.MageController.registerTomeInteraction, 1))) end,
         DropItemRemote = function() return dumpRemote(debug.getconstants(KnitClient.Controllers.ItemDropController.dropItemInHand)) end,
         TrinityRemote = function() return dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.AngelController.onKitEnabled, 1))) end,
+		AttackRemote = function() return bedwars2.Client:Get(remz.AttackRemote, 0) end,
         AckKnockback = function() return bedwars2.Client:Get(remz.AckKnockback, 0) end,
         BatteryRemote = function() return bedwars2.Client:Get(remz.BatteryRemote, 0) end,
         DragonBreath = function() return bedwars2.Client:Get(remz.DragonBreath, 0) end,
@@ -2126,36 +2155,17 @@ run(function()
     local OldBreak = bedwars.BlockController.isBlockBreakable
     store.blockPlacer = bedwars.BlockPlacer.new(bedwars.BlockEngine, "wool_white")
 
-    Client.Get = function(self, remoteName)
+    Client.Get = function(self, res)
+		local remoteName = res
         if type(remoteName) == "table" then
             remoteName = remoteName.instance.Name
         end
-        local call = OldGet(self, remoteName)
-        if remoteName == remotes.AttackRemote then
-            return {
-                instance = call.instance,
-                SendToServer = function(_, attackTable, ...)
-                    local suc, plr = pcall(playersService.GetPlayerFromCharacter, playersService, attackTable.entityInstance)
-                    local selfpos = attackTable.validate.selfPosition.value
-                    local targetpos = attackTable.validate.targetPosition.value
-                    store.attackReach = ((selfpos - targetpos).Magnitude * 100) // 1 / 100
-                    store.attackReachUpdate = tick() + 1
-
-                    if shared.ReachEnabled then
-                        attackTable.validate.raycast = attackTable.validate.raycast or {}
-                        attackTable.validate.selfPosition.value += CFrame.lookAt(selfpos, targetpos).LookVector * math.max((selfpos - targetpos).Magnitude - 14.399, 0)
-                    end
-
-                    if suc and plr and not select(2, whitelist:get(plr)) then
-                        return
-                    end
-                    return call:SendToServer(attackTable, ...)
-                end
-            }
-        elseif remoteName == 'StepOnSnapTrap' and shared.TrapDisablerEnabled then
-            return {SendToServer = function() end}
-        end
-        return call
+       	if remoteName == 'StepOnSnapTrap' and TrapDisabler.Enabled then
+            return { SendToServer = function() end }
+		elseif type(res) == "table" and res._custom then
+			return res
+		end
+        return OldGet(self, remoteName)
     end
 
     bedwars.BlockController.isBlockBreakable = function(self, breakTable, plr)
@@ -4444,7 +4454,33 @@ run(function()
     local killauraboxSize = Vector3.new(6, 9, 6)
 	local killauratargetframe = {Players = {Enabled = false}}
 	local killaurasortmethod = {Value = "Distance"}
-	local killaurarealremote = bedwars.Client:Get(bedwars.AttackRemote).instance
+	local killaurarealremote = {FireServer = function() end}
+	task.spawn(function()
+		killaurarealremote = bedwars.Client:Get(bedwars.AttackRemote)
+		local Reach = Reach or {Enabled = false}
+		local HitBoxes = HitBoxes or {Enabled = false}
+		killaurarealremote.FireServer = function(self, attackTable, ...)
+			local suc, plr = pcall(function()
+				return playersService:GetPlayerFromCharacter(attackTable.entityInstance)
+			end)
+
+			local selfpos = attackTable.validate.selfPosition.value
+			local targetpos = attackTable.validate.targetPosition.value
+			store.attackReach = ((selfpos - targetpos).Magnitude * 100) // 1 / 100
+			store.attackReachUpdate = tick() + 1
+
+			if Reach.Enabled or HitBoxes.Enabled then
+				attackTable.validate.raycast = attackTable.validate.raycast or {}
+				attackTable.validate.selfPosition.value += CFrame.lookAt(selfpos, targetpos).LookVector * math.max((selfpos - targetpos).Magnitude - 14.399, 0)
+			end
+
+			if suc and plr then
+				if not select(2, whitelist:get(plr)) then return end
+			end
+
+			return self:SendToServer(attackTable, ...)
+		end
+	end)
 	local killauramethod = {Value = "Normal"}
 	local killauraothermethod = {Value = "Normal"}
 	local killauraanimmethod = {Value = "Normal"}
@@ -4656,6 +4692,8 @@ run(function()
 		until (not Killaura.Enabled) or (not killauraautoblock.Enabled)
 	end
 
+	local sigridcheck = false
+
 	Killaura = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = "Killaura",
 		Function = function(callback)
@@ -4782,6 +4820,7 @@ run(function()
 						local plrs = {EntityNearPosition(killaurarange.Value, false)}
 						local firstPlayerNear
 						if #plrs > 0 then
+							if sigridcheck and entityLibrary.isAlive and lplr.Character:FindFirstChild("elk") then return end
 							task.spawn(function()
 								pcall(function() 
 									if getItemNear('infernal_saber') then bedwars.Client:Get('HellBladeRelease'):SendToServer({chargeTime = 1, player = lplr, weapon = getItemNear('infernal_saber')}) end
@@ -5262,6 +5301,13 @@ run(function()
 		HoverText = "no hit vape user"
 	})
 	killauranovape.Object.Visible = false
+	Killaura.CreateToggle({
+		Name = "Sigrid Check",
+		Default = false,
+		Function = function(call)
+			sigridcheck = call
+		end
+	})
 end)
 
 run(function()
@@ -10922,7 +10968,7 @@ run(function()
 					repeat task.wait() until store.queueType ~= "bedwars_test"
 					if (not ChestStealerSkywars.Enabled) or store.queueType:find("skywars") then
 						repeat
-							task.wait(0.1)
+							task.wait(0.9)
 							if entityLibrary.isAlive then
 								cheststealerfuncs[ChestStealerOpen.Enabled and "Open" or "Closed"]()
 							end
