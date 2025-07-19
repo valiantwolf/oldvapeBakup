@@ -5160,7 +5160,7 @@ run(function()
 									if not root then
 										continue
 									end
-									if workspace:GetServerTimeNow() - bedwars.SwordController.lastAttack < OneTapCooldown.Value/10 then continue end
+									--if workspace:GetServerTimeNow() - bedwars.SwordController.lastAttack < OneTapCooldown.Value/10 then continue end
 									local localfacing = entityLibrary.character.HumanoidRootPart.CFrame.lookVector
 									local vec = (plr.RootPart.Position - entityLibrary.character.HumanoidRootPart.Position).unit
 									local angle = math.acos(localfacing:Dot(vec))
@@ -5218,7 +5218,7 @@ run(function()
 											targetPosition = attackValue(root.Position),
 											selfPosition = attackValue(selfpos)
 										},
-										lastSwingServerTimeDelta = lastSwingServerTimeDelta
+										--lastSwingServerTimeDelta = lastSwingServerTimeDelta
 									})
 									local spear = getItemNear('spear')
 									if spear then
@@ -5235,7 +5235,7 @@ run(function()
 												targetPosition = attackValue(root.Position),
 												selfPosition = attackValue(selfpos)
 											},
-                                            lastSwingServerTimeDelta = lastSwingServerTimeDelta
+                                            --lastSwingServerTimeDelta = lastSwingServerTimeDelta
 										})
 									end
 									break
@@ -5331,13 +5331,13 @@ run(function()
 		end,
 		Default = 18
 	})
-	OneTapCooldown = Killaura.CreateSlider({
+	--[[OneTapCooldown = Killaura.CreateSlider({
 		Name = "OneTap Cooldown",
 		Function = function() end,
 		Min = 0,
 		Max = 5,
 		Default = 4.2
-	})
+	})--]]
 	killauraangle = Killaura.CreateSlider({
 		Name = "Max angle",
 		Min = 1,
