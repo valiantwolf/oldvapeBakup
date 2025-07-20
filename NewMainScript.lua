@@ -474,6 +474,11 @@ local function vapeGithubRequest(scripturl, isImportant)
     if scripturl:find(".lua") then res = "--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.\n"..res end
     return res
 end
+pcall(function()
+    if not isfile("vape/assetversion.txt") then
+        writefile("vape/assetversion.txt", "")
+    end
+end)
 local function pload(fileName, isImportant, required)
     fileName = tostring(fileName)
     if string.find(fileName, "CustomModules") and string.find(fileName, "Voidware") then

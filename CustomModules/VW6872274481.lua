@@ -2800,6 +2800,16 @@ run(function()
     local hasnt_upgraded_everything = true
     local testing = 1
 
+	local function getItem(itemName, inv)
+		store.localInventory = store.localInventory or store.inventory
+		for slot, item in (inv or store.localInventory.inventory.items) do
+			if item.itemType == itemName then
+				return item, slot
+			end
+		end
+		return nil
+	end
+
     AdetundeExploit = GuiLibrary.ObjectsThatCanBeSaved.ExploitsWindow.Api.CreateOptionsButton({
         Name = 'AdetundeExploit',
         Function = function(calling)
@@ -2815,6 +2825,7 @@ run(function()
 				end)--]]
                 task.spawn(function()
                     repeat
+						if not getItem("frosty_hammer") then return end
                         local returning_table = adetunde_remotes[current_upgrador]()
                         
                         if type(returning_table) == "table" then
