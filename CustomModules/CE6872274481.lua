@@ -5140,6 +5140,7 @@ run(function()
 						task.wait(0.01)
 						if not Killaura.Enabled then break end
 						vapeTargetInfo.Targets.Killaura = nil
+						store.KillauraTarget = nil
 						local plrs = {EntityNearPosition(killaurarange.Value, false)}
 						local firstPlayerNear
 						if #plrs > 0 then
@@ -5185,6 +5186,7 @@ run(function()
 											},
 											Player = plr.Player
 										}
+										store.KillauraTarget = plr.Character
 										if animationdelay <= tick() then
 											animationdelay = tick() + (swordmeta.sword.respectAttackSpeedForEffects and swordmeta.sword.attackSpeed or (killaurasync.Enabled and 0.24 or 0.14))
 											if not killauraswing.Enabled then
@@ -5273,6 +5275,7 @@ run(function()
 				end)
 			else
 				vapeTargetInfo.Targets.Killaura = nil
+				store.KillauraTarget = nil
 				RunLoops:UnbindFromHeartbeat("Killaura")
 				killauraNearPlayer = false
 				for i,v in pairs(killauraboxes) do v.Adornee = nil end
