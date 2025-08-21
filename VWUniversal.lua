@@ -4416,3 +4416,13 @@ run(function()
 		Default = true
 	})
 end)
+
+run(function()
+	local WaterAmbient = {Enabled = false}
+	WaterAmbient = GuiLibrary.ObjectsThatCanBeSaved.WorldWindow.Api.CreateOptionsButton({
+		Name = "Water Ambient",
+		Function = function(call)
+			workspace.Terrain:FillBlock(CFrame.new(Vector3.new(0, 0, 0)), Vector3.new(4096, 50, 4096), call and Enum.Material.Water or Enum.Material.Air)
+		end
+	})
+end)
