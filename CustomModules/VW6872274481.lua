@@ -5369,7 +5369,7 @@ pcall(function()
 	
 			checkPermissions = function(player)
 				local success, KnitClient = pcall(function()
-					return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6)
+					return debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 9)
 				end)
 				
 				if success then
@@ -11390,4 +11390,58 @@ run(function()
             Invisibility.Function(true)
         end
     end)
+end)
+
+--[[run(function()
+    local ClientCrasher
+	local collectionService = game:GetService("CollectionService")
+	local entitylib = entitylib or entityLibrary
+	local signal
+    ClientCrasher = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+        Name = "Client Crasher",
+        Function = function(call)
+            if call then
+                signal = collectionService:GetInstanceAddedSignal('inventory-entity'):Connect(function(player)
+                    local item = player:WaitForChild('HandInvItem')
+                    for i,v in getconnections(item.Changed) do
+						pcall(function()
+                        	v:Disable()
+						end)
+                    end                
+                end)
+
+                repeat
+                    if entitylib.isAlive then
+                        for _, tool in (store.localInventory or store.inventory).inventory.items do
+							task.spawn(switchItem, tool.tool)
+						end
+                    end
+                    task.wait()
+                until not ClientCrasher.Enabled
+            else
+				if signal then
+					pcall(function() signal:Disconnect() end)
+					signal = nil
+				end
+			end
+        end
+    })
+end)--]]
+
+run(function()
+	local JadeExploit = {Enabled = false}
+	JadeExploit = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+		Name = "Jade Exploit",
+		Function = function(call)
+			if call then
+				task.spawn(function()
+					while JadeExploit.Enabled do
+						game:GetService("ReplicatedStorage"):WaitForChild("events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"):WaitForChild("useAbility"):FireServer("jade_hammer_jump")
+						task.wait(0.1)
+						game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("JadeHammerSlam"):FireServer({slamIndex = 0})
+					end
+				end)
+			end
+		end
+	})
 end)
