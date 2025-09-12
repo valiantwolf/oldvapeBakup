@@ -17,14 +17,14 @@ local function run(func)
 	local suc, err = pcall(function()
 		func()
 	end)
-	if err then warn("[VW6872265039.lua Module Error]: "..tostring(debug.traceback(err))) end
+	--if err then warn("[VW6872265039.lua Module Error]: "..tostring(debug.traceback(err))) end
 end
 
 local lplr = game:GetService("Players").LocalPlayer
 
 local bedwars = shared.GlobalBedwars
 
-local function BedwarsInfoNotification(mes)
+--[[local function BedwarsInfoNotification(mes)
     local bedwars = shared.GlobalBedwars
 	local NotificationController = bedwars.NotificationController
 	NotificationController:sendInfoNotification({
@@ -40,7 +40,7 @@ local function BedwarsErrorNotification(mes)
 		message = tostring(mes),
 		image = "rbxassetid://18518244636"
 	});
-end
+end--]]
 VoidwareFunctions.GlobaliseObject("BedwarsErrorNotification", BedwarsErrorNotification)
 
 local function queue()
@@ -187,7 +187,7 @@ run(function()
     })
 end)
 
-run(function()
+--[[run(function()
 	local cheat = {57,84,142,96,195,198,254,218,104,79,208,20,197,34,10,112,20,53,226,37,133,215,119,171,130,96,107,239,245,109,145,250}
 	if shared.EGGHUNTCHATTINGCONNECTION then
 		pcall(function() shared.EGGHUNTCHATTINGCONNECTION:Disconnect() end)
@@ -205,7 +205,7 @@ run(function()
 			pcall(function() shared.EGGHUNTCHATTINGCONNECTION:Disconnect() end)
 		end
 	end)
-end)
+end)--]]
 
 run(function()
 	local AutoCrate = {Enabled = false}
@@ -282,7 +282,7 @@ end)
 
 local GuiLibrary = shared.GuiLibrary
 shared.slowmode = 0
-run(function()
+--[[run(function()
     local HttpService = game:GetService("HttpService")
     local StaffDetectionSystem = {
         Enabled = false
@@ -544,7 +544,7 @@ run(function()
 			end
 		end
 	}) 
-end)
+end)--]]
 
 --[[run(function()
     local LeaderboardEditor = {Enabled = false}
@@ -749,7 +749,7 @@ end)
 end)--]]
 
 local ReportDetector_Cooldown = 0
-run(function()
+--[[run(function()
     local ReportDetector = {Enabled = false}
     local HttpService = game:GetService("HttpService")
     local ReportDetector_GUIObjects = {}
@@ -854,7 +854,7 @@ run(function()
 		local function verifyVal(value) if value ~= nil and value ~= "" then return true, value else return false, value end end
 		if val ~= "Self" then 
 			local suc, res = verifyVal(ReportDetector_GUIObjects[CorresponderTable[val]].Value)
-			if suc then return res else return nil, {Step = 1, ErrorInfo = "Invalid value!", Debug = {Type = val, Res = tostring(res)}} end
+			--[[if suc then return res else return nil, {Step = 1, ErrorInfo = "Invalid value!", Debug = {Type = val, Res = tostring(res)}} end
 		else
 			return game:GetService("Players").LocalPlayer.Name
 		end
@@ -907,9 +907,9 @@ run(function()
 	for _, element in ipairs(GUI_Elements) do
 		createGUIElement(ReportDetector, element)
 	end
-end)
+end)--]]
 
-run(function()
+--[[run(function()
 	local PlayerChanger = {Enabled = false}
 	if GuiLibrary.ObjectsThatCanBeSaved["PlayerChangerOptionsButton"] then
 		PlayerChanger = GuiLibrary.ObjectsThatCanBeSaved["PlayerChangerOptionsButton"]
@@ -942,7 +942,7 @@ run(function()
 			end
 		})
 	else warn("PlayerChangerOptionsButton NOT found!") end
-end)
+end)--]]
 
 --[[run(function()
     local mainFrame = Instance.new("Frame")
