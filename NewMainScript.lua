@@ -432,7 +432,7 @@ pcall(function()
         end
     end
 end)
-local url = shared.RiseMode and "https://github.com/VapeVoidware/VWRise/" or "https://github.com/VapeVoidware/VoidwareBakup"
+--local url = shared.RiseMode and "https://github.com/valiantwolf/VWRise/" or "https://github.com/VapeVoidware/VoidwareBakup"
 local commit = "main"
 writefile(baseDirectory.."commithash2.txt", commit)
 shared.RiseMode = false
