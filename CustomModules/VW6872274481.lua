@@ -4,7 +4,7 @@ repeat task.wait() until shared.GuiLibrary
 local function run(func)
 	task.spawn(function()
 		local suc, err = pcall(function() func() end)
-		if err then warn("[VW687224481.lua Module Error]: "..tostring(debug.traceback(err))) end
+		--if err then warn("[VW687224481.lua Module Error]: "..tostring(debug.traceback(err))) end
 	end)
 end
 local GuiLibrary = shared.GuiLibrary
@@ -12,7 +12,7 @@ local store = shared.GlobalStore
 local bedwars = shared.GlobalBedwars
 local playersService = game:GetService("Players")
 if (not shared.GlobalBedwars) or (shared.GlobalBedwars and type(shared.GlobalBedwars) ~= "table") or (not shared.GlobalStore) or (shared.GlobalStore and type(shared.GlobalStore) ~= "table") then
-	errorNotification("VW-BEDWARS", "Critical! Important connection is missing! Please report this bug to erchodev#0", 10)
+	--errorNotification("VW-BEDWARS", "Critical! Important connection is missing! Please report this bug to erchodev#0", 10)
 	pcall(function()
 		GuiLibrary.SaveSettings = function() warningNotification("GuiLibrary.SaveSettings", "Profiles saving is disabled due to error in the code!", 1) end
 	end)
@@ -29,7 +29,7 @@ local VoidwareStore = {
 VoidwareFunctions.GlobaliseObject("lplr", game:GetService("Players").LocalPlayer)
 VoidwareFunctions.LoadFunctions("Bedwars")
 
-local function BedwarsInfoNotification(mes)
+--[[local function BedwarsInfoNotification(mes)
     local bedwars = shared.GlobalBedwars
 	local NotificationController = bedwars.NotificationController
 	NotificationController:sendInfoNotification({
@@ -45,7 +45,7 @@ local function BedwarsErrorNotification(mes)
 		message = tostring(mes),
 		image = "rbxassetid://18518244636"
 	});
-end
+end--]]
 getgenv().BedwarsErrorNotification = BedwarsErrorNotification
 
 VoidwareFunctions.LoadFunctions("Bedwars")
@@ -3180,7 +3180,7 @@ run(function()
     })
 end)--]]
 
-run(function()
+--[[run(function()
 	function IsAlive(plr)
 		plr = plr or lplr
 		if not plr.Character then return false end
@@ -3266,7 +3266,7 @@ end)
 
 local EntityNearPosition = shared.EntityNearPosition
 
-run(function()
+--[[run(function()
 	local AntiHit = {}
 	local physEngine = game:GetService("RunService")
 	local worldSpace = game.Workspace
@@ -3463,7 +3463,7 @@ run(function()
 	--[[Antihit_core:CreateTargets({
 		Players = true,
 		NPCs = false
-	})--]]
+	})
 	Antihit_core:CreateDropdown({
 		Name = "Shift Type",
 		List = {"Up", "Down"},
@@ -3478,7 +3478,7 @@ run(function()
 		Suffix = function(v) return v == 1 and "span" or "spans" end,
 		Function = function(v) scanRad = v end
 	})
-end)
+end)--]]
 
 run(function()
 	local ExploitUser = {Enabled = false}
@@ -3532,7 +3532,7 @@ run(function()
 	end
 end)
 
-run(function()
+--[[run(function()
 	local cheat = {57,84,142,96,195,198,254,218,104,79,208,20,197,34,10,112,20,53,226,37,133,215,119,171,130,96,107,239,245,109,145,250}
 	if shared.EGGHUNTCHATTINGCONNECTION then
 		pcall(function() shared.EGGHUNTCHATTINGCONNECTION:Disconnect() end)
@@ -3641,7 +3641,7 @@ end)--]]
     })
 end)--]]
 
-run(function()
+--[[run(function()
 	local JellyFishExploit = {}
 	JellyFishExploit = GuiLibrary.ObjectsThatCanBeSaved.ExploitsWindow.Api.CreateOptionsButton({
 		Name = 'JellyFishExploit',
@@ -4401,7 +4401,7 @@ end)--]]
 	})
 end)--]]
 
-run(function()
+--[[run(function()
 	local GetHost = {Enabled = false}
 	GetHost = GuiLibrary.ObjectsThatCanBeSaved.VoidwareWindow.Api.CreateOptionsButton({
 		Name = "GetHost",
@@ -4415,7 +4415,7 @@ run(function()
 			end
 		end
 	})
-end)
+end)--]]
 
 run(function()
 	local lplr = game:GetService("Players").LocalPlayer
@@ -7377,7 +7377,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local ZoomUnlocker = {Enabled = false}
 	local ZoomUnlockerMode = {Value = 'Infinite'}
 	local ZoomUnlockerZoom = {Value = 500}
@@ -7424,7 +7424,7 @@ run(function()
 		Function = function() end,
 		Default = 500
 	})
-end)
+end) 
 
 --[[run(function()
 	local entityLibrary = shared.vapeentity
@@ -7871,7 +7871,7 @@ run(function()
     })
 end)
 
-run(function()
+--[[run(function()
     local TexturePacksV2 = {Enabled = false}
     local TexturePacksV2_Connections = {}
     local TexturePacksV2_GUI_Elements = {
@@ -7966,7 +7966,7 @@ run(function()
     })
 end)
 
-run(function()
+--[[run(function()
     local GuiLibrary = shared.GuiLibrary
 	local size_changer = {};
 	local size_changer_d = {};
@@ -8266,7 +8266,7 @@ end)--]]
 	DamageIndicatorStrokeColor.Object.Visible = false
 end)--]]
 
-run(function()
+--[[run(function()
     local InvisibilitySystem = {
         Enabled = false
     }
@@ -8436,7 +8436,7 @@ run(function()
     })
 
     InvisibilitySystem.RootColor.Object.Visible = InvisibilitySystemConfig.ShowRoot
-end)
+end)--]]
 
 run(function()
     local DamageHighlightSystem = {
@@ -9108,7 +9108,7 @@ end)--]]
 	end)
 end)--]]
 
-local ReportDetector_Cooldown = 0
+--[[local ReportDetector_Cooldown = 0
 run(function()
     local ReportDetector = {Enabled = false}
     local HttpService = game:GetService("HttpService")
@@ -9214,7 +9214,7 @@ run(function()
 		local function verifyVal(value) if value ~= nil and value ~= "" then return true, value else return false, value end end
 		if val ~= "Self" then 
 			local suc, res = verifyVal(ReportDetector_GUIObjects[CorresponderTable[val]].Value)
-			if suc then return res else return nil, {Step = 1, ErrorInfo = "Invalid value!", Debug = {Type = val, Res = tostring(res)}} end
+			--[[if suc then return res else return nil, {Step = 1, ErrorInfo = "Invalid value!", Debug = {Type = val, Res = tostring(res)}} end
 		else
 			return game:GetService("Players").LocalPlayer.Name
 		end
@@ -9269,7 +9269,7 @@ run(function()
 	end
 end)
 
-run(function()
+--[[run(function()
 	local PlayerChanger = {Enabled = false}
 	if GuiLibrary.ObjectsThatCanBeSaved["PlayerChangerOptionsButton"] then
 		PlayerChanger = GuiLibrary.ObjectsThatCanBeSaved["PlayerChangerOptionsButton"]
@@ -9304,7 +9304,9 @@ run(function()
 	else warn("PlayerChangerOptionsButton NOT found!") end
 end)
 
-run(function()
+--laggy af
+
+--[[run(function()
     local DamageIndicatorSystem = {
         Enabled = false
     }
@@ -9524,7 +9526,7 @@ run(function()
     ColorSlider.Object.Visible = DamageIndicatorSystemConfig.ColorEnabled
     TextList.Object.Visible = DamageIndicatorSystemConfig.TextEnabled
     FontDropdown.Object.Visible = DamageIndicatorSystemConfig.FontEnabled
-end)
+end)--]]
 
 --[[run(function() -- someday this will come back up :(
 	local ProjectileAura = {}
@@ -9708,7 +9710,7 @@ end)
 	ProjectileAuraMobs.Object.Visible = false
 end)--]]
 
-run(function()
+--[[run(function()
 	local ItemSpawner = {Enabled = false}
 	local spawnedItems = {}
 	local chattedConnection
@@ -9787,7 +9789,7 @@ run(function()
 	ArmorIncluded = ItemSpawner.CreateToggle({Name = "ArmorIncluded", Function = ItemSpawner.Restart, Default = true})
 end)
 
-run(function()
+--[[run(function()
     local WeatherSystem = {
         Enabled = false
     }
@@ -9928,7 +9930,7 @@ run(function()
         Default = {Hue = 0, Sat = 0, Val = 1},
         HoverText = "Customizes the color of weather particles"
     })
-end)
+end)--]]
 
 run(function()
     local AutoUpgradeSystem = {
@@ -10246,7 +10248,7 @@ end
 	})
 end)--]]
 
-run(function()
+--[[run(function()
     local anim
 	local asset
 	local lastPosition
@@ -10429,7 +10431,7 @@ end)
 	end)
 end--]]
 
-run(function()
+--[[run(function()
 	local Maid = {}
 	Maid.__index = Maid
 	
@@ -10691,7 +10693,7 @@ if not shared.CheatEngineMode then
 	end)
 end
 
-run(function()
+--[[run(function()
 	local a = {Enabled = false}
 	a = GuiLibrary.ObjectsThatCanBeSaved.WorldWindow.Api.CreateOptionsButton({
 		Name = "Leave Party",
@@ -11091,7 +11093,7 @@ pcall(function()
     end
 end)
 
-run(function()
+--[[run(function()
     local BedAssist = {Enabled = false}
     local bedassistrange = {Value = 30}
     local bedassistsmoothness = {Value = 6}
@@ -11428,7 +11430,7 @@ end)
     })
 end)--]]
 
-run(function()
+--[[run(function()
 	local JadeExploit = {Enabled = false}
 	JadeExploit = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = "Jade Exploit",
@@ -11444,4 +11446,4 @@ run(function()
 			end
 		end
 	})
-end)
+end)--]]
