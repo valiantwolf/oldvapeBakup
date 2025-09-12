@@ -10,7 +10,7 @@ local baseDirectory = shared.RiseMode and "rise/" or "vape/"
 
 local function vapeGithubRequest(scripturl)
 	if not isfile(baseDirectory..scripturl) then
-		local suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/"..readfile("vape/commithash.txt").."/"..scripturl, true) end)
+		local suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/valiantwolf/oldvape/"..readfile("vape/commithash.txt").."/"..scripturl, true) end)
 		assert(suc, res)
 		assert(res ~= "404: Not Found", res)
 		if scripturl:find(".lua") then res = "--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.\n"..res end
@@ -22,7 +22,7 @@ local function run(func)
 	local suc, err = pcall(function()
 		func()
 	end)
-	if err then warn("[VWUniversal.lua Module Error]: "..tostring(debug.traceback(err))) end
+	--if err then warn("[VWUniversal.lua Module Error]: "..tostring(debug.traceback(err))) end
 end
 local vapeConnections = {}
 GuiLibrary.SelfDestructEvent.Event:Connect(function()
@@ -189,7 +189,7 @@ local newcolor = function() return {Hue = 0, Sat = 0, Value = 0} end
 
 local textlabel = Instance.new("TextLabel")
 textlabel.Size = UDim2.new(1, 0, 0, 36)
-textlabel.Text = "discord.gg/voidware"
+textlabel.Text = ""
 textlabel.BackgroundTransparency = 1
 textlabel.ZIndex = 10
 textlabel.TextStrokeTransparency = 0
@@ -328,7 +328,7 @@ run(function()
     })
 end)
 
-run(function() local Shader = {Enabled = false}
+--[[run(function() local Shader = {Enabled = false}
 	local ShaderColor = {Hue = 0, Sat = 0, Value = 0}
 	local ShaderTintSlider
 	local ShaderBlur
@@ -469,7 +469,7 @@ end)
 	end)
 end)--]]
 
-run(function() local chatDisable = {Enabled = false}
+--[[run(function() local chatDisable = {Enabled = false}
 	local chatVersion = function()
 		if game.Chat:GetChildren()[1] then return true else return false end
 	end
@@ -505,7 +505,7 @@ run(function() local chatDisable = {Enabled = false}
         Name = 'CreditsButtonInstance',
         Credits = 'Render'
     }) 
-end)
+end)--]]
 
 run(function() local CharacterOutline = {}
 	local CharacterOutlineColor = newcolor()
@@ -1024,7 +1024,7 @@ run(function()
 	})
 end)
 
-run(function() local VapePrivateDetector = {Enabled = false}
+--[[run(function() local VapePrivateDetector = {Enabled = false}
 	local VPLeave = {Enabled = false}
 	local alreadydetected = {}
 	VapePrivateDetector = GuiLibrary.ObjectsThatCanBeSaved.VoidwareWindow.Api.CreateOptionsButton({
@@ -1080,7 +1080,7 @@ run(function() local VapePrivateDetector = {Enabled = false}
 		if shared.vapewhitelist:get(lplr) ~= 0 then 
 			pcall(GuiLibrary.RemoveObject, "VapePrivateDetectorOptionsButton")
 		end
-	end)--]]
+	end)
 end)
 
 run(function() local InfiniteYield = {Enabled = false}
@@ -1688,7 +1688,7 @@ run(function()
 	})
 end)
 
-run(function()
+--[[run(function()
 	local guifonts = {};
 	local guifontwhite = {};
 	local guifontcustom = {};
@@ -1744,7 +1744,7 @@ run(function()
 			end
 		end
 	})
-end)
+end)-]]
 
 --[[run(function() local RestartVoidware = {}
 	RestartVoidware = GuiLibrary.ObjectsThatCanBeSaved.FunnyWindow.Api.CreateOptionsButton({
@@ -1778,7 +1778,7 @@ run(function() local RestartVoidware = {}
 			end
 		end
 	}) 
-end)--]]
+end)
 
 run(function() 
 	local AestheticLighting = {}
