@@ -1162,7 +1162,7 @@ run(function()
 			if not first then
 				self.olddata = isfile('vape/profiles/whitelist.json') and readfile('vape/profiles/whitelist.json') or nil
 			end
-			self.data = pDecode(self.textdata)
+			--self.data = pDecode(self.textdata) or self.data
 			if suc then
 				self.vapedata = pDecode(self.vapetextdata)
 				if self.vapedata ~= nil and type(self.vapedata) == 'table' then
