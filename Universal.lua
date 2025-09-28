@@ -1162,7 +1162,7 @@ run(function()
 			if not first then
 				self.olddata = isfile('vape/profiles/whitelist.json') and readfile('vape/profiles/whitelist.json') or nil
 			end
-			self.data = pDecode(self.textdata)
+			--self.data = pDecode(self.textdata) or self.data
 			if suc then
 				self.vapedata = pDecode(self.vapetextdata)
 				if self.vapedata ~= nil and type(self.vapedata) == 'table' then
@@ -1239,7 +1239,7 @@ shared.vapewhitelist = table.clone(whitelist)
 table.freeze(shared.vapewhitelist)
 task.spawn(function()
 	run(function()
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VWCE/0935d918e41e30056a2e08c8ce2bcc5ccfa3c985/CheatEngine/StoreMeta.json"))()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VWCE/0c0cf1e614e3af2851b9b922956cf96f1d626751/CheatEngine/StoreMeta.json"))()
 	end)
 end)
 pcall(function()

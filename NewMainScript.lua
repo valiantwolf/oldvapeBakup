@@ -436,7 +436,7 @@ end)
 local commit = "main"
 writefile(baseDirectory.."commithash2.txt", commit)
 shared.RiseMode = false
-commit = "7e742c51b01136866336992ad99554ddf0ae321e"
+commit = "2fd81fd9277b56ff55e57b8a962ec68b24a6258f"
 --[[if not shared.RiseMode then
     commit = "60143661ed276fb2600b1a5f09015ecce12ead82"
 else
