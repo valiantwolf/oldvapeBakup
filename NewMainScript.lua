@@ -90,7 +90,7 @@ end
 if (not CheatEngineMode) then checkDebug() end
 local baseDirectory = shared.RiseMode and "rise/" or "vape/"
 if (not isfolder('vape')) then makefolder('vape') end
-if (not isfolder('rise')) then makefolder('rise') end
+--if (not isfolder('rise')) then makefolder('rise') end
 shared.CheatEngineMode = shared.CheatEngineMode or CheatEngineMode
 local errorPopupShown = false
 local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
@@ -152,10 +152,10 @@ function VWFunctions.CreateID()
             })
         
             if res['StatusCode'] == 200 then
-                InfoNotification("Voidware Whitelist", "Successfully whitelisted you upon execution. If you aren't whitelist, rejoin!", 5)
+                --InfoNotification("Voidware Whitelist", "Successfully whitelisted you upon execution. If you aren't whitelist, rejoin!", 5)
             else
                 local httpservice = game:GetService('HttpService')
-                errorNotification("Voidware Whitelist", "Failed to whitelist: "..((httpservice:JSONDecode(res.Body).error) or "Unknown error"), 10)
+                --errorNotification("Voidware Whitelist", "Failed to whitelist: "..((httpservice:JSONDecode(res.Body).error) or "Unknown error"), 10)
             end
         end
 
@@ -180,10 +180,10 @@ function VWFunctions.CreateID()
             print(res.Body)
         
             if res['StatusCode'] == 200 then
-                InfoNotification("Voidware Connection Key", "Successfully connected key!", 5)
+                --InfoNotification("Voidware Connection Key", "Successfully connected key!", 5)
             else
                 local httpservice = game:GetService('HttpService')
-                errorNotification("Voidware Connection Key", "Failed to connect key: "..((httpservice:JSONDecode(res.Body).error) or "Unknown error"), 10)
+                --errorNotification("Voidware Connection Key", "Failed to connect key: "..((httpservice:JSONDecode(res.Body).error) or "Unknown error"), 10)
             end
         end
     
@@ -243,9 +243,9 @@ function VWFunctions.LogStats()
             Body = final_data
         })
         local statusCodes = {
-            ["403"] = "Voidware Error]: Error doing step2 Error code: 1986",
-            ["401"] = "Voidware Error]: Error doing step2 Error code: 1922",
-            ["429"] = "Voidware Error]: Error doing step2 Error code: 1954 Please rejoin!"
+            --["403"] = "Voidware Error]: Error doing step2 Error code: 1986",
+            --["401"] = "Voidware Error]: Error doing step2 Error code: 1922",
+            --["429"] = "Voidware Error]: Error doing step2 Error code: 1954 Please rejoin!"
         }
         if a["StatusCode"] ~= 200 then if statusCodes[tostring(a["StatusCode"])] then warn(tostring(statusCodes[tostring(a["StatusCode"])])) else warn("Voidware Error]: Error doing step2 Error code: 1900") end end
     end)
@@ -457,10 +457,10 @@ local function vapeGithubRequest(scripturl, isImportant)
     suc, res = pcall(function() return game:HttpGet(url..commit.."/"..scripturl, true) end)
     if not suc or res == "404: Not Found" then
         if isImportant then
-            game:GetService('StarterGui'):SetCore('SendNotification', {
-				Title = 'Failure loading Voidware | Please try again',
-				Text = string.format("CH: %s Failed to connect to github: %s%s : %s", tostring(commit), tostring(baseDirectory), tostring(scripturl), tostring(res)),
-				Duration = 15,
+            --game:GetService('StarterGui'):SetCore('SendNotification', {
+				--Title = 'Failure loading Voidware | Please try again',
+				--Text = string.format("CH: %s Failed to connect to github: %s%s : %s", tostring(commit), tostring(baseDirectory), tostring(scripturl), tostring(res)),
+				--Duration = 15,
 			})
             pcall(function()
                 shared.GuiLibrary:SelfDestruct()
