@@ -65,8 +65,8 @@ local store = {
 		universalLagbacks = 0
 	},
 	whitelist = {
-		chatStrings1 = {helloimusinginhaler = "vape"},
-		chatStrings2 = {vape = "helloimusinginhaler"},
+		--chatStrings1 = {helloimusinginhaler = "vape"},
+		--chatStrings2 = {vape = "helloimusinginhaler"},
 		clientUsers = {},
 		oldChatFunctions = {}
 	},
@@ -112,7 +112,7 @@ end
 
 local function vapeGithubRequest(scripturl)
 	if not isfile("vape/"..scripturl) then
-		local suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/vapevoidware/"..readfile("vape/commithash.txt").."/"..scripturl, true) end)
+		local suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/valiantwolf/oldvape/"..readfile("vape/commithash.txt").."/"..scripturl, true) end)
 		assert(suc, res)
 		assert(res ~= "404: Not Found", res)
 		if scripturl:find(".lua") then res = "--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.\n"..res end
@@ -162,7 +162,7 @@ local run = function(func)
 		func()
 	else
 		local suc, err = pcall(function() func() end)
-		if (not suc) then errorNotification("Voidware 4481", 'Failure executing function: '..tostring(err), 3); warn(debug.traceback(tostring(err))) end
+		--if (not suc) then errorNotification("Voidware 4481", 'Failure executing function: '..tostring(err), 3); warn(debug.traceback(tostring(err))) end
 	end
 end
 
